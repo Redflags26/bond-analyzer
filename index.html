@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bond Strength & Dynamic Analyzer</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between font-sans">
+
+    <header class="bg-white border-b border-slate-200 py-4 px-6 shadow-sm">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold text-indigo-600 tracking-tight">🔬 Chat Dynamics Lab</h1>
+            <span class="text-xs bg-indigo-50 text-indigo-700 font-medium px-2.5 py-1 rounded-full">DeepSeek V4-Flash</span>
+        </div>
+    </header>
+
+    <main class="max-w-4xl w-full mx-auto p-4 md:p-6 flex-grow space-y-6">
+        <section class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-3">
+            <label for="chatInput" class="block text-sm font-bold text-slate-700">Paste Chat Conversation</label>
+            <textarea id="chatInput" rows="10" placeholder="Alice: Hey, are we still on for today?&#10;Bob: Yeah completely! Can't wait." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-sm font-mono placeholder-slate-400"></textarea>
+            
+            <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition-colors cursor-pointer flex justify-center items-center gap-2 shadow-xs">
+                Analyze Dynamics
+            </button>
+        </section>
+
+        <section id="resultSection" class="hidden bg-white p-6 rounded-xl border border-indigo-100 shadow-xs space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Analysis Metrics</h3>
+                </div>
+                <div class="flex items-center gap-3 bg-indigo-50/50 p-2 rounded-xl border border-indigo-100">
+                    <span class="text-sm font-semibold text-indigo-900">Bond Strength:</span>
+                    <span id="bondStrengthMeter" class="text-2xl font-black text-indigo-600">0%</span>
+                </div>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Nature of Participants</h4>
+                <div id="summaryText" class="p-4 bg-slate-50 border border-slate-100 rounded-lg text-sm text-slate-700 italic"></div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        async function analyzeChat() {
+            const chatLog = document.getElementById('chatInput').value.trim();
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const resultSection = document.getElementById('resultSection');
+            
+            if (!chatLog) {
+                alert('Please enter a chat conversation.');
+                return;
+            }
+
+            analyzeBtn.disabled = true;
+            analyzeBtn.innerText = 'Evaluating Interaction Patterns...';
+            resultSection.classList.add('hidden');
+
+            try {
+                // Points directly to our serverless backend location
+                const response = await fetch("/api/analyze", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ chatLog })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Server Error');
+
+                document.getElementById('bondStrengthMeter').innerText = data.bond_strength || 'N/A';
+                document.getElementById('summaryText').innerText = `"${data.summary || 'No summary generated.'}"`;
+                resultSection.classList.remove('hidden');
+
+            } catch (err) {
+                alert(`Error: ${err.message}`);
+            } finally {
+                analyzeBtn.disabled = false;
+                analyzeBtn.innerText = 'Analyze Dynamics';
+            }
+        }
+    </script>
+</body>
+</html>
