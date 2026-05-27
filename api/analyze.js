@@ -61,7 +61,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openrouter/auto", 
+        model: "openrouter/free", 
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: chatLog }
