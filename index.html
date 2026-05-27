@@ -30,46 +30,70 @@
 
         <section id="resultSection" class="hidden bg-white p-6 rounded-xl border border-indigo-100 shadow-xs space-y-6">
             
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-                <div>
+            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-slate-100 pb-5">
+                <div class="space-y-1">
                     <h3 class="text-lg font-bold text-slate-800">Psychological Assessment</h3>
-                    <p class="text-xs text-slate-500">Multivariant interaction indexing framework</p>
+                    <p class="text-xs text-slate-500">Pillar synthesis behavioral evaluation indexing framework</p>
                 </div>
-                <div class="flex items-center gap-3 bg-indigo-50/50 p-2.5 rounded-xl border border-indigo-100">
-                    <span class="text-sm font-bold text-indigo-900">Overall Bond Strength:</span>
-                    <span id="bondStrengthMeter" class="text-2xl font-black text-indigo-600">0%</span>
+                <div class="flex flex-col items-end gap-1.5 bg-indigo-50/60 p-3 rounded-xl border border-indigo-100 max-w-sm w-full sm:w-auto">
+                    <div class="flex items-center justify-between w-full gap-4">
+                        <span class="text-sm font-bold text-indigo-900">Overall Bond Strength:</span>
+                        <span id="bondStrengthMeter" class="text-2xl font-black text-indigo-600">0%</span>
+                    </div>
+                    <span id="bondStrengthReason" class="text-[11px] text-indigo-950/80 leading-tight italic text-right block mt-1"></span>
                 </div>
             </div>
 
             <div>
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Relational Vectors Matrix</h4>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div class="p-3 bg-slate-50 border border-slate-200/60 rounded-xl">
-                        <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Bond Positivity</span>
-                        <span id="positivityVal" class="text-xl font-bold text-emerald-600">--</span>
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Relational Vectors Matrix (Drivers Synthesis)</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <div class="p-4 bg-slate-50 border border-slate-200/60 rounded-xl flex flex-col justify-between space-y-2">
+                        <div>
+                            <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Bond Positivity</span>
+                            <span id="positivityVal" class="text-2xl font-black text-emerald-600">--</span>
+                        </div>
+                        <p id="positivityReason" class="text-xs text-slate-600 leading-normal border-t border-slate-200/40 pt-1.5 italic"></p>
                     </div>
-                    <div class="p-3 bg-slate-50 border border-slate-200/60 rounded-xl">
-                        <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Conflict Resolution</span>
-                        <span id="conflictVal" class="text-xl font-bold text-blue-600">--</span>
+
+                    <div class="p-4 bg-slate-50 border border-slate-200/60 rounded-xl flex flex-col justify-between space-y-2">
+                        <div>
+                            <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Conflict Resolution</span>
+                            <span id="conflictVal" class="text-2xl font-black text-blue-600">--</span>
+                        </div>
+                        <p id="conflictReason" class="text-xs text-slate-600 leading-normal border-t border-slate-200/40 pt-1.5 italic"></p>
                     </div>
-                    <div class="p-3 bg-slate-50 border border-slate-200/60 rounded-xl">
-                        <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Safety & Trust</span>
-                        <span id="safetyVal" class="text-xl font-bold text-indigo-600">--</span>
+
+                    <div class="p-4 bg-slate-50 border border-slate-200/60 rounded-xl flex flex-col justify-between space-y-2">
+                        <div>
+                            <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Safety & Trust</span>
+                            <span id="safetyVal" class="text-2xl font-black text-indigo-600">--</span>
+                        </div>
+                        <p id="safetyReason" class="text-xs text-slate-600 leading-normal border-t border-slate-200/40 pt-1.5 italic"></p>
                     </div>
-                    <div class="p-3 bg-slate-50 border border-slate-200/60 rounded-xl">
-                        <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Relationship Dynamics</span>
-                        <span id="dynamicsVal" class="text-xl font-bold text-violet-600">--</span>
+
+                    <div class="p-4 bg-slate-50 border border-slate-200/60 rounded-xl flex flex-col justify-between space-y-2">
+                        <div>
+                            <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Relationship Dynamics</span>
+                            <span id="dynamicsVal" class="text-2xl font-black text-violet-600">--</span>
+                        </div>
+                        <p id="dynamicsReason" class="text-xs text-slate-600 leading-normal border-t border-slate-200/40 pt-1.5 italic"></p>
                     </div>
-                    <div class="p-3 bg-slate-50 border border-slate-200/60 rounded-xl col-span-2 md:col-span-1">
-                        <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Toxicity Index</span>
-                        <span id="toxicityVal" class="text-xl font-bold text-rose-600">--</span>
+
+                    <div class="p-4 bg-slate-50 border border-slate-200/60 rounded-xl md:col-span-2 flex flex-col justify-between space-y-2">
+                        <div>
+                            <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Toxicity Index</span>
+                            <span id="toxicityVal" class="text-2xl font-black text-rose-600">--</span>
+                        </div>
+                        <p id="toxicityReason" class="text-xs text-slate-600 leading-normal border-t border-slate-200/40 pt-1.5 italic"></p>
                     </div>
+
                 </div>
             </div>
 
             <div>
                 <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Behavioral Synthesis Summary</h4>
-                <div id="summaryText" class="p-4 bg-slate-50 border border-slate-100 rounded-lg text-sm text-slate-700 leading-relaxed italic"></div>
+                <div id="summaryText" class="p-4 bg-slate-50 border border-slate-100 rounded-lg text-sm text-slate-700 leading-relaxed font-medium"></div>
             </div>
         </section>
     </main>
@@ -105,19 +129,30 @@
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Server Processing Error');
 
-                // Render the dynamic model string captured via OpenRouter
                 document.getElementById('modelNameText').innerText = data.modelUsed;
                 modelBadge.classList.remove('hidden');
 
-                // Deconstruct analytics payload values straight into dashboard elements
                 const scores = data.analytics;
+                
                 document.getElementById('bondStrengthMeter').innerText = scores.bond_strength || 'N/A';
+                document.getElementById('bondStrengthReason').innerText = scores.bond_strength_reason ? `"${scores.bond_strength_reason}"` : '';
+
                 document.getElementById('positivityVal').innerText = scores.bond_positivity || 'N/A';
+                document.getElementById('positivityReason').innerText = scores.bond_positivity_reason || '';
+
                 document.getElementById('conflictVal').innerText = scores.conflict_resolution || 'N/A';
+                document.getElementById('conflictReason').innerText = scores.conflict_resolution_reason || '';
+
                 document.getElementById('safetyVal').innerText = scores.safety_trust || 'N/A';
+                document.getElementById('safetyReason').innerText = scores.safety_trust_reason || '';
+
                 document.getElementById('dynamicsVal').innerText = scores.relationship_dynamics || 'N/A';
+                document.getElementById('dynamicsReason').innerText = scores.relationship_dynamics_reason || '';
+
                 document.getElementById('toxicityVal').innerText = scores.toxicity || 'N/A';
-                document.getElementById('summaryText').innerText = `"${scores.summary || 'No behavioral overview generated.'}"`;
+                document.getElementById('toxicityReason').innerText = scores.toxicity_reason || '';
+
+                document.getElementById('summaryText').innerText = scores.summary ? `"${scores.summary}"` : 'No behavioral overview generated.';
                 
                 resultSection.classList.remove('hidden');
 
