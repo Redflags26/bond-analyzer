@@ -3,103 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Chat Dynamics Lab</title>
+    <title>ClarityLab | Relational Dynamics & Interaction Insights</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between font-sans">
+<body class="bg-linear-to-b from-slate-50 to-slate-100/50 text-slate-800 min-h-screen flex flex-col justify-between font-sans selection:bg-indigo-100">
 
-    <header class="bg-white border-b border-slate-200 py-4 px-6 shadow-xs">
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200/60 py-4 px-6 shadow-xs">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold text-indigo-600 tracking-tight">🔬 Advanced Chat Dynamics Lab</h1>
-            <div id="modelBadge" class="hidden text-xs bg-slate-100 text-slate-700 font-mono px-3 py-1 rounded-md border border-slate-200">
-                Model: <span id="modelNameText" class="font-bold text-slate-900">None</span>
+            <div class="flex items-center gap-2">
+                <span class="text-xl">✨</span>
+                <span class="text-lg font-bold text-slate-900 tracking-tight">Clarity<span class="text-indigo-600 font-semibold">Lab</span></span>
+            </div>
+            <div id="modelBadge" class="hidden text-[11px] bg-slate-50 text-slate-500 font-mono px-2.5 py-1 rounded-md border border-slate-200/60">
+                Engine: <span id="modelNameText" class="font-bold text-indigo-600">--</span>
             </div>
         </div>
     </header>
 
+    <section class="max-w-3xl mx-auto text-center px-6 pt-12 pb-6 space-y-4">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            See past the noise. <br class="hidden sm:inline" />Understand your relationship dynamics.
+        </h2>
+        <p class="text-base text-slate-500 max-w-xl mx-auto leading-relaxed">
+            When communication feels heavy, intent gets lost in translation. Paste a recent chat transcript below to run an unbiased, clinical psychological analysis of your conversational patterns, safety thresholds, and hidden triggers.
+        </p>
+        <div class="flex items-center justify-center gap-6 text-xs text-slate-400 font-medium pt-2">
+            <span class="flex items-center gap-1.5">🔒 100% Locally Anonymous</span>
+            <span class="flex items-center gap-1.5">⚖️ Objective Analysis</span>
+            <span class="flex items-center gap-1.5">🧠 Therapeutic Frameworks</span>
+        </div>
+    </section>
+
     <main class="max-w-4xl w-full mx-auto p-4 md:p-6 flex-grow space-y-6">
         
-        <section class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
-            <label for="chatInput" class="block text-sm font-bold text-slate-700">Paste Chat Conversation</label>
-            <textarea id="chatInput" rows="10" placeholder="Alice: Hey, are we still on for today?&#10;Bob: Yeah completely! Can't wait." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-sm font-mono placeholder-slate-400"></textarea>
+        <section class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+            <div class="space-y-1">
+                <label for="chatInput" class="block text-sm font-bold text-slate-800">Paste Conversation Logs</label>
+                <p class="text-xs text-slate-400">Include speaker names (e.g., Alex: text...) for maximum psychological diagnostic depth.</p>
+            </div>
             
-            <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition-colors cursor-pointer flex justify-center items-center gap-2 shadow-xs">
-                Analyze Dynamics
+            <textarea id="chatInput" rows="9" placeholder="Alex: We never talk about this until it's a huge issue.&#10;Taylor: I want to discuss it, I just feel cornered when you bring it up right before work." class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm font-mono placeholder-slate-400 transition-all shadow-inner"></textarea>
+            
+            <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-slate-950 hover:bg-indigo-600 text-white font-semibold py-3.5 px-4 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 shadow-sm tracking-wide">
+                Analyze Interaction Dynamics
             </button>
         </section>
 
-        <section id="resultSection" class="hidden bg-white p-6 rounded-xl border border-indigo-100 shadow-xs space-y-6">
+        <section id="resultSection" class="hidden bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-8 animate-fadeIn">
             
-            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-slate-100 pb-5">
+            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-5 border-b border-slate-100 pb-6">
                 <div class="space-y-1">
-                    <h3 class="text-lg font-bold text-slate-800">Psychological Assessment</h3>
-                    <p class="text-xs text-slate-500">Pillar synthesis behavioral evaluation indexing framework</p>
+                    <span class="text-[10px] bg-indigo-50 text-indigo-700 font-bold tracking-wider uppercase px-2 py-0.5 rounded-md">Macro Diagnostic</span>
+                    <h3 class="text-xl font-bold text-slate-900">Conversational Synchronization</h3>
+                    <p id="bondStrengthReason" class="text-xs text-slate-500 leading-relaxed max-w-md italic mt-1"></p>
                 </div>
-                <div class="flex flex-col items-end gap-1.5 bg-indigo-50/60 p-3 rounded-xl border border-indigo-100 max-w-sm w-full sm:w-auto">
-                    <div class="flex items-center justify-between w-full gap-4">
-                        <span class="text-sm font-bold text-indigo-900">Overall Bond Strength:</span>
-                        <span id="bondStrengthMeter" class="text-2xl font-black text-indigo-600">0%</span>
-                    </div>
-                    <span id="bondStrengthReason" class="text-[11px] text-indigo-950/80 leading-tight italic text-right block mt-1"></span>
+                <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100 min-w-[200px] justify-between">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Bond Strength</span>
+                    <span id="bondStrengthMeter" class="text-3xl font-black text-indigo-600 tracking-tight">0%</span>
                 </div>
             </div>
 
-            <div>
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Relational Vectors Matrix (Drivers Synthesis)</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-4">
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Dynamic Vector Indexes</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     
-                    <div class="p-4 bg-slate-50 border border-slate-200/60 rounded-xl flex flex-col justify-between space-y-2">
-                        <div>
-                            <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Bond Positivity</span>
-                            <span id="positivityVal" class="text-2xl font-black text-emerald-600">--</span>
+                    <div class="p-5 bg-slate-50 rounded-xl border border-slate-200/50 flex flex-col justify-between space-y-3">
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Bond Positivity</span>
+                                <span id="positivityVal" class="text-lg font-extrabold text-emerald-600">--</span>
+                            </div>
+                            <div class="w-full bg-slate-200/70 h-1.5 rounded-full overflow-hidden">
+                                <div id="positivityBar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
                         </div>
-                        <p id="positivityReason" class="text-xs text-slate-600 leading-normal border-t border-slate-200/40 pt-1.5 italic"></p>
+                        <p id="positivityReason" class="text-xs text-slate-500 leading-relaxed font-medium bg-white p-2.5 rounded-lg border border-slate-100"></p>
                     </div>
 
-                    <div class="p-4 bg-slate-50 border border-slate-200/60 rounded-xl flex flex-col justify-between space-y-2">
-                        <div>
-                            <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Conflict Resolution</span>
-                            <span id="conflictVal" class="text-2xl font-black text-blue-600">--</span>
+                    <div class="p-5 bg-slate-50 rounded-xl border border-slate-200/50 flex flex-col justify-between space-y-3">
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Conflict Resolution</span>
+                                <span id="conflictVal" class="text-lg font-extrabold text-blue-600">--</span>
+                            </div>
+                            <div class="w-full bg-slate-200/70 h-1.5 rounded-full overflow-hidden">
+                                <div id="conflictBar" class="bg-blue-500 h-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
                         </div>
-                        <p id="conflictReason" class="text-xs text-slate-600 leading-normal border-t border-slate-200/40 pt-1.5 italic"></p>
+                        <p id="conflictReason" class="text-xs text-slate-500 leading-relaxed font-medium bg-white p-2.5 rounded-lg border border-slate-100"></p>
                     </div>
 
-                    <div class="p-4 bg-slate-50 border border-slate-200/60 rounded-xl flex flex-col justify-between space-y-2">
-                        <div>
-                            <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Safety & Trust</span>
-                            <span id="safetyVal" class="text-2xl font-black text-indigo-600">--</span>
+                    <div class="p-5 bg-slate-50 rounded-xl border border-slate-200/50 flex flex-col justify-between space-y-3">
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Safety & Trust</span>
+                                <span id="safetyVal" class="text-lg font-extrabold text-indigo-600">--</span>
+                            </div>
+                            <div class="w-full bg-slate-200/70 h-1.5 rounded-full overflow-hidden">
+                                <div id="safetyBar" class="bg-indigo-500 h-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
                         </div>
-                        <p id="safetyReason" class="text-xs text-slate-600 leading-normal border-t border-slate-200/40 pt-1.5 italic"></p>
+                        <p id="safetyReason" class="text-xs text-slate-500 leading-relaxed font-medium bg-white p-2.5 rounded-lg border border-slate-100"></p>
                     </div>
 
-                    <div class="p-4 bg-slate-50 border border-slate-200/60 rounded-xl flex flex-col justify-between space-y-2">
-                        <div>
-                            <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Relationship Dynamics</span>
-                            <span id="dynamicsVal" class="text-2xl font-black text-violet-600">--</span>
+                    <div class="p-5 bg-slate-50 rounded-xl border border-slate-200/50 flex flex-col justify-between space-y-3">
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Relationship Dynamics</span>
+                                <span id="dynamicsVal" class="text-lg font-extrabold text-violet-600">--</span>
+                            </div>
+                            <div class="w-full bg-slate-200/70 h-1.5 rounded-full overflow-hidden">
+                                <div id="dynamicsBar" class="bg-violet-500 h-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
                         </div>
-                        <p id="dynamicsReason" class="text-xs text-slate-600 leading-normal border-t border-slate-200/40 pt-1.5 italic"></p>
+                        <p id="dynamicsReason" class="text-xs text-slate-500 leading-relaxed font-medium bg-white p-2.5 rounded-lg border border-slate-100"></p>
                     </div>
 
-                    <div class="p-4 bg-slate-50 border border-slate-200/60 rounded-xl md:col-span-2 flex flex-col justify-between space-y-2">
-                        <div>
-                            <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Toxicity Index</span>
-                            <span id="toxicityVal" class="text-2xl font-black text-rose-600">--</span>
+                    <div class="p-5 bg-slate-50 rounded-xl border border-slate-200/50 md:col-span-2 flex flex-col justify-between space-y-3">
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Toxicity Risk Matrix</span>
+                                <span id="toxicityVal" class="text-lg font-extrabold text-rose-600">--</span>
+                            </div>
+                            <div class="w-full bg-slate-200/70 h-1.5 rounded-full overflow-hidden">
+                                <div id="toxicityBar" class="bg-rose-500 h-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
                         </div>
-                        <p id="toxicityReason" class="text-xs text-slate-600 leading-normal border-t border-slate-200/40 pt-1.5 italic"></p>
+                        <p id="toxicityReason" class="text-xs text-slate-500 leading-relaxed font-medium bg-white p-2.5 rounded-lg border border-slate-100"></p>
                     </div>
 
                 </div>
             </div>
 
-            <div>
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Behavioral Synthesis Summary</h4>
-                <div id="summaryText" class="p-4 bg-slate-50 border border-slate-100 rounded-lg text-sm text-slate-700 leading-relaxed font-medium"></div>
+            <div class="bg-slate-900 text-white p-6 rounded-xl space-y-2 shadow-xs">
+                <h4 class="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">Clinical Synthesis Profiling</h4>
+                <p id="summaryText" class="text-sm font-medium leading-relaxed tracking-wide italic text-slate-100"></p>
             </div>
         </section>
     </main>
 
-    <footer class="text-center py-4 text-xs text-slate-400 border-t border-slate-200 bg-white">
-        Local Client Engine • Vercel Serverless Architecture Execution Model
+    <footer class="text-center py-6 text-xs text-slate-400 border-t border-slate-200 bg-white">
+        ClarityLab Relational Frameworks • Secured Cloud Execution Context
     </footer>
 
     <script>
@@ -110,12 +154,12 @@
             const modelBadge = document.getElementById('modelBadge');
             
             if (!chatLog) {
-                alert('Please enter a chat conversation to proceed.');
+                alert('Please input conversational chat transcripts to begin analysis.');
                 return;
             }
 
             analyzeBtn.disabled = true;
-            analyzeBtn.innerText = 'Extracting Micro-Interaction Vectors...';
+            analyzeBtn.innerText = 'Mapping Core Behavioral Drivers...';
             resultSection.classList.add('hidden');
             modelBadge.classList.add('hidden');
 
@@ -127,40 +171,48 @@
                 });
 
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Server Processing Error');
+                if (!response.ok) throw new Error(data.error || 'Diagnostic computation aborted.');
 
                 document.getElementById('modelNameText').innerText = data.modelUsed;
                 modelBadge.classList.remove('hidden');
 
                 const scores = data.analytics;
                 
+                // Text Mapping
                 document.getElementById('bondStrengthMeter').innerText = scores.bond_strength || 'N/A';
                 document.getElementById('bondStrengthReason').innerText = scores.bond_strength_reason ? `"${scores.bond_strength_reason}"` : '';
 
                 document.getElementById('positivityVal').innerText = scores.bond_positivity || 'N/A';
-                document.getElementById('positivityReason').innerText = scores.bond_positivity_reason || '';
+                document.getElementById('positivityReason').innerText = scores.bond_positivity_reason || 'No descriptive overview returned.';
 
                 document.getElementById('conflictVal').innerText = scores.conflict_resolution || 'N/A';
-                document.getElementById('conflictReason').innerText = scores.conflict_resolution_reason || '';
+                document.getElementById('conflictReason').innerText = scores.conflict_resolution_reason || 'No descriptive overview returned.';
 
                 document.getElementById('safetyVal').innerText = scores.safety_trust || 'N/A';
-                document.getElementById('safetyReason').innerText = scores.safety_trust_reason || '';
+                document.getElementById('safetyReason').innerText = scores.safety_trust_reason || 'No descriptive overview returned.';
 
                 document.getElementById('dynamicsVal').innerText = scores.relationship_dynamics || 'N/A';
-                document.getElementById('dynamicsReason').innerText = scores.relationship_dynamics_reason || '';
+                document.getElementById('dynamicsReason').innerText = scores.relationship_dynamics_reason || 'No descriptive overview returned.';
 
                 document.getElementById('toxicityVal').innerText = scores.toxicity || 'N/A';
-                document.getElementById('toxicityReason').innerText = scores.toxicity_reason || '';
+                document.getElementById('toxicityReason').innerText = scores.toxicity_reason || 'No descriptive overview returned.';
 
-                document.getElementById('summaryText').innerText = scores.summary ? `"${scores.summary}"` : 'No behavioral overview generated.';
+                document.getElementById('summaryText').innerText = scores.summary ? `"${scores.summary}"` : 'Synthesis diagnostic outline unavailable.';
                 
+                // Visual Progress Bar Component Weighting
+                document.getElementById('positivityBar').style.width = scores.bond_positivity || '0%';
+                document.getElementById('conflictBar').style.width = scores.conflict_resolution || '0%';
+                document.getElementById('safetyBar').style.width = scores.safety_trust || '0%';
+                document.getElementById('dynamicsBar').style.width = scores.relationship_dynamics || '0%';
+                document.getElementById('toxicityBar').style.width = scores.toxicity || '0%';
+
                 resultSection.classList.remove('hidden');
 
             } catch (err) {
-                alert(`Analysis Halted: ${err.message}`);
+                alert(`Analysis Interrupted: ${err.message}`);
             } finally {
                 analyzeBtn.disabled = false;
-                analyzeBtn.innerText = 'Analyze Dynamics';
+                analyzeBtn.innerText = 'Analyze Interaction Dynamics';
             }
         }
     </script>
