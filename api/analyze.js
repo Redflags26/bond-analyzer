@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Missing API Key configuration inside Vercel Dashboard.' });
   }
 
-  const systemPrompt = `You are an expert behavioral psychologist specializing in couples counseling and interaction analysis. Your task is to evaluate a provided chat log between two partners by systematically breaking it down into a specific behavioral framework and then mapping those observations to macro relationship tones.
+  const systemPrompt = `You are an expert behavioral psychologist specializing in couples counseling and interaction analysis. Your task is to evaluate a provided chat log between two partners by systematically breaking it down into a specific behavioral framework, profiling each individual natively, and providing tailored behavioral action items.
 
   ### ANALYSIS FRAMEWORK
   Before generating the scores, internally evaluate the conversation across these four foundational pillars and their core parameters:
@@ -36,21 +36,43 @@ export default async function handler(req, res) {
   - Toxicity: Driven by Low Regulation, High Aggression, Low Accountability, and High Resentment.
   - Bond Strength: An overall synthesis reflecting conversational synchronization, active engagement, and historical trust indicators.
 
-  Analyze the provided chat logs thoroughly. Evaluate the interaction across multiple behavioral categories and return your entire response in a strict, valid JSON object format matching exactly this structure:
+  Analyze the provided chat logs thoroughly. Return your entire response in a strict, valid JSON object format matching exactly this structure:
   {
-    "bond_strength": "A percentage string ending with '%', reflecting overall conversational sync and trust.",
+    "bond_strength": "A percentage string ending with '%'.",
     "bond_strength_reason": "A concise, single-sentence psychological profiling summarizing conversational synchronization, active engagement, and trust indicators.",
-    "bond_positivity": "A percentage string ending with '%', measuring mutual warmth and support.",
+    "bond_positivity": "A percentage string ending with '%'.",
     "bond_positivity_reason": "A concise, single-sentence psychological one-liner mapping out the interaction's Receptivity, Empathy, Vulnerability, and Repair Attempts.",
-    "conflict_resolution": "A percentage string ending with '%', measuring how healthily disagreements are approached.",
+    "conflict_resolution": "A percentage string ending with '%'.",
     "conflict_resolution_reason": "A concise, single-sentence behavioral one-liner mapping out Emotional Regulation, Validation, Solution-Orientation, and Agreement Status.",
-    "safety_trust": "A percentage string ending with '%', evaluating psychological safety and openness.",
+    "safety_trust": "A percentage string ending with '%'.",
     "safety_trust_reason": "A concise, single-sentence diagnostic one-liner mapping out structural Security, Clarity, Vulnerability, and Emotional Residual.",
-    "relationship_dynamics": "A percentage string ending with '%', assessing balance vs power struggles/codependency.",
+    "relationship_dynamics": "A percentage string ending with '%'.",
     "relationship_dynamics_reason": "A concise, single-sentence behavioral one-liner mapping out partner Accountability, Aggression Levels, Shared Relevance, and Actionable Commitments.",
-    "toxicity": "A percentage string ending with '%', measuring malice, manipulation, or emotional abuse.",
+    "toxicity": "A percentage string ending with '%'.",
     "toxicity_reason": "A concise, single-sentence clinical one-liner mapping out Low Regulation, High Aggression, Low Accountability, and High Resentment loops.",
-    "summary": "A concise, single-sentence psychological profiling of the core dynamic of the people involved."
+    "summary": "A concise, single-sentence psychological profiling of the core dynamic of the people involved.",
+    "profiles": [
+      {
+        "name": "The actual name or handle of Partner 1 extracted from the log",
+        "attachment_style": "Identified attachment style dynamic pattern displayed in this interaction context",
+        "emotional_regulation": "Brief clinical assessment of how they manage their physiological/verbal triggers here",
+        "communication_style": "1-2 word description of their style (e.g., Avoidant-Defensive, Attuned-Expressive)",
+        "actionables": [
+          "First concrete, highly personalized behavioral recommendation for this specific partner to improve relationship bond strength.",
+          "Second concrete, highly personalized behavioral recommendation for this specific partner to improve relationship bond strength."
+        ]
+      },
+      {
+        "name": "The actual name or handle of Partner 2 extracted from the log",
+        "attachment_style": "Identified attachment style dynamic pattern displayed in this interaction context",
+        "emotional_regulation": "Brief clinical assessment of how they manage their physiological/verbal triggers here",
+        "communication_style": "1-2 word description of their style",
+        "actionables": [
+          "First concrete, highly personalized behavioral recommendation for this specific partner to improve relationship bond strength.",
+          "Second concrete, highly personalized behavioral recommendation for this specific partner to improve relationship bond strength."
+        ]
+      }
+    ]
   }`;
 
   try {
@@ -61,12 +83,11 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openrouter/free", 
+        model: "openrouter/auto", 
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: chatLog }
         ],
-        // Enforcing structured response matching to ensure reasons never get skipped
         response_format: { type: "json_object" },
         temperature: 0.3
       })
