@@ -34,7 +34,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        //model: "deepseek/deepseek-v4-flash:free", // Highly stable and ultra-fast alternative
+        model: "openrouter/auto", // Highly stable and ultra-fast alternative
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: chatLog }
