@@ -3,20 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bond Strength & Dynamic Analyzer</title>
+    <title>Advanced Chat Dynamics Lab</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between font-sans">
 
-    <header class="bg-white border-b border-slate-200 py-4 px-6 shadow-sm">
+    <header class="bg-white border-b border-slate-200 py-4 px-6 shadow-xs">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold text-indigo-600 tracking-tight">🔬 Chat Dynamics Lab</h1>
-            <span class="text-xs bg-indigo-50 text-indigo-700 font-medium px-2.5 py-1 rounded-full">DeepSeek V4-Flash</span>
+            <h1 class="text-xl font-bold text-indigo-600 tracking-tight">🔬 Advanced Chat Dynamics Lab</h1>
+            <div id="modelBadge" class="hidden text-xs bg-slate-100 text-slate-700 font-mono px-3 py-1 rounded-md border border-slate-200">
+                Model: <span id="modelNameText" class="font-bold text-slate-900">None</span>
+            </div>
         </div>
     </header>
 
     <main class="max-w-4xl w-full mx-auto p-4 md:p-6 flex-grow space-y-6">
-        <section class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-3">
+        
+        <section class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
             <label for="chatInput" class="block text-sm font-bold text-slate-700">Paste Chat Conversation</label>
             <textarea id="chatInput" rows="10" placeholder="Alice: Hey, are we still on for today?&#10;Bob: Yeah completely! Can't wait." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-sm font-mono placeholder-slate-400"></textarea>
             
@@ -26,39 +29,73 @@
         </section>
 
         <section id="resultSection" class="hidden bg-white p-6 rounded-xl border border-indigo-100 shadow-xs space-y-6">
+            
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                 <div>
-                    <h3 class="text-lg font-bold text-slate-800">Analysis Metrics</h3>
+                    <h3 class="text-lg font-bold text-slate-800">Psychological Assessment</h3>
+                    <p class="text-xs text-slate-500">Multivariant interaction indexing framework</p>
                 </div>
-                <div class="flex items-center gap-3 bg-indigo-50/50 p-2 rounded-xl border border-indigo-100">
-                    <span class="text-sm font-semibold text-indigo-900">Bond Strength:</span>
+                <div class="flex items-center gap-3 bg-indigo-50/50 p-2.5 rounded-xl border border-indigo-100">
+                    <span class="text-sm font-bold text-indigo-900">Overall Bond Strength:</span>
                     <span id="bondStrengthMeter" class="text-2xl font-black text-indigo-600">0%</span>
                 </div>
             </div>
+
             <div>
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Nature of Participants</h4>
-                <div id="summaryText" class="p-4 bg-slate-50 border border-slate-100 rounded-lg text-sm text-slate-700 italic"></div>
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Relational Vectors Matrix</h4>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div class="p-3 bg-slate-50 border border-slate-200/60 rounded-xl">
+                        <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Bond Positivity</span>
+                        <span id="positivityVal" class="text-xl font-bold text-emerald-600">--</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200/60 rounded-xl">
+                        <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Conflict Resolution</span>
+                        <span id="conflictVal" class="text-xl font-bold text-blue-600">--</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200/60 rounded-xl">
+                        <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Safety & Trust</span>
+                        <span id="safetyVal" class="text-xl font-bold text-indigo-600">--</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200/60 rounded-xl">
+                        <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Relationship Dynamics</span>
+                        <span id="dynamicsVal" class="text-xl font-bold text-violet-600">--</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200/60 rounded-xl col-span-2 md:col-span-1">
+                        <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wide">Toxicity Index</span>
+                        <span id="toxicityVal" class="text-xl font-bold text-rose-600">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Behavioral Synthesis Summary</h4>
+                <div id="summaryText" class="p-4 bg-slate-50 border border-slate-100 rounded-lg text-sm text-slate-700 leading-relaxed italic"></div>
             </div>
         </section>
     </main>
+
+    <footer class="text-center py-4 text-xs text-slate-400 border-t border-slate-200 bg-white">
+        Local Client Engine • Vercel Serverless Architecture Execution Model
+    </footer>
 
     <script>
         async function analyzeChat() {
             const chatLog = document.getElementById('chatInput').value.trim();
             const analyzeBtn = document.getElementById('analyzeBtn');
             const resultSection = document.getElementById('resultSection');
+            const modelBadge = document.getElementById('modelBadge');
             
             if (!chatLog) {
-                alert('Please enter a chat conversation.');
+                alert('Please enter a chat conversation to proceed.');
                 return;
             }
 
             analyzeBtn.disabled = true;
-            analyzeBtn.innerText = 'Evaluating Interaction Patterns...';
+            analyzeBtn.innerText = 'Extracting Micro-Interaction Vectors...';
             resultSection.classList.add('hidden');
+            modelBadge.classList.add('hidden');
 
             try {
-                // Points directly to our serverless backend location
                 const response = await fetch("/api/analyze", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -66,14 +103,26 @@
                 });
 
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Server Error');
+                if (!response.ok) throw new Error(data.error || 'Server Processing Error');
 
-                document.getElementById('bondStrengthMeter').innerText = data.bond_strength || 'N/A';
-                document.getElementById('summaryText').innerText = `"${data.summary || 'No summary generated.'}"`;
+                // Render the dynamic model string captured via OpenRouter
+                document.getElementById('modelNameText').innerText = data.modelUsed;
+                modelBadge.classList.remove('hidden');
+
+                // Deconstruct analytics payload values straight into dashboard elements
+                const scores = data.analytics;
+                document.getElementById('bondStrengthMeter').innerText = scores.bond_strength || 'N/A';
+                document.getElementById('positivityVal').innerText = scores.bond_positivity || 'N/A';
+                document.getElementById('conflictVal').innerText = scores.conflict_resolution || 'N/A';
+                document.getElementById('safetyVal').innerText = scores.safety_trust || 'N/A';
+                document.getElementById('dynamicsVal').innerText = scores.relationship_dynamics || 'N/A';
+                document.getElementById('toxicityVal').innerText = scores.toxicity || 'N/A';
+                document.getElementById('summaryText').innerText = `"${scores.summary || 'No behavioral overview generated.'}"`;
+                
                 resultSection.classList.remove('hidden');
 
             } catch (err) {
-                alert(`Error: ${err.message}`);
+                alert(`Analysis Halted: ${err.message}`);
             } finally {
                 analyzeBtn.disabled = false;
                 analyzeBtn.innerText = 'Analyze Dynamics';
