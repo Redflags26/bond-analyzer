@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  // Enable CORS so your local browser file can talk to it if needed
+  // Allow cross-origin requests from local browser execution testing
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -16,14 +16,14 @@ export default async function handler(req, res) {
   const apiKey = process.env.OPENROUTER_API_KEY;
 
   if (!apiKey) {
-    return res.status(500).json({ error: 'OpenRouter API key is not configured on Vercel' });
+    return res.status(500).json({ error: 'Missing API Key configuration inside Vercel Dashboard.' });
   }
 
-  const systemPrompt = `You are a behavioral psychologist. Analyze the provided chat logs. 
-  Return your response in strict JSON format matching exactly this structure:
+  const systemPrompt = `You are an expert behavioral psychologist. Analyze the provided chat logs. 
+  Return your response in a strict, valid JSON object format matching exactly this structure:
   {
-    "bond_strength": "A percentage string ending with '%', reflecting conversational sync and trust.",
-    "summary": "A concise, single-sentence summary profiling the nature or dynamic of the people involved."
+    "bond_strength": "A percentage string ending with '%', reflecting conversational sync, trust, and alignment.",
+    "summary": "A concise, single-sentence psychological profiling of the nature or core dynamic of the people involved."
   }`;
 
   try {
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "deepseek/deepseek-v4-flash:free",
+        model: "google/gemini-2.5-flash:free", // Highly stable and ultra-fast alternative
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: chatLog }
@@ -44,17 +44,26 @@ export default async function handler(req, res) {
       })
     });
 
-    const data = await openRouterResponse.json();
+    const responseText = await openRouterResponse.text();
     
-    if (!openRouterResponse.ok) {
-      return res.status(openRouterResponse.status).json({ error: data });
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      return res.status(500).json({ error: `Upstream error. Server didn't send JSON: ${responseText}` });
     }
 
-    // Pass the AI result back to the frontend
-    const content = JSON.parse(data.choices[0].message.content);
-    return res.status(200).json(content);
+    if (!openRouterResponse.ok) {
+      const errMsg = data.error?.message || data.error || JSON.stringify(data);
+      return res.status(openRouterResponse.status).json({ error: `OpenRouter Message: ${errMsg}` });
+    }
+
+    // Safely extract the generation block text payload
+    const contentText = data.choices[0].message.content;
+    const result = JSON.parse(contentText);
+    return res.status(200).json(result);
 
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: `System processing fault: ${error.message}` });
   }
 }
