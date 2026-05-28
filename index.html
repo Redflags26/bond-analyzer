@@ -3,123 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RedFlags | Relational Dynamics & Interaction Insights</title>
+    <title>Truvah | Interpersonal Analytics & Relational Truth</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        .custom-transition { transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
+        .custom-transition { transition: all 1.4s cubic-bezier(0.16, 1, 0.3, 1); }
     </style>
 </head>
-<body class="bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-800 min-h-screen flex flex-col justify-between font-sans selection:bg-rose-100">
+<body class="bg-gradient-to-b from-[#FAF9F5] via-white to-[#F4F3EE] text-slate-800 min-h-screen flex flex-col justify-between font-sans selection:bg-stone-200">
 
-    <!-- Header Navigation -->
-    <header class="bg-white/75 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200/60 py-4 px-6">
+    <!-- Premium Minimalist Header -->
+    <header class="bg-white/60 backdrop-blur-md sticky top-0 z-50 border-b border-stone-200/60 py-4 px-6">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <span class="text-xl">🚩</span>
-                <span class="text-lg font-black tracking-tight text-rose-600">Red<span class="text-slate-900 font-bold">Flags</span></span>
+            <div class="flex items-center gap-2.5">
+                <span class="text-xs tracking-[0.2em] font-light text-stone-400 uppercase">System Archetype</span>
+                <span class="text-xl font-bold tracking-tight text-stone-900">Truvah</span>
             </div>
-            <div id="modelBadge" class="hidden text-[10px] bg-slate-100 text-slate-500 font-mono px-2.5 py-1 rounded-md border border-slate-200/60">
-                Engine: <span id="modelNameText" class="font-bold text-rose-600">--</span>
+            <div id="modelBadge" class="hidden text-[10px] bg-stone-100 text-stone-500 font-mono px-3 py-1 rounded border border-stone-200">
+                Core: <span id="modelNameText" class="font-semibold text-stone-700">--</span>
             </div>
         </div>
     </header>
 
-    <section class="max-w-3xl mx-auto text-center px-6 pt-12 pb-4 space-y-4">
-        <div class="inline-flex items-center gap-1.5 bg-rose-50 border border-rose-100 px-3 py-1 rounded-full text-rose-700 font-semibold text-xs tracking-wide uppercase">
-            🛡️ Safe, Secure & Completely Anonymous
+    <!-- Deep Philosophical Frame & Hook -->
+    <section class="max-w-3xl mx-auto text-center px-6 pt-16 pb-6 space-y-6">
+        <div class="inline-flex items-center gap-2 bg-stone-100 border border-stone-200 px-3 py-1 rounded text-stone-600 font-medium text-[10px] tracking-widest uppercase">
+            🔒 Encrypted • Clinical Diagnostic Environment
         </div>
-        <h2 class="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
-            See past the heat of the moment.
+        <h2 class="text-3xl md:text-5xl font-serif text-stone-900 tracking-tight leading-tight max-w-2xl mx-auto">
+            Uncover the structural reality of your connection.
         </h2>
-        <p class="text-base md:text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
-            Paste a recent chat segment below to extract deep psychological insights, identify warning signs, and build structured paths forward.
+        <p class="text-sm md:text-base text-stone-500 max-w-xl mx-auto leading-relaxed font-light">
+            Truvah operates on the baseline understanding that human connections are built on mutual transparency, emotional grounding, and the courage to look past behavioral static to locate the fundamental truth.
         </p>
     </section>
 
-    <!-- Core Workspace Container -->
+    <!-- Workspace Deck Wrapper -->
     <main class="max-w-5xl w-full mx-auto p-4 md:p-6 flex-grow space-y-8">
         
-        <!-- Input Deck Window -->
-        <section class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-md shadow-slate-100/40 space-y-4">
+        <!-- Input Deck -->
+        <section class="bg-white p-6 rounded-xl border border-stone-200 shadow-xs space-y-4">
             <div class="space-y-1">
-                <label for="chatInput" class="block text-sm font-bold text-slate-800">Paste Conversation Logs</label>
+                <label for="chatInput" class="block text-xs font-bold text-stone-700 uppercase tracking-wider">Dialogue Repository</label>
+                <p class="text-xs text-stone-400 font-light">Input a clean segment of recent communication text containing speaker indicators to isolate conversational metrics.</p>
             </div>
-            <textarea id="chatInput" rows="8" placeholder="Alex: You always get defensive when I ask about plans.&#10;Jordan: Because you bring it up right when I walk through the door after a 10-hour shift." class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 text-sm font-mono placeholder-slate-400 shadow-inner transition-all"></textarea>
-            <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-slate-900 hover:bg-rose-600 text-white font-bold py-4 px-4 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 shadow-sm tracking-wide">
-                Analyze Dynamics & Generate Roadmaps
+            <textarea id="chatInput" rows="8" placeholder="Alex: You always get defensive when I ask about plans.&#10;Jordan: Because you bring it up right when I walk through the door after a 10-hour shift." class="w-full p-4 bg-[#FAF9F5] border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-sm font-mono placeholder-stone-400 shadow-inner transition-all"></textarea>
+            <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-4 px-4 rounded transition-all duration-300 cursor-pointer flex justify-center items-center gap-2 text-sm tracking-widest uppercase shadow-sm">
+                Initiate Behavioral Evaluation
             </button>
         </section>
 
-        <!-- Premium Output Workspace Panel -->
-        <section id="resultSection" class="hidden bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-xl shadow-rose-900/5 space-y-10">
+        <!-- Premium Output Panel -->
+        <section id="resultSection" class="hidden bg-white p-6 md:p-8 rounded-xl border border-stone-200/80 shadow-md space-y-12">
             
-            <!-- Overall Score View Area -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-5 border-b border-slate-100 pb-6">
-                <div class="space-y-1">
-                    <span class="text-[10px] bg-rose-50 text-rose-700 font-bold tracking-wider uppercase px-2 py-0.5 rounded-md">Diagnostic Paradigm</span>
-                    <h3 class="text-2xl font-bold text-slate-900 tracking-tight">Conversational Alignment</h3>
-                    <p id="bondStrengthReason" class="text-xs md:text-sm text-slate-500 max-w-lg leading-relaxed italic mt-1"></p>
+            <!-- Overall Sync View -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-stone-100 pb-8">
+                <div class="space-y-1.5">
+                    <span class="text-[9px] bg-stone-100 text-stone-600 font-bold tracking-widest uppercase px-2 py-0.5 rounded">Alignment Synthesis</span>
+                    <h3 class="text-xl md:text-2xl font-serif text-stone-900 tracking-tight">Interpersonal Synchronization Matrix</h3>
+                    <p id="bondStrengthReason" class="text-xs md:text-sm text-stone-500 max-w-xl leading-relaxed italic font-light mt-1"></p>
                 </div>
-                <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100 min-w-[200px] justify-between">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Overall Sync</span>
-                    <span id="bondStrengthMeter" class="text-4xl font-black text-rose-600 tracking-tight">0%</span>
+                <div class="flex items-center gap-4 bg-[#FAF9F5] p-5 rounded border border-stone-200 min-w-[220px] justify-between">
+                    <span class="text-xs font-bold text-stone-400 uppercase tracking-widest">Baseline Sync</span>
+                    <span id="bondStrengthMeter" class="text-3xl font-serif font-black text-stone-900 tracking-tighter">0%</span>
                 </div>
             </div>
 
-            <!-- Macro System Metrics Grid -->
+            <!-- Macro Metrics Grid -->
             <div class="space-y-4">
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Macro Relationship Diagnostics</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div class="p-4 bg-slate-50/50 rounded-xl border border-slate-200/60 space-y-2">
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-700 uppercase">Bond Positivity</span><span id="positivityVal" class="text-sm font-extrabold text-emerald-600">--</span></div>
-                        <div class="w-full bg-slate-200/60 h-1.5 rounded-full overflow-hidden"><div id="positivityBar" class="custom-transition bg-emerald-500 h-full" style="width: 0%"></div></div>
-                        <p id="positivityReason" class="text-[11px] text-slate-500 leading-relaxed"></p>
+                <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Foundational Diagnostic Vectors</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-5 bg-[#FAF9F5]/40 rounded border border-stone-200/60 space-y-2.5">
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-stone-700 tracking-wide">Structural Positivity</span><span id="positivityVal" class="text-xs font-mono font-bold text-stone-600">--</span></div>
+                        <div class="w-full bg-stone-200/50 h-1 rounded-full overflow-hidden"><div id="positivityBar" class="custom-transition bg-stone-700 h-full" style="width: 0%"></div></div>
+                        <p id="positivityReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
                     </div>
-                    <div class="p-4 bg-slate-50/50 rounded-xl border border-slate-200/60 space-y-2">
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-700 uppercase">Conflict Resolution</span><span id="conflictVal" class="text-sm font-extrabold text-blue-600">--</span></div>
-                        <div class="w-full bg-slate-200/60 h-1.5 rounded-full overflow-hidden"><div id="conflictBar" class="custom-transition bg-blue-500 h-full" style="width: 0%"></div></div>
-                        <p id="conflictReason" class="text-[11px] text-slate-500 leading-relaxed"></p>
+                    <div class="p-5 bg-[#FAF9F5]/40 rounded border border-stone-200/60 space-y-2.5">
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-stone-700 tracking-wide">Conflict Resolution Aptitude</span><span id="conflictVal" class="text-xs font-mono font-bold text-stone-600">--</span></div>
+                        <div class="w-full bg-stone-200/50 h-1 rounded-full overflow-hidden"><div id="conflictBar" class="custom-transition bg-stone-700 h-full" style="width: 0%"></div></div>
+                        <p id="conflictReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
                     </div>
-                    <div class="p-4 bg-slate-50/50 rounded-xl border border-slate-200/60 space-y-2">
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-700 uppercase">Safety & Trust</span><span id="safetyVal" class="text-sm font-extrabold text-rose-600">--</span></div>
-                        <div class="w-full bg-slate-200/60 h-1.5 rounded-full overflow-hidden"><div id="safetyBar" class="custom-transition bg-rose-500 h-full" style="width: 0%"></div></div>
-                        <p id="safetyReason" class="text-[11px] text-slate-500 leading-relaxed"></p>
+                    <div class="p-5 bg-[#FAF9F5]/40 rounded border border-stone-200/60 space-y-2.5">
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-stone-700 tracking-wide">Psychological Safety</span><span id="safetyVal" class="text-xs font-mono font-bold text-stone-600">--</span></div>
+                        <div class="w-full bg-stone-200/50 h-1 rounded-full overflow-hidden"><div id="safetyBar" class="custom-transition bg-stone-700 h-full" style="width: 0%"></div></div>
+                        <p id="safetyReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
                     </div>
-                    <div class="p-4 bg-slate-50/50 rounded-xl border border-slate-200/60 space-y-2">
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-700 uppercase">Relationship Dynamics</span><span id="dynamicsVal" class="text-sm font-extrabold text-violet-600">--</span></div>
-                        <div class="w-full bg-slate-200/60 h-1.5 rounded-full overflow-hidden"><div id="dynamicsBar" class="custom-transition bg-violet-500 h-full" style="width: 0%"></div></div>
-                        <p id="dynamicsReason" class="text-[11px] text-slate-500 leading-relaxed"></p>
+                    <div class="p-5 bg-[#FAF9F5]/40 rounded border border-stone-200/60 space-y-2.5">
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-stone-700 tracking-wide">Relational Cohesion</span><span id="dynamicsVal" class="text-xs font-mono font-bold text-stone-600">--</span></div>
+                        <div class="w-full bg-stone-200/50 h-1 rounded-full overflow-hidden"><div id="dynamicsBar" class="custom-transition bg-stone-700 h-full" style="width: 0%"></div></div>
+                        <p id="dynamicsReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
                     </div>
-                    <div class="p-4 bg-slate-50/50 rounded-xl border border-slate-200/60 md:col-span-2 space-y-2">
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-700 uppercase">Toxicity Index Loop Risk</span><span id="toxicityVal" class="text-sm font-extrabold text-rose-600">--</span></div>
-                        <div class="w-full bg-slate-200/60 h-1.5 rounded-full overflow-hidden"><div id="toxicityBar" class="custom-transition bg-rose-500 h-full" style="width: 0%"></div></div>
-                        <p id="toxicityReason" class="text-[11px] text-slate-500 leading-relaxed"></p>
+                    <div class="p-5 bg-[#FAF9F5]/40 rounded border border-stone-200/60 md:col-span-2 space-y-2.5">
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-stone-700 tracking-wide">Friction & Dysregulation Index</span><span id="toxicityVal" class="text-xs font-mono font-bold text-stone-600">--</span></div>
+                        <div class="w-full bg-stone-200/50 h-1 rounded-full overflow-hidden"><div id="toxicityBar" class="custom-transition bg-stone-400 h-full" style="width: 0%"></div></div>
+                        <p id="toxicityReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
                     </div>
                 </div>
             </div>
 
-            <!-- Profile Injector Area for Bar-Lines & One-Liners -->
-            <div class="space-y-6 border-t border-slate-100 pt-8">
-                <div class="text-center space-y-1">
-                    <h4 class="text-sm font-bold text-slate-900 uppercase tracking-widest">Individual Personality Frameworks</h4>
-                    <p class="text-xs text-slate-400">Granular metric profiles showing localized processing traits under relationship tension.</p>
+            <!-- Profile Matrix Section -->
+            <div class="space-y-6 border-t border-stone-100 pt-10">
+                <div class="text-center space-y-1.5">
+                    <h4 class="text-xs font-bold text-stone-900 uppercase tracking-widest">Individual Processing Frameworks</h4>
+                    <p class="text-xs text-stone-400 font-light">Granular metrics defining localized ego structures and adaptive processing traits under tension.</p>
                 </div>
                 <div id="profileContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Dynamic cards inject here -->
+                    <!-- Dynamic cards inject here natively -->
                 </div>
             </div>
 
-            <!-- Summary Box -->
-            <div class="bg-gradient-to-br from-slate-900 to-rose-950 text-white p-6 md:p-8 rounded-2xl space-y-2 shadow-inner">
-                <h4 class="text-[10px] text-rose-300 font-bold uppercase tracking-widest">Clinical Synthesis Profiling</h4>
-                <p id="summaryText" class="text-sm font-medium leading-relaxed italic text-slate-100"></p>
+            <!-- Deep Psychological Summary Output Box -->
+            <div class="bg-stone-950 text-[#FAF9F5] p-6 md:p-8 rounded-lg space-y-3 shadow-inner">
+                <h4 class="text-[9px] text-stone-400 font-bold uppercase tracking-[0.2em]">Foundational Truth Synthesis</h4>
+                <p id="summaryText" class="text-sm md:text-base font-serif font-light leading-relaxed italic text-stone-200"></p>
             </div>
         </section>
     </main>
 
-    <!-- Footer Space -->
-    <footer class="text-center py-6 text-xs text-slate-400 border-t border-slate-200 bg-white">
-        RedFlags Analytics Engine • Secure Client Session Environment
+    <!-- Footer -->
+    <footer class="text-center py-8 text-[11px] text-stone-400 tracking-wider font-light border-t border-stone-200/60 bg-white">
+        Truvah Analytics Engine • Objective Interaction Modeling
     </footer>
 
     <script>
@@ -130,10 +132,10 @@
             const modelBadge = document.getElementById('modelBadge');
             const profileContainer = document.getElementById('profileContainer');
             
-            if (!chatLog) return alert('Please input conversational chat transcripts to begin analysis.');
+            if (!chatLog) return alert('System requires communication transcripts to perform evaluation.');
 
             analyzeBtn.disabled = true;
-            analyzeBtn.innerText = 'Extracting Micro-Interaction Vectors...';
+            analyzeBtn.innerText = 'Isolating System Micro-Vectors...';
             resultSection.classList.add('hidden');
             modelBadge.classList.add('hidden');
             profileContainer.innerHTML = ''; 
@@ -146,14 +148,14 @@
                 });
 
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Diagnostic computation aborted.');
+                if (!response.ok) throw new Error(data.error || 'Diagnostic evaluation failed.');
 
                 document.getElementById('modelNameText').innerText = data.modelUsed;
                 modelBadge.classList.remove('hidden');
 
                 const scores = data.analytics;
                 
-                // Map out macro data
+                // Map macro variables
                 document.getElementById('bondStrengthMeter').innerText = scores.bond_strength || '0%';
                 document.getElementById('bondStrengthReason').innerText = scores.bond_strength_reason ? `"${scores.bond_strength_reason}"` : '';
                 document.getElementById('positivityVal').innerText = scores.bond_positivity || '--';
@@ -179,75 +181,75 @@
                 if (scores.profiles && Array.isArray(scores.profiles)) {
                     scores.profiles.forEach((user, idx) => {
                         const profileCard = document.createElement('div');
-                        profileCard.className = "bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-6";
+                        profileCard.className = "bg-white border border-stone-200/80 rounded p-6 shadow-2xs flex flex-col justify-between space-y-6";
                         
                         const actionsHtml = user.actionables.map(action => `
-                            <li class="flex items-start gap-2 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                                <span class="text-rose-600 font-bold">👉</span>
+                            <li class="flex items-start gap-2.5 text-xs text-stone-600 bg-stone-50 p-3 rounded border border-stone-100 font-light">
+                                <span class="text-stone-400 mt-0.5">•</span>
                                 <span>${action}</span>
                             </li>
                         `).join('');
 
                         profileCard.innerHTML = `
-                            <div class="space-y-5">
-                                <div class="border-b border-slate-100 pb-3">
-                                    <span class="text-[9px] uppercase font-bold tracking-widest text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">Individual Analysis</span>
-                                    <h5 class="text-xl font-black text-slate-900 mt-1">${user.name}</h5>
+                            <div class="space-y-6">
+                                <div class="border-b border-stone-100 pb-3">
+                                    <span class="text-[9px] uppercase font-bold tracking-widest text-stone-400 block">Participant Profile</span>
+                                    <h5 class="text-lg font-serif font-bold text-stone-900 mt-0.5">${user.name}</h5>
                                 </div>
                                 
-                                <div class="space-y-4">
+                                <div class="space-y-5">
                                     <!-- Attribute 1: Attachment Security -->
                                     <div class="space-y-1.5">
                                         <div class="flex justify-between items-center text-xs">
-                                            <span class="font-bold text-slate-700">Attachment Security</span>
-                                            <span class="font-extrabold text-rose-600">${user.attachment_security || '0%'}</span>
+                                            <span class="font-medium text-stone-700 tracking-wide">Attachment Security</span>
+                                            <span class="font-mono font-bold text-stone-600">${user.attachment_security || '0%'}</span>
                                         </div>
-                                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                            <div id="p${idx}-attachBar" class="custom-transition bg-rose-500 h-full" style="width: 0%"></div>
+                                        <div class="w-full bg-stone-100 h-1 rounded-full overflow-hidden">
+                                            <div id="p${idx}-attachBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div>
                                         </div>
-                                        <p class="text-[11px] text-slate-500 leading-relaxed italic">${user.attachment_security_reason || ''}</p>
+                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light">${user.attachment_security_reason || ''}</p>
                                     </div>
 
                                     <!-- Attribute 2: Emotional Regulation -->
                                     <div class="space-y-1.5">
                                         <div class="flex justify-between items-center text-xs">
-                                            <span class="font-bold text-slate-700">Emotional Regulation</span>
-                                            <span class="font-extrabold text-blue-600">${user.emotional_regulation || '0%'}</span>
+                                            <span class="font-medium text-stone-700 tracking-wide">Emotional Regulation</span>
+                                            <span class="font-mono font-bold text-stone-600">${user.emotional_regulation || '0%'}</span>
                                         </div>
-                                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                            <div id="p${idx}-regBar" class="custom-transition bg-blue-500 h-full" style="width: 0%"></div>
+                                        <div class="w-full bg-stone-100 h-1 rounded-full overflow-hidden">
+                                            <div id="p${idx}-regBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div>
                                         </div>
-                                        <p class="text-[11px] text-slate-500 leading-relaxed italic">${user.emotional_regulation_reason || ''}</p>
+                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light">${user.emotional_regulation_reason || ''}</p>
                                     </div>
 
                                     <!-- Attribute 3: Receptivity -->
                                     <div class="space-y-1.5">
                                         <div class="flex justify-between items-center text-xs">
-                                            <span class="font-bold text-slate-700">Receptivity</span>
-                                            <span class="font-extrabold text-emerald-600">${user.receptivity || '0%'}</span>
+                                            <span class="font-medium text-stone-700 tracking-wide">Receptivity</span>
+                                            <span class="font-mono font-bold text-stone-600">${user.receptivity || '0%'}</span>
                                         </div>
-                                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                            <div id="p${idx}-recepBar" class="custom-transition bg-emerald-500 h-full" style="width: 0%"></div>
+                                        <div class="w-full bg-stone-100 h-1 rounded-full overflow-hidden">
+                                            <div id="p${idx}-recepBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div>
                                         </div>
-                                        <p class="text-[11px] text-slate-500 leading-relaxed italic">${user.receptivity_reason || ''}</p>
+                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light">${user.receptivity_reason || ''}</p>
                                     </div>
 
                                     <!-- Attribute 4: Accountability -->
                                     <div class="space-y-1.5">
                                         <div class="flex justify-between items-center text-xs">
-                                            <span class="font-bold text-slate-700">Accountability</span>
-                                            <span class="font-extrabold text-violet-600">${user.accountability || '0%'}</span>
+                                            <span class="font-medium text-stone-700 tracking-wide">Accountability</span>
+                                            <span class="font-mono font-bold text-stone-600">${user.accountability || '0%'}</span>
                                         </div>
-                                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                            <div id="p${idx}-accBar" class="custom-transition bg-violet-500 h-full" style="width: 0%"></div>
+                                        <div class="w-full bg-stone-100 h-1 rounded-full overflow-hidden">
+                                            <div id="p${idx}-accBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div>
                                         </div>
-                                        <p class="text-[11px] text-slate-500 leading-relaxed italic">${user.accountability_reason || ''}</p>
+                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light">${user.accountability_reason || ''}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="space-y-2 pt-4 border-t border-slate-100">
-                                <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Targeted Growth Strategy</span>
+                            <div class="space-y-3 pt-4 border-t border-stone-100">
+                                <span class="text-[10px] uppercase font-bold tracking-wider text-stone-400 block">De-escalation Roadmap</span>
                                 <ul class="space-y-2">${actionsHtml}</ul>
                             </div>
                         `;
@@ -268,7 +270,7 @@
                 alert(`Analysis Interrupted: ${err.message}`);
             } finally {
                 analyzeBtn.disabled = false;
-                analyzeBtn.innerText = 'Analyze Dynamics & Generate Roadmaps';
+                analyzeBtn.innerText = 'Initiate Behavioral Evaluation';
             }
         }
     </script>
