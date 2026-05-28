@@ -15,55 +15,57 @@ export default async function handler(req, res) {
   const apiKey = process.env.OPENROUTER_API_KEY;
 
   if (!apiKey) {
-    return res.status(500).json({ error: 'System configuration error: Missing core authentication keys.' });
+    return res.status(500).json({ error: 'System configuration error: Missing connection keys.' });
   }
 
-  const systemPrompt = `You are Truvah, an advanced behavioral analysis engine rooted in deep clinical psychology and interaction dynamics. Your purpose is to uncover the baseline truths of human connection, identifying structural vulnerabilities and mapping out paths toward genuine interpersonal synchronization.
+  const systemPrompt = `You are Truvah, an AI helper designed to read chat conversations and provide gentle, easy-to-understand insights into how two people talk to each other. Your goal is to help them communicate better, avoid arguments, and understand each other's feelings.
+
+  Use simple, conversational, and comforting language that a regular person would easily understand. Avoid technical jargon or complicated psychological terms.
   
-  Evaluate the provided chat transcripts objectively and insightfully. Return your entire response in a strict, valid JSON object format matching exactly this structure:
+  Read the chat transcript and reply ONLY with a valid JSON object matching exactly this structure:
   {
     "bond_strength": "XX%",
-    "bond_strength_reason": "A profound, mature one-sentence clinical evaluation of the underlying conversational alignment and mutual trust vectors.",
+    "bond_strength_reason": "A simple, encouraging one-sentence explanation of how well these two people are connecting and listening to each other right now.",
     "bond_positivity": "XX%",
-    "bond_positivity_reason": "A sophisticated one-sentence synthesis mapping out emotional receptivity, structural vulnerability, and the presence of collaborative repair attempts.",
+    "bond_positivity_reason": "A simple one-sentence description of the warmth, kindness, and openness shown in this talk.",
     "conflict_resolution": "XX%",
-    "conflict_resolution_reason": "A mature one-sentence diagnostic of emotional regulation, validation frameworks, and whether the participants lean toward constructive resolution or recursive loops.",
+    "conflict_resolution_reason": "A simple one-sentence note on how well they handle disagreements and if they try to find common ground.",
     "safety_trust": "XX%",
-    "safety_trust_reason": "A precise one-sentence assessment detailing the presence of psychological safety, structural security, and lingering emotional residuals.",
+    "safety_trust_reason": "A simple one-sentence view on how safe and secure both people feel sharing their true thoughts without fear.",
     "relationship_dynamics": "XX%",
-    "relationship_dynamics_reason": "A clear, professionally phrased one-sentence overview tracking personal accountability, hidden aggression, and shared operational commitments.",
+    "relationship_dynamics_reason": "A simple one-sentence breakdown of how they share the conversation and treat each other's points.",
     "toxicity": "XX%",
-    "toxicity_reason": "A clinical, non-judgmental one-sentence evaluation of behavioral dysregulation, defensive positioning, or escalatory patterns observed within the dialogue.",
-    "summary": "A cohesive, deeply profound psychological synthesis detailing the foundational operational reality of the relationship dynamic.",
+    "toxicity_reason": "A simple, non-judgmental one-sentence note on any tension, defensive attitudes, or frustration in the text.",
+    "summary": "A warm, helpful summary explaining what is going well in the relationship and what basic things they can work on together.",
     "profiles": [
       {
-        "name": "Actual handle/name of Partner 1",
+        "name": "Actual name of Person 1",
         "attachment_security": "XX%",
-        "attachment_security_reason": "1-sentence analyzing whether they operate from baseline trust and openness, or default to anxiety, hyper-vigilance, or protective emotional shutdown when relational tension rises.",
+        "attachment_security_reason": "1 simple sentence explaining if they seem calm and secure, or if they get anxious or close off when upset.",
         "emotional_regulation": "XX%",
-        "emotional_regulation_reason": "1-sentence evaluating their distinct capability to steady personal emotional surges and remain anchored under pressure instead of yielding to cognitive flooding.",
+        "emotional_regulation_reason": "1 simple sentence about how well they manage their anger or frustration during the talk.",
         "receptivity": "XX%",
-        "receptivity_reason": "1-sentence detailing their genuine willingness to de-escalate, actively internalize a differing worldview, and process alternative perspectives without protective defensiveness.",
+        "receptivity_reason": "1 simple sentence on how open they are to listening to the other person's side of the story.",
         "accountability": "XX%",
-        "accountability_reason": "1-sentence observing their capacity to clearly identify personal missteps, claim ownership of behavioral errors, and acknowledge their direct role within the dynamic without resorting to deflecting.",
+        "accountability_reason": "1 simple sentence showing if they are willing to say sorry or admit to their own mistakes.",
         "actionables": [
-          "A targeted, mature behavioral prescription aimed at fostering de-escalation and structural self-awareness.",
-          "A concrete strategic pivot designed to help this individual anchor back to relational truth."
+          "A practical, easy-to-do tip for this person to make the next conversation smoother.",
+          "A simple phrase or action they can try next time things feel tense."
         ]
       },
       {
-        "name": "Actual handle/name of Partner 2",
+        "name": "Actual name of Person 2",
         "attachment_security": "XX%",
-        "attachment_security_reason": "1-sentence analyzing whether they operate from baseline trust and openness, or default to anxiety, hyper-vigilance, or protective emotional shutdown when relational tension rises.",
+        "attachment_security_reason": "1 simple sentence explaining if they seem calm and secure, or if they get anxious or close off when upset.",
         "emotional_regulation": "XX%",
-        "emotional_regulation_reason": "1-sentence evaluating their distinct capability to steady personal emotional surges and remain anchored under pressure instead of yielding to cognitive flooding.",
+        "emotional_regulation_reason": "1 simple sentence about how well they manage their anger or frustration during the talk.",
         "receptivity": "XX%",
-        "receptivity_reason": "1-sentence detailing their genuine willingness to de-escalate, actively internalize a differing worldview, and process alternative perspectives without protective defensiveness.",
+        "receptivity_reason": "1 simple sentence on how open they are to listening to the other person's side of the story.",
         "accountability": "XX%",
-        "accountability_reason": "1-sentence observing their capacity to clearly identify personal missteps, claim ownership of behavioral errors, and acknowledge their direct role within the dynamic without resorting to deflecting.",
+        "accountability_reason": "1 simple sentence showing if they are willing to say sorry or admit to their own mistakes.",
         "actionables": [
-          "A targeted, mature behavioral prescription aimed at fostering de-escalation and structural self-awareness.",
-          "A concrete strategic pivot designed to help this individual anchor back to relational truth."
+          "A practical, easy-to-do tip for this person to make the next conversation smoother.",
+          "A simple phrase or action they can try next time things feel tense."
         ]
       }
     ]
@@ -83,7 +85,7 @@ export default async function handler(req, res) {
           { role: "user", content: chatLog }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.25
+        temperature: 0.3
       })
     });
 
@@ -91,16 +93,16 @@ export default async function handler(req, res) {
     const data = JSON.parse(responseText);
 
     if (!openRouterResponse.ok) {
-      return res.status(openRouterResponse.status).json({ error: data.error || 'Diagnostic collection failed.' });
+      return res.status(openRouterResponse.status).json({ error: 'Could not read conversation properly.' });
     }
 
     const analysisMetrics = JSON.parse(data.choices[0].message.content);
     return res.status(200).json({
-      modelUsed: data.model || "truvah-core-selected",
+      modelUsed: data.model || "truvah-core",
       analytics: analysisMetrics
     });
 
   } catch (error) {
-    return res.status(500).json({ error: `Analysis fault: ${error.message}` });
+    return res.status(500).json({ error: 'Something went wrong while reading the chat.' });
   }
 }
