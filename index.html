@@ -42,7 +42,7 @@
 </head>
 <body class="bg-[#FAF9F5] text-stone-800 min-h-screen flex flex-col justify-between selection:bg-stone-200 antialiased">
 
-    <!-- Top Navigation -->
+    <!-- Top Navigation Bar -->
     <header class="bg-[#FAF9F5]/80 backdrop-blur-md sticky top-0 z-50 border-b border-stone-200/50 py-5 px-6 md:px-12">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
@@ -50,11 +50,12 @@
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-stone-300 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-2 w-2 bg-stone-800"></span>
                 </div>
-                <span class="text-[10px] tracking-[0.2em] font-medium text-stone-400 uppercase">Ask</span>
+                <span class="text-[10px] tracking-[0.2em] font-medium text-stone-400 uppercase">Analysis Space</span>
                 <span class="text-xl font-bold tracking-tight text-stone-900 serif-font italic">Truvah</span>
             </div>
+            <!-- FIX: Re-added element structure to safely catch system updates without breaking -->
             <div id="modelBadge" class="hidden text-[10px] bg-stone-100/80 text-stone-500 tracking-wider px-3 py-1 rounded border border-stone-200/60">
-                System Active
+                System Active: <span id="modelNameText" class="font-semibold text-stone-800">Online</span>
             </div>
         </div>
     </header>
@@ -179,7 +180,7 @@
                         <p class="text-xs text-stone-500 font-light">See how each person handled the conversation and reacted during tense moments.</p>
                     </div>
                     <div id="profileContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <!-- User sub-cards load instantly here -->
+                        <!-- User cards load dynamically here -->
                     </div>
                 </div>
 
@@ -216,7 +217,6 @@
             modelBadge.classList.add('hidden');
             deleteSuccessBanner.classList.add('hidden');
             
-            // Bring input opacity back to solid during submit cycles
             chatInputElem.classList.remove('animate-text-fade');
             profileContainer.innerHTML = ''; 
 
@@ -230,7 +230,7 @@
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Could not process text.');
 
-                // CHAT WINDOW SURVIVES: Instead of hiding the text box, text inside fades away beautifully
+                // Text beautifully fades out but the window box elements stay exactly intact
                 chatInputElem.classList.add('animate-text-fade');
                 
                 setTimeout(() => {
@@ -239,12 +239,14 @@
                     deleteSuccessBanner.classList.remove('hidden');
                 }, 800);
 
-                document.getElementById('modelNameText').innerText = "Active Link";
+                // FIX: Target safe elements now available in DOM to prevent innerText crash
+                if (document.getElementById('modelNameText')) {
+                    document.getElementById('modelNameText').innerText = "Active Connection";
+                }
                 modelBadge.classList.remove('hidden');
 
                 const scores = data.analytics;
                 
-                // Mount Variables
                 document.getElementById('bondStrengthMeter').innerText = scores.bond_strength || '0%';
                 document.getElementById('bondStrengthReason').innerText = scores.bond_strength_reason ? `"${scores.bond_strength_reason}"` : '';
                 document.getElementById('positivityVal').innerText = scores.bond_positivity || '--';
@@ -341,10 +343,10 @@
                         profileContainer.appendChild(profileCard);
 
                         setTimeout(() => {
-                            document.getElementById(`p${idx}-attachBar`).style.width = user.attachment_security || '0%';
-                            document.getElementById(`p${idx}-regBar`).style.width = user.emotional_regulation || '0%';
-                            document.getElementById(`p${idx}-recepBar`).style.width = user.receptivity || '0%';
-                            document.getElementById(`p${idx}-accBar`).style.width = user.accountability || '0%';
+                            if(document.getElementById(`p${idx}-attachBar`)) document.getElementById(`p${idx}-attachBar`).style.width = user.attachment_security || '0%';
+                            if(document.getElementById(`p${idx}-regBar`)) document.getElementById(`p${idx}-regBar`).style.width = user.emotional_regulation || '0%';
+                            if(document.getElementById(`p${idx}-recepBar`)) document.getElementById(`p${idx}-recepBar`).style.width = user.receptivity || '0%';
+                            if(document.getElementById(`p${idx}-accBar`)) document.getElementById(`p${idx}-accBar`).style.width = user.accountability || '0%';
                         }, 150);
                     });
                 }
@@ -354,7 +356,8 @@
 
             } catch (err) {
                 alert(`Could not complete analysis right now: ${err.message}`);
-            } {
+            } finally {
+                // FIX: Removed block logic syntax layout bugs
                 analyzeBtn.disabled = false;
                 analyzeBtn.innerText = 'Analyze Conversation';
             }
