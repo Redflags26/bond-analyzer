@@ -15,45 +15,57 @@ export default async function handler(req, res) {
   const apiKey = process.env.OPENROUTER_API_KEY;
 
   if (!apiKey) {
-    return res.status(500).json({ error: 'Missing API Key configuration inside Vercel Dashboard.' });
+    return res.status(500).json({ error: 'Missing API Key configuration.' });
   }
 
-  const systemPrompt = `You are an expert behavioral psychologist specializing in couples counseling and interaction analysis. Your task is to evaluate a provided chat log between two partners by systematically breaking it down into a specific behavioral framework, profiling each individual natively, and providing tailored behavioral action items.
-
-  Analyze the provided chat logs thoroughly. Return your entire response in a strict, valid JSON object format matching exactly this structure:
+  // CHANGED: Completely overhauled the system prompt schema to generate percentage metrics & specific 1-liners for the 4 new dimensions
+  const systemPrompt = `You are an expert behavioral psychologist. Analyze the provided chat log between two partners.
+  Evaluate macro relationship metrics and build individual deep-dive profiles using four specific core psychological dimensions.
+  
+  Return your response in a strict, valid JSON object format matching exactly this structure:
   {
-    "bond_strength": "A percentage string ending with '%'.",
-    "bond_strength_reason": "A concise, single-sentence psychological profiling summarizing conversational synchronization and trust indicators.",
-    "bond_positivity": "A percentage string ending with '%'.",
-    "bond_positivity_reason": "A concise, single-sentence psychological one-liner mapping out the interaction's Receptivity, Empathy, Vulnerability, and Repair Attempts.",
-    "conflict_resolution": "A percentage string ending with '%'.",
-    "conflict_resolution_reason": "A concise, single-sentence behavioral one-liner mapping out Emotional Regulation, Validation, Solution-Orientation, and Agreement Status.",
-    "safety_trust": "A percentage string ending with '%'.",
-    "safety_trust_reason": "A concise, single-sentence diagnostic one-liner mapping out structural Security, Clarity, Vulnerability, and Emotional Residual.",
-    "relationship_dynamics": "A percentage string ending with '%'.",
-    "relationship_dynamics_reason": "A concise, single-sentence behavioral one-liner mapping out partner Accountability, Aggression Levels, Shared Relevance, and Actionable Commitments.",
-    "toxicity": "A percentage string ending with '%'.",
-    "toxicity_reason": "A concise, single-sentence clinical one-liner mapping out Low Regulation, High Aggression, Low Accountability, and High Resentment loops.",
-    "summary": "A concise, single-sentence psychological profiling of the core dynamic of the people involved.",
+    "bond_strength": "XX%",
+    "bond_strength_reason": "...",
+    "bond_positivity": "XX%",
+    "bond_positivity_reason": "...",
+    "conflict_resolution": "XX%",
+    "conflict_resolution_reason": "...",
+    "safety_trust": "XX%",
+    "safety_trust_reason": "...",
+    "relationship_dynamics": "XX%",
+    "relationship_dynamics_reason": "...",
+    "toxicity": "XX%",
+    "toxicity_reason": "...",
+    "summary": "...",
     "profiles": [
       {
-        "name": "The actual name or handle of Partner 1 extracted from the log",
-        "attachment_style": "Identified attachment style dynamic pattern displayed here",
-        "emotional_regulation": "Brief clinical assessment of how they manage their triggers here",
-        "communication_style": "1-2 word description of their style (e.g., Avoidant-Defensive, Attuned-Expressive)",
+        "name": "Actual handle/name of Partner 1",
+        "attachment_security": "XX%",
+        "attachment_security_reason": "1-sentence on whether they lean secure, anxious/clingy, or avoidant/shutdown here.",
+        "emotional_regulation": "XX%",
+        "emotional_regulation_reason": "1-sentence on their ability to stay grounded under pressure vs succumbing to flooding.",
+        "receptivity": "XX%",
+        "receptivity_reason": "1-sentence on willingness to absorb perspectives without immediately getting defensive.",
+        "accountability": "XX%",
+        "accountability_reason": "1-sentence on owning their mistakes and specific role vs deflecting/playing the victim.",
         "actionables": [
-          "First concrete, highly personalized behavioral recommendation for this specific partner to improve relationship bond strength.",
-          "Second concrete, highly personalized behavioral recommendation for this specific partner to improve relationship bond strength."
+          "Personalized growth recommendation 1",
+          "Personalized growth recommendation 2"
         ]
       },
       {
-        "name": "The actual name or handle of Partner 2 extracted from the log",
-        "attachment_style": "Identified attachment style dynamic pattern displayed here",
-        "emotional_regulation": "Brief clinical assessment of how they manage their triggers here",
-        "communication_style": "1-2 word description of their style",
+        "name": "Actual handle/name of Partner 2",
+        "attachment_security": "XX%",
+        "attachment_security_reason": "1-sentence on whether they lean secure, anxious/clingy, or avoidant/shutdown here.",
+        "emotional_regulation": "XX%",
+        "emotional_regulation_reason": "1-sentence on their ability to stay grounded under pressure vs succumbing to flooding.",
+        "receptivity": "XX%",
+        "receptivity_reason": "1-sentence on willingness to absorb perspectives without immediately getting defensive.",
+        "accountability": "XX%",
+        "accountability_reason": "1-sentence on owning their mistakes and specific role vs deflecting/playing the victim.",
         "actionables": [
-          "First concrete, highly personalized behavioral recommendation for this specific partner to improve relationship bond strength.",
-          "Second concrete, highly personalized behavioral recommendation for this specific partner to improve relationship bond strength."
+          "Personalized growth recommendation 1",
+          "Personalized growth recommendation 2"
         ]
       }
     ]
@@ -78,25 +90,15 @@ export default async function handler(req, res) {
     });
 
     const responseText = await openRouterResponse.text();
-    
-    let data;
-    try {
-      data = JSON.parse(responseText);
-    } catch (e) {
-      return res.status(500).json({ error: `Upstream server didn't send JSON: ${responseText}` });
-    }
+    const data = JSON.parse(responseText);
 
     if (!openRouterResponse.ok) {
-      const errMsg = data.error?.message || data.error || JSON.stringify(data);
-      return res.status(openRouterResponse.status).json({ error: `OpenRouter Message: ${errMsg}` });
+      return res.status(openRouterResponse.status).json({ error: data.error || 'API Error' });
     }
 
-    const resolvedModelName = data.model || "openrouter/auto-selected";
-    const contentText = data.choices[0].message.content;
-    const analysisMetrics = JSON.parse(contentText);
-    
+    const analysisMetrics = JSON.parse(data.choices[0].message.content);
     return res.status(200).json({
-      modelUsed: resolvedModelName,
+      modelUsed: data.model || "openrouter/auto-selected",
       analytics: analysisMetrics
     });
 
