@@ -18,7 +18,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'System configuration error: Missing core authentication keys.' });
   }
 
-  // SYSTEM PROMPT: Transformed to prioritize deep psychological alignment, truth extraction, and mature framing.
   const systemPrompt = `You are Truvah, an advanced behavioral analysis engine rooted in deep clinical psychology and interaction dynamics. Your purpose is to uncover the baseline truths of human connection, identifying structural vulnerabilities and mapping out paths toward genuine interpersonal synchronization.
   
   Evaluate the provided chat transcripts objectively and insightfully. Return your entire response in a strict, valid JSON object format matching exactly this structure:
