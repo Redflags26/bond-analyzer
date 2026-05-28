@@ -6,11 +6,12 @@
     <title>ClarityLab | Relational Dynamics & Interaction Insights</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        .custom-transition { transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        .custom-transition { transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
     </style>
 </head>
 <body class="bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-800 min-h-screen flex flex-col justify-between font-sans selection:bg-indigo-100">
 
+    <!-- Header Navigation -->
     <header class="bg-white/75 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200/60 py-4 px-6">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-2">
@@ -31,27 +32,28 @@
             See past the heat of the moment.
         </h2>
         <p class="text-base md:text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
-            When you're caught in a cycle of conflict, it's difficult to see where communication breaks down. Paste a recent chat segment below to extract deep psychological insights, attachment patterns, and structured paths forward.
+            Paste a recent chat segment below to extract deep psychological insights, metrics, and structured paths forward.
         </p>
     </section>
 
+    <!-- Core Workspace Container -->
     <main class="max-w-5xl w-full mx-auto p-4 md:p-6 flex-grow space-y-8">
         
+        <!-- Input Deck Window -->
         <section class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-md shadow-slate-100/40 space-y-4">
             <div class="space-y-1">
                 <label for="chatInput" class="block text-sm font-bold text-slate-800">Paste Conversation Logs</label>
-                <p class="text-xs text-slate-400">For deepest accuracy, use standardized formats containing speaker handles, for example: "Alex: text message..."</p>
             </div>
-            
             <textarea id="chatInput" rows="8" placeholder="Alex: You always get defensive when I ask about plans.&#10;Jordan: Because you bring it up right when I walk through the door after a 10-hour shift." class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm font-mono placeholder-slate-400 shadow-inner transition-all"></textarea>
-            
             <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-slate-900 hover:bg-indigo-600 text-white font-bold py-4 px-4 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 shadow-sm tracking-wide">
                 Analyze Dynamics & Generate Roadmaps
             </button>
         </section>
 
+        <!-- Premium Output Workspace Panel -->
         <section id="resultSection" class="hidden bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-xl shadow-indigo-900/5 space-y-10">
             
+            <!-- Overall Score View Area -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-5 border-b border-slate-100 pb-6">
                 <div class="space-y-1">
                     <span class="text-[10px] bg-indigo-50 text-indigo-700 font-bold tracking-wider uppercase px-2 py-0.5 rounded-md">Diagnostic Paradigm</span>
@@ -64,77 +66,52 @@
                 </div>
             </div>
 
+            <!-- Macro System Metrics Grid -->
             <div class="space-y-4">
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Core Dynamic Diagnostics</h4>
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Macro Relationship Diagnostics</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    
-                    <div class="p-5 bg-slate-50/50 rounded-xl border border-slate-200/60 space-y-3">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Bond Positivity</span>
-                            <span id="positivityVal" class="text-base font-extrabold text-emerald-600">--</span>
-                        </div>
-                        <div class="w-full bg-slate-200/60 h-2 rounded-full overflow-hidden">
-                            <div id="positivityBar" class="custom-transition bg-emerald-500 h-full" style="width: 0%"></div>
-                        </div>
-                        <p id="positivityReason" class="text-xs text-slate-500 leading-relaxed font-medium"></p>
+                    <div class="p-4 bg-slate-50/50 rounded-xl border border-slate-200/60 space-y-2">
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-700 uppercase">Bond Positivity</span><span id="positivityVal" class="text-sm font-extrabold text-emerald-600">--</span></div>
+                        <div class="w-full bg-slate-200/60 h-1.5 rounded-full overflow-hidden"><div id="positivityBar" class="custom-transition bg-emerald-500 h-full" style="width: 0%"></div></div>
+                        <p id="positivityReason" class="text-[11px] text-slate-500 leading-relaxed"></p>
                     </div>
-
-                    <div class="p-5 bg-slate-50/50 rounded-xl border border-slate-200/60 space-y-3">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Conflict Resolution</span>
-                            <span id="conflictVal" class="text-base font-extrabold text-blue-600">--</span>
-                        </div>
-                        <div class="w-full bg-slate-200/60 h-2 rounded-full overflow-hidden">
-                            <div id="conflictBar" class="custom-transition bg-blue-500 h-full" style="width: 0%"></div>
-                        </div>
-                        <p id="conflictReason" class="text-xs text-slate-500 leading-relaxed font-medium"></p>
+                    <div class="p-4 bg-slate-50/50 rounded-xl border border-slate-200/60 space-y-2">
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-700 uppercase">Conflict Resolution</span><span id="conflictVal" class="text-sm font-extrabold text-blue-600">--</span></div>
+                        <div class="w-full bg-slate-200/60 h-1.5 rounded-full overflow-hidden"><div id="conflictBar" class="custom-transition bg-blue-500 h-full" style="width: 0%"></div></div>
+                        <p id="conflictReason" class="text-[11px] text-slate-500 leading-relaxed"></p>
                     </div>
-
-                    <div class="p-5 bg-slate-50/50 rounded-xl border border-slate-200/60 space-y-3">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Safety & Trust</span>
-                            <span id="safetyVal" class="text-base font-extrabold text-indigo-600">--</span>
-                        </div>
-                        <div class="w-full bg-slate-200/60 h-2 rounded-full overflow-hidden">
-                            <div id="safetyBar" class="custom-transition bg-indigo-500 h-full" style="width: 0%"></div>
-                        </div>
-                        <p id="safetyReason" class="text-xs text-slate-500 leading-relaxed font-medium"></p>
+                    <div class="p-4 bg-slate-50/50 rounded-xl border border-slate-200/60 space-y-2">
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-700 uppercase">Safety & Trust</span><span id="safetyVal" class="text-sm font-extrabold text-indigo-600">--</span></div>
+                        <div class="w-full bg-slate-200/60 h-1.5 rounded-full overflow-hidden"><div id="safetyBar" class="custom-transition bg-indigo-500 h-full" style="width: 0%"></div></div>
+                        <p id="safetyReason" class="text-[11px] text-slate-500 leading-relaxed"></p>
                     </div>
-
-                    <div class="p-5 bg-slate-50/50 rounded-xl border border-slate-200/60 space-y-3">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Relationship Dynamics</span>
-                            <span id="dynamicsVal" class="text-base font-extrabold text-violet-600">--</span>
-                        </div>
-                        <div class="w-full bg-slate-200/60 h-2 rounded-full overflow-hidden">
-                            <div id="dynamicsBar" class="custom-transition bg-violet-500 h-full" style="width: 0%"></div>
-                        </div>
-                        <p id="dynamicsReason" class="text-xs text-slate-500 leading-relaxed font-medium"></p>
+                    <div class="p-4 bg-slate-50/50 rounded-xl border border-slate-200/60 space-y-2">
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-700 uppercase">Relationship Dynamics</span><span id="dynamicsVal" class="text-sm font-extrabold text-violet-600">--</span></div>
+                        <div class="w-full bg-slate-200/60 h-1.5 rounded-full overflow-hidden"><div id="dynamicsBar" class="custom-transition bg-violet-500 h-full" style="width: 0%"></div></div>
+                        <p id="dynamicsReason" class="text-[11px] text-slate-500 leading-relaxed"></p>
                     </div>
-
-                    <div class="p-5 bg-slate-50/50 rounded-xl border border-slate-200/60 md:col-span-2 space-y-3">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Toxicity Index Loop Risk</span>
-                            <span id="toxicityVal" class="text-base font-extrabold text-rose-600">--</span>
-                        </div>
-                        <div class="w-full bg-slate-200/60 h-2 rounded-full overflow-hidden">
-                            <div id="toxicityBar" class="custom-transition bg-rose-500 h-full" style="width: 0%"></div>
-                        </div>
-                        <p id="toxicityReason" class="text-xs text-slate-500 leading-relaxed font-medium"></p>
+                    <div class="p-4 bg-slate-50/50 rounded-xl border border-slate-200/60 md:col-span-2 space-y-2">
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-700 uppercase">Toxicity Index Loop Risk</span><span id="toxicityVal" class="text-sm font-extrabold text-rose-600">--</span></div>
+                        <div class="w-full bg-slate-200/60 h-1.5 rounded-full overflow-hidden"><div id="toxicityBar" class="custom-transition bg-rose-500 h-full" style="width: 0%"></div></div>
+                        <p id="toxicityReason" class="text-[11px] text-slate-500 leading-relaxed"></p>
                     </div>
-
                 </div>
             </div>
 
-            <div class="space-y-4 border-t border-slate-100 pt-6">
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest text-center">Individual Traits & Growth Roadmaps</h4>
-                <div id="profileContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    </div>
+            <!-- CHANGED: Re-engineered Profile Injector Workspace Area for Bar-Lines & One-Liners -->
+            <div class="space-y-6 border-t border-slate-100 pt-8">
+                <div class="text-center space-y-1">
+                    <h4 class="text-sm font-bold text-slate-900 uppercase tracking-widest">Individual Personality Frameworks</h4>
+                    <p class="text-xs text-slate-400">Granular metric profiles showing localized processing traits under relationship tension.</p>
+                </div>
+                <div id="profileContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Cards with progress bars inject natively here -->
+                </div>
             </div>
 
             <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-6 md:p-8 rounded-2xl space-y-2 shadow-inner">
                 <h4 class="text-[10px] text-indigo-300 font-bold uppercase tracking-widest">Clinical Synthesis Profiling</h4>
-                <p id="summaryText" class="text-sm md:text-base font-medium leading-relaxed italic text-slate-100"></p>
+                <p id="summaryText" class="text-sm font-medium leading-relaxed italic text-slate-100"></p>
             </div>
         </section>
     </main>
@@ -151,10 +128,7 @@
             const modelBadge = document.getElementById('modelBadge');
             const profileContainer = document.getElementById('profileContainer');
             
-            if (!chatLog) {
-                alert('Please input conversational chat transcripts to begin analysis.');
-                return;
-            }
+            if (!chatLog) return alert('Please input conversational chat transcripts to begin analysis.');
 
             analyzeBtn.disabled = true;
             analyzeBtn.innerText = 'Extracting Micro-Interaction Vectors...';
@@ -177,28 +151,22 @@
 
                 const scores = data.analytics;
                 
-                // Content Mapping Strings
-                document.getElementById('bondStrengthMeter').innerText = scores.bond_strength || 'N/A';
+                // Map out macro data
+                document.getElementById('bondStrengthMeter').innerText = scores.bond_strength || '0%';
                 document.getElementById('bondStrengthReason').innerText = scores.bond_strength_reason ? `"${scores.bond_strength_reason}"` : '';
-
-                document.getElementById('positivityVal').innerText = scores.bond_positivity || 'N/A';
+                document.getElementById('positivityVal').innerText = scores.bond_positivity || '--';
                 document.getElementById('positivityReason').innerText = scores.bond_positivity_reason || '';
-
-                document.getElementById('conflictVal').innerText = scores.conflict_resolution || 'N/A';
+                document.getElementById('conflictVal').innerText = scores.conflict_resolution || '--';
                 document.getElementById('conflictReason').innerText = scores.conflict_resolution_reason || '';
-
-                document.getElementById('safetyVal').innerText = scores.safety_trust || 'N/A';
+                document.getElementById('safetyVal').innerText = scores.safety_trust || '--';
                 document.getElementById('safetyReason').innerText = scores.safety_trust_reason || '';
-
-                document.getElementById('dynamicsVal').innerText = scores.relationship_dynamics || 'N/A';
+                document.getElementById('dynamicsVal').innerText = scores.relationship_dynamics || '--';
                 document.getElementById('dynamicsReason').innerText = scores.relationship_dynamics_reason || '';
-
-                document.getElementById('toxicityVal').innerText = scores.toxicity || 'N/A';
+                document.getElementById('toxicityVal').innerText = scores.toxicity || '--';
                 document.getElementById('toxicityReason').innerText = scores.toxicity_reason || '';
-
-                document.getElementById('summaryText').innerText = scores.summary ? `"${scores.summary}"` : 'Synthesis profile unavailable.';
+                document.getElementById('summaryText').innerText = scores.summary ? `"${scores.summary}"` : '';
                 
-                // Smooth Structural Transition Width Modifications
+                // Smooth Structural Transition for Macro Bars
                 setTimeout(() => {
                     document.getElementById('positivityBar').style.width = scores.bond_positivity || '0%';
                     document.getElementById('conflictBar').style.width = scores.conflict_resolution || '0%';
@@ -207,49 +175,93 @@
                     document.getElementById('toxicityBar').style.width = scores.toxicity || '0%';
                 }, 100);
 
-                // Precise Core Dynamic Injections 
+                // CHANGED: Overhauled DOM creation to generate progress bars and one-liners for the updated 4 parameters
                 if (scores.profiles && Array.isArray(scores.profiles)) {
-                    scores.profiles.forEach(user => {
+                    scores.profiles.forEach((user, idx) => {
                         const profileCard = document.createElement('div');
-                        profileCard.className = "bg-slate-50/60 border border-slate-200/70 rounded-2xl p-6 space-y-4 flex flex-col justify-between shadow-xs";
+                        profileCard.className = "bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-6";
                         
-                        // Map out inner action items dynamically
                         const actionsHtml = user.actionables.map(action => `
-                            <li class="flex items-start gap-2.5 text-xs text-slate-600 leading-relaxed bg-white px-3 py-2.5 rounded-lg border border-slate-200/50 shadow-2xs font-medium">
-                                <span class="text-indigo-600 mt-0.5">⚡</span>
+                            <li class="flex items-start gap-2 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                                <span class="text-indigo-600 font-bold">👉</span>
                                 <span>${action}</span>
                             </li>
                         `).join('');
 
                         profileCard.innerHTML = `
-                            <div class="space-y-4">
-                                <div class="border-b border-slate-200/50 pb-3">
-                                    <span class="text-[9px] uppercase font-bold tracking-widest text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-sm">Individual Persona</span>
-                                    <h5 class="text-xl font-extrabold text-slate-900 mt-1">${user.name}</h5>
+                            <div class="space-y-5">
+                                <div class="border-b border-slate-100 pb-3">
+                                    <span class="text-[9px] uppercase font-bold tracking-widest text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">Individual Analysis</span>
+                                    <h5 class="text-xl font-black text-slate-900 mt-1">${user.name}</h5>
                                 </div>
                                 
-                                <div class="space-y-2 text-xs">
-                                    <div class="flex justify-between items-center bg-white/80 p-2 rounded-lg border border-slate-100">
-                                        <span class="text-slate-400 font-medium">Attachment Context:</span>
-                                        <span class="font-bold text-slate-800">${user.attachment_style}</span>
+                                <!-- Core Dynamic Vector Progress Segment Blocks -->
+                                <div class="space-y-4">
+                                    <!-- Attribute 1: Attachment Security -->
+                                    <div class="space-y-1.5">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="font-bold text-slate-700">Attachment Security</span>
+                                            <span class="font-extrabold text-indigo-600">${user.attachment_security || '0%'}</span>
+                                        </div>
+                                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                            <div id="p${idx}-attachBar" class="custom-transition bg-indigo-600 h-full" style="width: 0%"></div>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 leading-relaxed italic">${user.attachment_security_reason || ''}</p>
                                     </div>
-                                    <div class="flex justify-between items-center bg-white/80 p-2 rounded-lg border border-slate-100">
-                                        <span class="text-slate-400 font-medium">Expression Archetype:</span>
-                                        <span class="font-bold text-slate-800">${user.communication_style}</span>
+
+                                    <!-- Attribute 2: Emotional Regulation -->
+                                    <div class="space-y-1.5">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="font-bold text-slate-700">Emotional Regulation</span>
+                                            <span class="font-extrabold text-blue-600">${user.emotional_regulation || '0%'}</span>
+                                        </div>
+                                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                            <div id="p${idx}-regBar" class="custom-transition bg-blue-500 h-full" style="width: 0%"></div>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 leading-relaxed italic">${user.emotional_regulation_reason || ''}</p>
                                     </div>
-                                    <div class="space-y-1 bg-white/80 p-2.5 rounded-lg border border-slate-100">
-                                        <span class="text-slate-400 font-medium block">Emotional Regulation:</span>
-                                        <span class="font-semibold text-slate-700 leading-normal">${user.emotional_regulation}</span>
+
+                                    <!-- Attribute 3: Receptivity -->
+                                    <div class="space-y-1.5">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="font-bold text-slate-700">Receptivity</span>
+                                            <span class="font-extrabold text-emerald-600">${user.receptivity || '0%'}</span>
+                                        </div>
+                                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                            <div id="p${idx}-recepBar" class="custom-transition bg-emerald-500 h-full" style="width: 0%"></div>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 leading-relaxed italic">${user.receptivity_reason || ''}</p>
+                                    </div>
+
+                                    <!-- Attribute 4: Accountability -->
+                                    <div class="space-y-1.5">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="font-bold text-slate-700">Accountability</span>
+                                            <span class="font-extrabold text-violet-600">${user.accountability || '0%'}</span>
+                                        </div>
+                                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                            <div id="p${idx}-accBar" class="custom-transition bg-violet-500 h-full" style="width: 0%"></div>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 leading-relaxed italic">${user.accountability_reason || ''}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="space-y-2 pt-2">
-                                <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Growth Roadmap Actions</span>
+                            <!-- Action Steps List -->
+                            <div class="space-y-2 pt-4 border-t border-slate-100">
+                                <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Targeted Growth Strategy</span>
                                 <ul class="space-y-2">${actionsHtml}</ul>
                             </div>
                         `;
                         profileContainer.appendChild(profileCard);
+
+                        // Trigger transition execution window hook
+                        setTimeout(() => {
+                            document.getElementById(`p${idx}-attachBar`).style.width = user.attachment_security || '0%';
+                            document.getElementById(`p${idx}-regBar`).style.width = user.emotional_regulation || '0%';
+                            document.getElementById(`p${idx}-recepBar`).style.width = user.receptivity || '0%';
+                            document.getElementById(`p${idx}-accBar`).style.width = user.accountability || '0%';
+                        }, 150);
                     });
                 }
 
