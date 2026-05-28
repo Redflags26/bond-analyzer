@@ -3,36 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ClarityLab | Relational Dynamics & Interaction Insights</title>
+    <title>RedFlags | Relational Dynamics & Interaction Insights</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         .custom-transition { transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
     </style>
 </head>
-<body class="bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-800 min-h-screen flex flex-col justify-between font-sans selection:bg-indigo-100">
+<body class="bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-800 min-h-screen flex flex-col justify-between font-sans selection:bg-rose-100">
 
     <!-- Header Navigation -->
     <header class="bg-white/75 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200/60 py-4 px-6">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-2">
-                <span class="text-xl">✨</span>
-                <span class="text-lg font-bold text-red-900 tracking-tight">Red<span class="text-slate-600 font-semibold">Flags</span></span>
+                <span class="text-xl">🚩</span>
+                <span class="text-lg font-black tracking-tight text-rose-600">Red<span class="text-slate-900 font-bold">Flags</span></span>
             </div>
             <div id="modelBadge" class="hidden text-[10px] bg-slate-100 text-slate-500 font-mono px-2.5 py-1 rounded-md border border-slate-200/60">
-                Engine: <span id="modelNameText" class="font-bold text-indigo-600">--</span>
+                Engine: <span id="modelNameText" class="font-bold text-rose-600">--</span>
             </div>
         </div>
     </header>
 
     <section class="max-w-3xl mx-auto text-center px-6 pt-12 pb-4 space-y-4">
-        <div class="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full text-indigo-700 font-semibold text-xs tracking-wide uppercase">
+        <div class="inline-flex items-center gap-1.5 bg-rose-50 border border-rose-100 px-3 py-1 rounded-full text-rose-700 font-semibold text-xs tracking-wide uppercase">
             🛡️ Safe, Secure & Completely Anonymous
         </div>
         <h2 class="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
             See past the heat of the moment.
         </h2>
         <p class="text-base md:text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
-            Paste a recent chat segment below to extract deep psychological insights, metrics, and structured paths forward.
+            Paste a recent chat segment below to extract deep psychological insights, identify warning signs, and build structured paths forward.
         </p>
     </section>
 
@@ -44,25 +44,25 @@
             <div class="space-y-1">
                 <label for="chatInput" class="block text-sm font-bold text-slate-800">Paste Conversation Logs</label>
             </div>
-            <textarea id="chatInput" rows="8" placeholder="Alex: You always get defensive when I ask about plans.&#10;Jordan: Because you bring it up right when I walk through the door after a 10-hour shift." class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm font-mono placeholder-slate-400 shadow-inner transition-all"></textarea>
-            <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-slate-900 hover:bg-indigo-600 text-white font-bold py-4 px-4 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 shadow-sm tracking-wide">
+            <textarea id="chatInput" rows="8" placeholder="Alex: You always get defensive when I ask about plans.&#10;Jordan: Because you bring it up right when I walk through the door after a 10-hour shift." class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 text-sm font-mono placeholder-slate-400 shadow-inner transition-all"></textarea>
+            <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-slate-900 hover:bg-rose-600 text-white font-bold py-4 px-4 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 shadow-sm tracking-wide">
                 Analyze Dynamics & Generate Roadmaps
             </button>
         </section>
 
         <!-- Premium Output Workspace Panel -->
-        <section id="resultSection" class="hidden bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-xl shadow-indigo-900/5 space-y-10">
+        <section id="resultSection" class="hidden bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-xl shadow-rose-900/5 space-y-10">
             
             <!-- Overall Score View Area -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-5 border-b border-slate-100 pb-6">
                 <div class="space-y-1">
-                    <span class="text-[10px] bg-indigo-50 text-indigo-700 font-bold tracking-wider uppercase px-2 py-0.5 rounded-md">Diagnostic Paradigm</span>
-                    <h3 class="text-2xl font-bold text-slate-900 tracking-tight">Conversational Synchronization</h3>
+                    <span class="text-[10px] bg-rose-50 text-rose-700 font-bold tracking-wider uppercase px-2 py-0.5 rounded-md">Diagnostic Paradigm</span>
+                    <h3 class="text-2xl font-bold text-slate-900 tracking-tight">Conversational Alignment</h3>
                     <p id="bondStrengthReason" class="text-xs md:text-sm text-slate-500 max-w-lg leading-relaxed italic mt-1"></p>
                 </div>
                 <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100 min-w-[200px] justify-between">
                     <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Overall Sync</span>
-                    <span id="bondStrengthMeter" class="text-4xl font-black text-indigo-600 tracking-tight">0%</span>
+                    <span id="bondStrengthMeter" class="text-4xl font-black text-rose-600 tracking-tight">0%</span>
                 </div>
             </div>
 
@@ -81,8 +81,8 @@
                         <p id="conflictReason" class="text-[11px] text-slate-500 leading-relaxed"></p>
                     </div>
                     <div class="p-4 bg-slate-50/50 rounded-xl border border-slate-200/60 space-y-2">
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-700 uppercase">Safety & Trust</span><span id="safetyVal" class="text-sm font-extrabold text-indigo-600">--</span></div>
-                        <div class="w-full bg-slate-200/60 h-1.5 rounded-full overflow-hidden"><div id="safetyBar" class="custom-transition bg-indigo-500 h-full" style="width: 0%"></div></div>
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-700 uppercase">Safety & Trust</span><span id="safetyVal" class="text-sm font-extrabold text-rose-600">--</span></div>
+                        <div class="w-full bg-slate-200/60 h-1.5 rounded-full overflow-hidden"><div id="safetyBar" class="custom-transition bg-rose-500 h-full" style="width: 0%"></div></div>
                         <p id="safetyReason" class="text-[11px] text-slate-500 leading-relaxed"></p>
                     </div>
                     <div class="p-4 bg-slate-50/50 rounded-xl border border-slate-200/60 space-y-2">
@@ -98,26 +98,28 @@
                 </div>
             </div>
 
-            <!-- CHANGED: Re-engineered Profile Injector Workspace Area for Bar-Lines & One-Liners -->
+            <!-- Profile Injector Area for Bar-Lines & One-Liners -->
             <div class="space-y-6 border-t border-slate-100 pt-8">
                 <div class="text-center space-y-1">
                     <h4 class="text-sm font-bold text-slate-900 uppercase tracking-widest">Individual Personality Frameworks</h4>
                     <p class="text-xs text-slate-400">Granular metric profiles showing localized processing traits under relationship tension.</p>
                 </div>
                 <div id="profileContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Cards with progress bars inject natively here -->
+                    <!-- Dynamic cards inject here -->
                 </div>
             </div>
 
-            <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-6 md:p-8 rounded-2xl space-y-2 shadow-inner">
-                <h4 class="text-[10px] text-indigo-300 font-bold uppercase tracking-widest">Clinical Synthesis Profiling</h4>
+            <!-- Summary Box -->
+            <div class="bg-gradient-to-br from-slate-900 to-rose-950 text-white p-6 md:p-8 rounded-2xl space-y-2 shadow-inner">
+                <h4 class="text-[10px] text-rose-300 font-bold uppercase tracking-widest">Clinical Synthesis Profiling</h4>
                 <p id="summaryText" class="text-sm font-medium leading-relaxed italic text-slate-100"></p>
             </div>
         </section>
     </main>
 
+    <!-- Footer Space -->
     <footer class="text-center py-6 text-xs text-slate-400 border-t border-slate-200 bg-white">
-        ClarityLab Analytics Engine • Secure Client Session Environment
+        RedFlags Analytics Engine • Secure Client Session Environment
     </footer>
 
     <script>
@@ -166,7 +168,6 @@
                 document.getElementById('toxicityReason').innerText = scores.toxicity_reason || '';
                 document.getElementById('summaryText').innerText = scores.summary ? `"${scores.summary}"` : '';
                 
-                // Smooth Structural Transition for Macro Bars
                 setTimeout(() => {
                     document.getElementById('positivityBar').style.width = scores.bond_positivity || '0%';
                     document.getElementById('conflictBar').style.width = scores.conflict_resolution || '0%';
@@ -175,7 +176,6 @@
                     document.getElementById('toxicityBar').style.width = scores.toxicity || '0%';
                 }, 100);
 
-                // CHANGED: Overhauled DOM creation to generate progress bars and one-liners for the updated 4 parameters
                 if (scores.profiles && Array.isArray(scores.profiles)) {
                     scores.profiles.forEach((user, idx) => {
                         const profileCard = document.createElement('div');
@@ -183,7 +183,7 @@
                         
                         const actionsHtml = user.actionables.map(action => `
                             <li class="flex items-start gap-2 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                                <span class="text-indigo-600 font-bold">👉</span>
+                                <span class="text-rose-600 font-bold">👉</span>
                                 <span>${action}</span>
                             </li>
                         `).join('');
@@ -191,20 +191,19 @@
                         profileCard.innerHTML = `
                             <div class="space-y-5">
                                 <div class="border-b border-slate-100 pb-3">
-                                    <span class="text-[9px] uppercase font-bold tracking-widest text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">Individual Analysis</span>
+                                    <span class="text-[9px] uppercase font-bold tracking-widest text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">Individual Analysis</span>
                                     <h5 class="text-xl font-black text-slate-900 mt-1">${user.name}</h5>
                                 </div>
                                 
-                                <!-- Core Dynamic Vector Progress Segment Blocks -->
                                 <div class="space-y-4">
                                     <!-- Attribute 1: Attachment Security -->
                                     <div class="space-y-1.5">
                                         <div class="flex justify-between items-center text-xs">
                                             <span class="font-bold text-slate-700">Attachment Security</span>
-                                            <span class="font-extrabold text-indigo-600">${user.attachment_security || '0%'}</span>
+                                            <span class="font-extrabold text-rose-600">${user.attachment_security || '0%'}</span>
                                         </div>
                                         <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                            <div id="p${idx}-attachBar" class="custom-transition bg-indigo-600 h-full" style="width: 0%"></div>
+                                            <div id="p${idx}-attachBar" class="custom-transition bg-rose-500 h-full" style="width: 0%"></div>
                                         </div>
                                         <p class="text-[11px] text-slate-500 leading-relaxed italic">${user.attachment_security_reason || ''}</p>
                                     </div>
@@ -247,7 +246,6 @@
                                 </div>
                             </div>
 
-                            <!-- Action Steps List -->
                             <div class="space-y-2 pt-4 border-t border-slate-100">
                                 <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Targeted Growth Strategy</span>
                                 <ul class="space-y-2">${actionsHtml}</ul>
@@ -255,7 +253,6 @@
                         `;
                         profileContainer.appendChild(profileCard);
 
-                        // Trigger transition execution window hook
                         setTimeout(() => {
                             document.getElementById(`p${idx}-attachBar`).style.width = user.attachment_security || '0%';
                             document.getElementById(`p${idx}-regBar`).style.width = user.emotional_regulation || '0%';
