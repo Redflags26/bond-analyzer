@@ -6,122 +6,146 @@
     <title>Truvah | Interpersonal Analytics & Relational Truth</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        .custom-transition { transition: all 1.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .serif-font { font-family: 'Playfair Display', serif; }
+        .mono-font { font-family: 'JetBrains Mono', monospace; }
+        .custom-transition { transition: all 1.6s cubic-bezier(0.16, 1, 0.3, 1); }
     </style>
 </head>
-<body class="bg-gradient-to-b from-[#FAF9F5] via-white to-[#F4F3EE] text-slate-800 min-h-screen flex flex-col justify-between font-sans selection:bg-stone-200">
+<body class="bg-[#FAF9F5] text-stone-800 min-h-screen flex flex-col justify-between selection:bg-stone-200 antialiased">
 
-    <!-- Premium Minimalist Header -->
-    <header class="bg-white/60 backdrop-blur-md sticky top-0 z-50 border-b border-stone-200/60 py-4 px-6">
-        <div class="max-w-5xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2.5">
-                <span class="text-xs tracking-[0.2em] font-light text-stone-400 uppercase">System Archetype</span>
-                <span class="text-xl font-bold tracking-tight text-stone-900">Truvah</span>
+    <!-- Premium Navigation Bar -->
+    <header class="bg-[#FAF9F5]/80 backdrop-blur-md sticky top-0 z-50 border-b border-stone-200/50 py-5 px-6 md:px-12">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-stone-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-stone-900"></span>
+                </div>
+                <span class="text-xs tracking-[0.25em] font-medium text-stone-400 uppercase">System Archetype</span>
+                <span class="text-xl font-bold tracking-tight text-stone-900 serif-font italic">Truvah</span>
             </div>
-            <div id="modelBadge" class="hidden text-[10px] bg-stone-100 text-stone-500 font-mono px-3 py-1 rounded border border-stone-200">
-                Core: <span id="modelNameText" class="font-semibold text-stone-700">--</span>
+            <div id="modelBadge" class="hidden text-[10px] bg-stone-100/80 text-stone-500 font-mono tracking-wider px-3 py-1 rounded border border-stone-200/60 shadow-2xs">
+                Core: <span id="modelNameText" class="font-semibold text-stone-800">--</span>
             </div>
         </div>
     </header>
 
-    <!-- Deep Philosophical Frame & Hook -->
-    <section class="max-w-3xl mx-auto text-center px-6 pt-16 pb-6 space-y-6">
-        <div class="inline-flex items-center gap-2 bg-stone-100 border border-stone-200 px-3 py-1 rounded text-stone-600 font-medium text-[10px] tracking-widest uppercase">
-            🔒 Encrypted • Clinical Diagnostic Environment
-        </div>
-        <h2 class="text-3xl md:text-5xl font-serif text-stone-900 tracking-tight leading-tight max-w-2xl mx-auto">
-            Uncover the structural reality of your connection.
-        </h2>
-        <p class="text-sm md:text-base text-stone-500 max-w-xl mx-auto leading-relaxed font-light">
-            Truvah operates on the baseline understanding that human connections are built on mutual transparency, emotional grounding, and the courage to look past behavioral static to locate the fundamental truth.
-        </p>
-    </section>
-
-    <!-- Workspace Deck Wrapper -->
-    <main class="max-w-5xl w-full mx-auto p-4 md:p-6 flex-grow space-y-8">
+    <!-- Main Editorial Workspace Grid -->
+    <main class="max-w-7xl w-full mx-auto p-6 md:p-12 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
         
-        <!-- Input Deck -->
-        <section class="bg-white p-6 rounded-xl border border-stone-200 shadow-xs space-y-4">
-            <div class="space-y-1">
-                <label for="chatInput" class="block text-xs font-bold text-stone-700 uppercase tracking-wider">Dialogue Repository</label>
-                <p class="text-xs text-stone-400 font-light">Input a clean segment of recent communication text containing speaker indicators to isolate conversational metrics.</p>
+        <!-- Left Column: Editorial Philosophy -->
+        <section class="lg:col-span-5 space-y-6 lg:sticky lg:top-28 pt-4">
+            <div class="inline-flex items-center gap-2 bg-white border border-stone-200/80 px-3 py-1 rounded-full text-stone-600 font-medium text-[9px] tracking-widest uppercase shadow-2xs">
+                🔒 Encrypted Diagnostic Environment
             </div>
-            <textarea id="chatInput" rows="8" placeholder="Alex: You always get defensive when I ask about plans.&#10;Jordan: Because you bring it up right when I walk through the door after a 10-hour shift." class="w-full p-4 bg-[#FAF9F5] border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-sm font-mono placeholder-stone-400 shadow-inner transition-all"></textarea>
-            <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-4 px-4 rounded transition-all duration-300 cursor-pointer flex justify-center items-center gap-2 text-sm tracking-widest uppercase shadow-sm">
-                Initiate Behavioral Evaluation
-            </button>
+            <h2 class="text-4xl md:text-5xl font-normal text-stone-900 tracking-tight leading-[1.15] serif-font">
+                Uncover the <br><span class="italic text-stone-500">structural reality</span> of human connection.
+            </h2>
+            <div class="space-y-4 text-stone-500 text-sm font-light leading-relaxed max-w-md">
+                <p>
+                    Truvah operates on the baseline understanding that sustainable human bonds are built on mutual structural transparency, emotional grounding, and the collective courage to look past behavioral static.
+                </p>
+                <p class="border-l border-stone-300 pl-4 italic text-stone-400 text-xs">
+                    "By inputting interaction transcripts, the system filters transactional communication to isolate foundational truth vectors, localized ego structures, and relational synchronization."
+                </p>
+            </div>
         </section>
 
-        <!-- Premium Output Panel -->
-        <section id="resultSection" class="hidden bg-white p-6 md:p-8 rounded-xl border border-stone-200/80 shadow-md space-y-12">
+        <!-- Right Column: Interactive Deck & Live Output Workspace -->
+        <section class="lg:col-span-7 space-y-8 w-full">
             
-            <!-- Overall Sync View -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-stone-100 pb-8">
+            <!-- Input Card -->
+            <div class="bg-white p-6 md:p-8 rounded-2xl border border-stone-200/80 shadow-xs space-y-6">
                 <div class="space-y-1.5">
-                    <span class="text-[9px] bg-stone-100 text-stone-600 font-bold tracking-widest uppercase px-2 py-0.5 rounded">Alignment Synthesis</span>
-                    <h3 class="text-xl md:text-2xl font-serif text-stone-900 tracking-tight">Interpersonal Synchronization Matrix</h3>
-                    <p id="bondStrengthReason" class="text-xs md:text-sm text-stone-500 max-w-xl leading-relaxed italic font-light mt-1"></p>
+                    <label for="chatInput" class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest">Dialogue Repository</label>
+                    <p class="text-xs text-stone-500 font-light">Paste a natural transcript segment below. Include speaker identifiers for optimal metrics isolation.</p>
                 </div>
-                <div class="flex items-center gap-4 bg-[#FAF9F5] p-5 rounded border border-stone-200 min-w-[220px] justify-between">
-                    <span class="text-xs font-bold text-stone-400 uppercase tracking-widest">Baseline Sync</span>
-                    <span id="bondStrengthMeter" class="text-3xl font-serif font-black text-stone-900 tracking-tighter">0%</span>
+                
+                <div class="relative">
+                    <textarea id="chatInput" rows="7" placeholder="Alex: You always get defensive when I ask about plans.&#10;Jordan: Because you bring it up right when I walk through the door after a 10-hour shift." class="w-full p-5 bg-[#FAF9F5] border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-sm tracking-wide font-light placeholder-stone-300 shadow-inner transition-all leading-relaxed"></textarea>
+                    <div class="absolute bottom-4 right-4 text-[9px] uppercase tracking-wider text-stone-400 mono-font bg-white/80 px-2 py-0.5 rounded border border-stone-100">UTF-8 Entry</div>
                 </div>
+
+                <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-4 px-6 rounded-xl transition-all duration-300 cursor-pointer flex justify-center items-center gap-3 text-xs tracking-[0.15em] uppercase shadow-sm">
+                    Initiate Behavioral Evaluation
+                </button>
             </div>
 
-            <!-- Macro Metrics Grid -->
-            <div class="space-y-4">
-                <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Foundational Diagnostic Vectors</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="p-5 bg-[#FAF9F5]/40 rounded border border-stone-200/60 space-y-2.5">
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-stone-700 tracking-wide">Structural Positivity</span><span id="positivityVal" class="text-xs font-mono font-bold text-stone-600">--</span></div>
-                        <div class="w-full bg-stone-200/50 h-1 rounded-full overflow-hidden"><div id="positivityBar" class="custom-transition bg-stone-700 h-full" style="width: 0%"></div></div>
-                        <p id="positivityReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
+            <!-- Output Dynamic Dossier Panel -->
+            <div id="resultSection" class="hidden bg-white p-6 md:p-10 rounded-2xl border border-stone-200/80 shadow-sm space-y-12">
+                
+                <!-- Master Matrix Alignment Area -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-stone-100 pb-8">
+                    <div class="space-y-2">
+                        <span class="text-[9px] bg-stone-100 text-stone-600 font-bold tracking-widest uppercase px-2.5 py-1 rounded">Alignment Matrix</span>
+                        <h3 class="text-2xl font-normal text-stone-900 tracking-tight serif-font">Interpersonal Synchronization Index</h3>
+                        <p id="bondStrengthReason" class="text-xs md:text-sm text-stone-500 max-w-md leading-relaxed italic font-light"></p>
                     </div>
-                    <div class="p-5 bg-[#FAF9F5]/40 rounded border border-stone-200/60 space-y-2.5">
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-stone-700 tracking-wide">Conflict Resolution Aptitude</span><span id="conflictVal" class="text-xs font-mono font-bold text-stone-600">--</span></div>
-                        <div class="w-full bg-stone-200/50 h-1 rounded-full overflow-hidden"><div id="conflictBar" class="custom-transition bg-stone-700 h-full" style="width: 0%"></div></div>
-                        <p id="conflictReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
-                    </div>
-                    <div class="p-5 bg-[#FAF9F5]/40 rounded border border-stone-200/60 space-y-2.5">
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-stone-700 tracking-wide">Psychological Safety</span><span id="safetyVal" class="text-xs font-mono font-bold text-stone-600">--</span></div>
-                        <div class="w-full bg-stone-200/50 h-1 rounded-full overflow-hidden"><div id="safetyBar" class="custom-transition bg-stone-700 h-full" style="width: 0%"></div></div>
-                        <p id="safetyReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
-                    </div>
-                    <div class="p-5 bg-[#FAF9F5]/40 rounded border border-stone-200/60 space-y-2.5">
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-stone-700 tracking-wide">Relational Cohesion</span><span id="dynamicsVal" class="text-xs font-mono font-bold text-stone-600">--</span></div>
-                        <div class="w-full bg-stone-200/50 h-1 rounded-full overflow-hidden"><div id="dynamicsBar" class="custom-transition bg-stone-700 h-full" style="width: 0%"></div></div>
-                        <p id="dynamicsReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
-                    </div>
-                    <div class="p-5 bg-[#FAF9F5]/40 rounded border border-stone-200/60 md:col-span-2 space-y-2.5">
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-stone-700 tracking-wide">Friction & Dysregulation Index</span><span id="toxicityVal" class="text-xs font-mono font-bold text-stone-600">--</span></div>
-                        <div class="w-full bg-stone-200/50 h-1 rounded-full overflow-hidden"><div id="toxicityBar" class="custom-transition bg-stone-400 h-full" style="width: 0%"></div></div>
-                        <p id="toxicityReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
+                    <div class="flex flex-col items-center justify-center bg-[#FAF9F5] p-6 rounded-xl border border-stone-200/60 min-w-[160px] text-center shadow-2xs">
+                        <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Baseline Sync</span>
+                        <span id="bondStrengthMeter" class="text-4xl font-serif font-light text-stone-950 tracking-tighter">0%</span>
                     </div>
                 </div>
-            </div>
 
-            <!-- Profile Matrix Section -->
-            <div class="space-y-6 border-t border-stone-100 pt-10">
-                <div class="text-center space-y-1.5">
-                    <h4 class="text-xs font-bold text-stone-900 uppercase tracking-widest">Individual Processing Frameworks</h4>
-                    <p class="text-xs text-stone-400 font-light">Granular metrics defining localized ego structures and adaptive processing traits under tension.</p>
+                <!-- Macro Diagnostics Vector System Grid -->
+                <div class="space-y-6">
+                    <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Foundational Diagnostic Vectors</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="p-6 bg-[#FAF9F5]/40 rounded-xl border border-stone-200/40 space-y-3 shadow-2xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-semibold text-stone-700 tracking-wide">Structural Positivity</span><span id="positivityVal" class="text-xs font-mono text-stone-500 font-medium">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="positivityBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
+                            <p id="positivityReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
+                        </div>
+                        <div class="p-6 bg-[#FAF9F5]/40 rounded-xl border border-stone-200/40 space-y-3 shadow-2xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-semibold text-stone-700 tracking-wide">Conflict Resolution Aptitude</span><span id="conflictVal" class="text-xs font-mono text-stone-500 font-medium">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="conflictBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
+                            <p id="conflictReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
+                        </div>
+                        <div class="p-6 bg-[#FAF9F5]/40 rounded-xl border border-stone-200/40 space-y-3 shadow-2xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-semibold text-stone-700 tracking-wide">Psychological Safety</span><span id="safetyVal" class="text-xs font-mono text-stone-500 font-medium">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="safetyBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
+                            <p id="safetyReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
+                        </div>
+                        <div class="p-6 bg-[#FAF9F5]/40 rounded-xl border border-stone-200/40 space-y-3 shadow-2xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-semibold text-stone-700 tracking-wide">Relational Cohesion</span><span id="dynamicsVal" class="text-xs font-mono text-stone-500 font-medium">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="dynamicsBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
+                            <p id="dynamicsReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
+                        </div>
+                        <div class="p-6 bg-[#FAF9F5]/40 rounded-xl border border-stone-200/40 md:col-span-2 space-y-3 shadow-2xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-semibold text-stone-700 tracking-wide">Friction & Dysregulation Index</span><span id="toxicityVal" class="text-xs font-mono text-stone-500 font-medium">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="toxicityBar" class="custom-transition bg-stone-400 h-full" style="width: 0%"></div></div>
+                            <p id="toxicityReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
+                        </div>
+                    </div>
                 </div>
-                <div id="profileContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Dynamic cards inject here natively -->
-                </div>
-            </div>
 
-            <!-- Deep Psychological Summary Output Box -->
-            <div class="bg-stone-950 text-[#FAF9F5] p-6 md:p-8 rounded-lg space-y-3 shadow-inner">
-                <h4 class="text-[9px] text-stone-400 font-bold uppercase tracking-[0.2em]">Foundational Truth Synthesis</h4>
-                <p id="summaryText" class="text-sm md:text-base font-serif font-light leading-relaxed italic text-stone-200"></p>
+                <!-- Personal Profile Target Section Layout -->
+                <div class="space-y-6 border-t border-stone-100 pt-10">
+                    <div class="space-y-1">
+                        <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Individual Processing Frameworks</h4>
+                        <p class="text-xs text-stone-500 font-light">Granular systemic profiles defining localized ego structures and adaptive traits under relational tension.</p>
+                    </div>
+                    <div id="profileContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Dynamic sub-cards build and inject seamlessly here -->
+                    </div>
+                </div>
+
+                <!-- Professional Deep Synthesis Footer Flag Box -->
+                <div class="bg-stone-950 text-[#FAF9F5] p-6 md:p-8 rounded-2xl space-y-3 shadow-md relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-8 text-stone-800 opacity-20 text-7xl serif-font pointer-events-none italic select-none">T</div>
+                    <h4 class="text-[9px] text-stone-400 font-bold uppercase tracking-[0.25em]">Foundational Truth Synthesis</h4>
+                    <p id="summaryText" class="text-sm md:text-base font-serif font-light leading-relaxed italic text-stone-200 relative z-10"></p>
+                </div>
             </div>
         </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="text-center py-8 text-[11px] text-stone-400 tracking-wider font-light border-t border-stone-200/60 bg-white">
-        Truvah Analytics Engine • Objective Interaction Modeling
+    <!-- App System Footer Area -->
+    <footer class="text-center py-8 text-[10px] text-stone-400 tracking-[0.15em] font-light border-t border-stone-200/50 bg-white/40 mt-12">
+        TRUVAH ANALYTICS LABS • CORE DATA DEPLOYMENT SEGMENT
     </footer>
 
     <script>
@@ -132,10 +156,10 @@
             const modelBadge = document.getElementById('modelBadge');
             const profileContainer = document.getElementById('profileContainer');
             
-            if (!chatLog) return alert('System requires communication transcripts to perform evaluation.');
+            if (!chatLog) return alert('System requires communication transcripts to perform structural evaluation.');
 
             analyzeBtn.disabled = true;
-            analyzeBtn.innerText = 'Isolating System Micro-Vectors...';
+            analyzeBtn.innerText = 'Extracting Behavioral Invariants...';
             resultSection.classList.add('hidden');
             modelBadge.classList.add('hidden');
             profileContainer.innerHTML = ''; 
@@ -155,7 +179,7 @@
 
                 const scores = data.analytics;
                 
-                // Map macro variables
+                // Map out UI Variables
                 document.getElementById('bondStrengthMeter').innerText = scores.bond_strength || '0%';
                 document.getElementById('bondStrengthReason').innerText = scores.bond_strength_reason ? `"${scores.bond_strength_reason}"` : '';
                 document.getElementById('positivityVal').innerText = scores.bond_positivity || '--';
@@ -181,20 +205,20 @@
                 if (scores.profiles && Array.isArray(scores.profiles)) {
                     scores.profiles.forEach((user, idx) => {
                         const profileCard = document.createElement('div');
-                        profileCard.className = "bg-white border border-stone-200/80 rounded p-6 shadow-2xs flex flex-col justify-between space-y-6";
+                        profileCard.className = "bg-[#FAF9F5]/30 border border-stone-200 rounded-xl p-6 shadow-2xs flex flex-col justify-between space-y-6";
                         
                         const actionsHtml = user.actionables.map(action => `
-                            <li class="flex items-start gap-2.5 text-xs text-stone-600 bg-stone-50 p-3 rounded border border-stone-100 font-light">
-                                <span class="text-stone-400 mt-0.5">•</span>
+                            <li class="flex items-start gap-3 text-xs text-stone-600 bg-white p-3 rounded border border-stone-200/50 font-light shadow-3xs">
+                                <span class="text-stone-400 font-mono mt-0.5">→</span>
                                 <span>${action}</span>
                             </li>
                         `).join('');
 
                         profileCard.innerHTML = `
                             <div class="space-y-6">
-                                <div class="border-b border-stone-100 pb-3">
-                                    <span class="text-[9px] uppercase font-bold tracking-widest text-stone-400 block">Participant Profile</span>
-                                    <h5 class="text-lg font-serif font-bold text-stone-900 mt-0.5">${user.name}</h5>
+                                <div class="border-b border-stone-200/40 pb-3">
+                                    <span class="text-[9px] uppercase font-bold tracking-widest text-stone-400 block">Ego Matrix</span>
+                                    <h5 class="text-lg font-normal font-serif text-stone-900 mt-0.5">${user.name}</h5>
                                 </div>
                                 
                                 <div class="space-y-5">
@@ -202,53 +226,53 @@
                                     <div class="space-y-1.5">
                                         <div class="flex justify-between items-center text-xs">
                                             <span class="font-medium text-stone-700 tracking-wide">Attachment Security</span>
-                                            <span class="font-mono font-bold text-stone-600">${user.attachment_security || '0%'}</span>
+                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.attachment_security || '0%'}</span>
                                         </div>
-                                        <div class="w-full bg-stone-100 h-1 rounded-full overflow-hidden">
-                                            <div id="p${idx}-attachBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div>
+                                        <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
+                                            <div id="p${idx}-attachBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
                                         </div>
-                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light">${user.attachment_security_reason || ''}</p>
+                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.attachment_security_reason || ''}</p>
                                     </div>
 
                                     <!-- Attribute 2: Emotional Regulation -->
                                     <div class="space-y-1.5">
                                         <div class="flex justify-between items-center text-xs">
                                             <span class="font-medium text-stone-700 tracking-wide">Emotional Regulation</span>
-                                            <span class="font-mono font-bold text-stone-600">${user.emotional_regulation || '0%'}</span>
+                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.emotional_regulation || '0%'}</span>
                                         </div>
-                                        <div class="w-full bg-stone-100 h-1 rounded-full overflow-hidden">
-                                            <div id="p${idx}-regBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div>
+                                        <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
+                                            <div id="p${idx}-regBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
                                         </div>
-                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light">${user.emotional_regulation_reason || ''}</p>
+                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.emotional_regulation_reason || ''}</p>
                                     </div>
 
                                     <!-- Attribute 3: Receptivity -->
                                     <div class="space-y-1.5">
                                         <div class="flex justify-between items-center text-xs">
                                             <span class="font-medium text-stone-700 tracking-wide">Receptivity</span>
-                                            <span class="font-mono font-bold text-stone-600">${user.receptivity || '0%'}</span>
+                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.receptivity || '0%'}</span>
                                         </div>
-                                        <div class="w-full bg-stone-100 h-1 rounded-full overflow-hidden">
-                                            <div id="p${idx}-recepBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div>
+                                        <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
+                                            <div id="p${idx}-recepBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
                                         </div>
-                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light">${user.receptivity_reason || ''}</p>
+                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.receptivity_reason || ''}</p>
                                     </div>
 
                                     <!-- Attribute 4: Accountability -->
                                     <div class="space-y-1.5">
                                         <div class="flex justify-between items-center text-xs">
                                             <span class="font-medium text-stone-700 tracking-wide">Accountability</span>
-                                            <span class="font-mono font-bold text-stone-600">${user.accountability || '0%'}</span>
+                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.accountability || '0%'}</span>
                                         </div>
-                                        <div class="w-full bg-stone-100 h-1 rounded-full overflow-hidden">
-                                            <div id="p${idx}-accBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div>
+                                        <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
+                                            <div id="p${idx}-accBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
                                         </div>
-                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light">${user.accountability_reason || ''}</p>
+                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.accountability_reason || ''}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="space-y-3 pt-4 border-t border-stone-100">
+                            <div class="space-y-3 pt-4 border-t border-stone-200/40">
                                 <span class="text-[10px] uppercase font-bold tracking-wider text-stone-400 block">De-escalation Roadmap</span>
                                 <ul class="space-y-2">${actionsHtml}</ul>
                             </div>
@@ -265,6 +289,8 @@
                 }
 
                 resultSection.classList.remove('hidden');
+                // Auto scroll to results smoothly
+                resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
             } catch (err) {
                 alert(`Analysis Interrupted: ${err.message}`);
