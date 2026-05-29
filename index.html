@@ -6,27 +6,14 @@
     <title>Truvah | Understanding Your Conversations</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap');
-        
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght=0,300;0,400;0,500;0,600;0,700;1,300&family=Playfair+Display:ital,wght=0,400;0,500;1,400&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .serif-font { font-family: 'Playfair Display', serif; }
         .custom-transition { transition: all 1.6s cubic-bezier(0.16, 1, 0.3, 1); }
-
-        @keyframes textFade {
-            0% { opacity: 1; filter: blur(0); }
-            100% { opacity: 0; filter: blur(2px); }
-        }
-        .animate-text-fade {
-            animation: textFade 0.8s ease-out forwards;
-        }
-
-        @keyframes slideIn {
-            0% { opacity: 0; transform: translateY(8px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-        .animate-banner-slide {
-            animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
+        @keyframes textFade { 0% { opacity: 1; filter: blur(0); } 100% { opacity: 0; filter: blur(2px); } }
+        .animate-text-fade { animation: textFade 0.8s ease-out forwards; }
+        @keyframes slideIn { 0% { opacity: 0; transform: translateY(8px); } 100% { opacity: 1; transform: translateY(0); } }
+        .animate-banner-slide { animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     </style>
 </head>
 <body class="bg-[#FAF9F5] text-stone-800 min-h-screen flex flex-col justify-between selection:bg-stone-200 antialiased">
@@ -49,59 +36,22 @@
 
     <main class="max-w-7xl w-full mx-auto p-6 md:p-12 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         <section class="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
-            <div class="space-y-4">
-                <div class="inline-flex items-center gap-2 bg-white border border-stone-200/60 px-3 py-1 rounded-full text-stone-600 font-medium text-[9px] tracking-widest uppercase shadow-3xs">
-                    🔒 Safe & Private Space
-                </div>
-                <h2 class="text-3xl md:text-4xl font-normal text-stone-900 tracking-tight leading-[1.2] serif-font">
-                    See clearly into your <br><span class="italic text-stone-500">conversations</span>.
-                </h2>
-                <p class="text-stone-500 text-sm font-light leading-relaxed">Truvah helps you look past arguments to strengthen your bond.</p>
-            </div>
-
             <div class="bg-white p-6 rounded-2xl border border-stone-200/60 shadow-xs space-y-5">
-                <div class="space-y-1.5">
-                    <p class="text-xs text-stone-500 font-light leading-relaxed">Paste the conversation below.</p>
-                </div>
-                <div class="relative">
-                    <textarea id="chatInput" rows="8" placeholder="Alex: You always get defensive when I ask about plans.&#10;Jordan: Because you bring it up right when I walk through the door after a long shift." class="w-full p-4 bg-[#FAF9F5] border border-stone-200/60 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-sm tracking-wide font-light placeholder-stone-300 shadow-2xs transition-all leading-relaxed"></textarea>
-                    <div id="statusLabel" class="absolute bottom-3 right-3 text-[9px] uppercase tracking-wider text-stone-400 font-mono bg-white/90 px-2 py-0.5 rounded border border-stone-200/40 flex items-center gap-1.5 shadow-3xs">
-                        <span class="w-1 h-1 rounded-full bg-emerald-500"></span> Auto-Delete Enabled
-                    </div>
-                </div>
-                <div id="deleteSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
-                    <span class="text-emerald-600 font-bold">✓</span>
-                    <span>Your text has been completely cleared and deleted from this session.</span>
-                </div>
-                <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3.5 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-3 text-xs tracking-[0.12em] uppercase shadow-xs">
+                <textarea id="chatInput" rows="8" placeholder="Paste conversation..." class="w-full p-4 bg-[#FAF9F5] border border-stone-200/60 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-sm tracking-wide font-light placeholder-stone-300"></textarea>
+                <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3.5 rounded-xl transition-all cursor-pointer flex justify-center items-center gap-3 text-xs uppercase shadow-xs">
                     Analyze Conversation
                 </button>
             </div>
         </section>
 
         <section class="lg:col-span-7 w-full">
-            <div id="emptyState" class="bg-white border border-stone-200/40 rounded-2xl p-12 text-center text-stone-400 font-light text-sm shadow-xs flex flex-col items-center justify-center min-h-[350px]">
-                <div class="text-2xl mb-2">✨</div>
-                <p class="font-serif italic text-stone-500 text-base mb-1">Your Analysis Dashboard</p>
-                <p class="text-xs max-w-xs leading-relaxed">Paste your dialog blocks on the left panel to display overall scores, personal styles, and communication optimization options.</p>
+            <div id="emptyState" class="bg-white border border-stone-200/40 rounded-2xl p-12 text-center text-stone-400 font-light text-sm shadow-xs min-h-[350px] flex items-center justify-center">
+                Your Analysis Dashboard
             </div>
-
-            <div id="resultSection" class="hidden bg-white p-6 md:p-8 rounded-2xl border border-stone-200/60 shadow-xs space-y-8">
-                <!-- Result data fields remain unchanged -->
-                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6 border-b border-stone-100 pb-8">
-                    <div class="space-y-3 max-w-xl">
-                        <span class="text-[9px] bg-stone-100 text-stone-600 font-bold tracking-widest uppercase px-2 py-0.5 rounded">Overall Summary</span>
-                        <p id="bondStrengthReason" class="text-sm md:text-base text-stone-600 leading-relaxed italic font-light font-serif"></p>
-                    </div>
-                    <div class="flex flex-col items-center justify-center bg-[#FAF9F5] px-6 py-5 rounded-2xl border border-stone-200/50 min-w-[140px] text-center shadow-3xs self-center sm:self-start">
-                        <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Match Level</span>
-                        <span id="bondStrengthMeter" class="text-3xl font-serif font-light text-stone-950 tracking-tighter">0%</span>
-                    </div>
+            <div id="resultSection" class="hidden bg-white p-8 rounded-2xl border border-stone-200/60 shadow-xs space-y-8">
+                <div class="flex flex-col sm:flex-row justify-between items-center border-b border-stone-100 pb-8">
+                    <span id="bondStrengthMeter" class="text-3xl font-serif">0%</span>
                 </div>
-
-                <!-- ... (other stats sections remain as is) ... -->
-
-                <!-- Email Button Added Here -->
                 <div class="pt-6 border-t border-stone-100 flex justify-center">
                     <button id="emailReportBtn" class="bg-stone-100 hover:bg-stone-200 text-stone-700 py-2 px-6 rounded-lg text-xs font-bold uppercase tracking-widest transition">
                         Email This Report
@@ -112,15 +62,18 @@
     </main>
 
     <script>
-        // GLOBAL STATE
         let latestAnalytics = null;
 
         async function analyzeChat() {
             const chatInputElem = document.getElementById('chatInput');
-            const chatLog = chatInputElem.value.trim();
             const analyzeBtn = document.getElementById('analyzeBtn');
-            // ... (rest of logic unchanged until fetch) ...
+            const chatLog = chatInputElem.value.trim();
+            
+            if (!chatLog) return alert('Please paste some text.');
 
+            analyzeBtn.disabled = true;
+            analyzeBtn.innerText = 'Analyzing...';
+            
             try {
                 const response = await fetch("/api/analyze", {
                     method: "POST",
@@ -129,26 +82,28 @@
                 });
 
                 const data = await response.json();
-                latestAnalytics = data.analytics; // STORE STATE
+                if (!response.ok) throw new Error(data.error || 'Processing failed.');
 
-                // ... (rest of rendering logic unchanged) ...
+                latestAnalytics = data.analytics;
+                
+                // UI updates
+                document.getElementById('bondStrengthMeter').innerText = latestAnalytics.bond_strength || '0%';
+                document.getElementById('emptyState').classList.add('hidden');
+                document.getElementById('resultSection').classList.remove('hidden');
+                document.getElementById('modelBadge').classList.remove('hidden');
+                
             } catch (err) {
-                alert(`Error: ${err.message}`);
+                alert(err.message);
+            } finally {
+                analyzeBtn.disabled = false;
+                analyzeBtn.innerText = 'Analyze Conversation';
             }
         }
 
-        // NEW EMAIL LOGIC
         document.getElementById('emailReportBtn').addEventListener('click', async () => {
-            if (!latestAnalytics) return;
-            const email = prompt("Enter your email address to receive this report:");
-            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                alert("Please enter a valid email address.");
-                return;
-            }
-
-            const btn = document.getElementById('emailReportBtn');
-            btn.innerText = 'Sending...';
-            btn.disabled = true;
+            if (!latestAnalytics) return alert("No analysis data available.");
+            const email = prompt("Enter your email address:");
+            if (!email) return;
 
             try {
                 const response = await fetch('/api/send-email', {
@@ -156,13 +111,9 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ recipientEmail: email, analytics: latestAnalytics })
                 });
-                if (!response.ok) throw new Error("Email failed.");
-                alert("Report sent!");
-                btn.innerText = 'Sent!';
+                if (response.ok) alert("Report sent!");
             } catch (e) {
-                alert("Failed to send.");
-                btn.innerText = 'Email This Report';
-                btn.disabled = false;
+                alert("Failed to send email.");
             }
         });
     </script>
