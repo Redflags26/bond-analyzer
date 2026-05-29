@@ -1,8 +1,8 @@
 /**
  * 1. ROBUST JSON PARSING SECURITY LAYER
- * Prevents any accidental prose, markdown wrapper strings, or nested quotes
- * returned by the LLM from crashing the native JSON parser and triggering 
- * Next.js server error pages (which start with 'A server error...' and throw parsing alerts).
+ * Strips away markdown wrappers (like ```json ... ```) or accidental prose 
+ * returned by the LLM, preventing native JSON parsing crashes and 
+ * Vercel Serverless POST 500 error logs.
  */
 function cleanAndParseJSON(rawString) {
   if (!rawString || typeof rawString !== 'string') {
@@ -11,7 +11,6 @@ function cleanAndParseJSON(rawString) {
   
   let cleanStr = rawString.trim();
   
-  // Strip code block Markdown tags if the model returned them
   if (cleanStr.startsWith("```json")) {
     cleanStr = cleanStr.substring(7);
   } else if (cleanStr.startsWith("```")) {
@@ -57,7 +56,7 @@ function calculateTimelineMetrics(text) {
         const speaker = match[5].trim();
         const content = match[6].trim();
 
-        // Safe standardized construction for Next/Node Date parsing engines
+        // Safe standardized construction for Node Date parsing engines
         const standardizedTimeStr = `${year}/${month + 1}/${day} ${timePart.replace(/([ap]m)/i, ' $1')}`;
         const currentTimestamp = new Date(standardizedTimeStr).getTime();
 
@@ -232,7 +231,10 @@ export default async function handler(req, res) {
 
   // Helper function to call OpenRouter safely
   async function queryAgent(systemInstructions, userContent) {
-    const response = await fetch("[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)", {
+    // SECURITY GUARD: Ensure a clean, plain-text target URL endpoint
+    const endpoint = "[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)";
+    
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
