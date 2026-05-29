@@ -1,90 +1,100 @@
 /**
- * HELPER: Parses standard chat timestamp strings into raw minutes for delta calculations.
+ * HELPER: Safely parses both 12-hour (AM/PM) and 24-hour (military) timestamp formats.
+ * Wrapped entirely in a try/catch to ensure it never halts execution.
  */
 function parseTimeToMinutes(timeStr) {
     if (!timeStr) return null;
     try {
-        const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
-        if (!match) return null;
-        
-        let [_, hours, minutes, ampm] = match;
-        hours = parseInt(hours, 10);
-        minutes = parseInt(minutes, 10);
-        
-        if (ampm) {
+        // Test for 12-hour AM/PM formatting
+        let match12 = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+        if (match12) {
+            let [_, hours, minutes, ampm] = match12;
+            hours = parseInt(hours, 10);
+            minutes = parseInt(minutes, 10);
             if (ampm.toUpperCase() === 'PM' && hours < 12) hours += 12;
             if (ampm.toUpperCase() === 'AM' && hours === 12) hours = 0;
+            return hours * 60 + minutes;
         }
-        return hours * 60 + minutes;
+
+        // Test for standard 24-hour / military formatting (e.g., "17:21")
+        let match24 = timeStr.match(/(\d{1,2}):(\d{2})/);
+        if (match24) {
+            let hours = parseInt(match24[1], 10);
+            let minutes = parseInt(match24[2], 10);
+            if (hours >= 0 && hours < 24 && minutes >= 0 && minutes < 60) {
+                return hours * 60 + minutes;
+            }
+        }
+        return null;
     } catch (e) {
         return null;
     }
 }
 
 /**
- * 1. HIGH-TOLERANCE DATA PREPARATION UTILITY LAYER
- * - Scrubs system noise and normalizes text streams.
- * - Detects and neutralizes text-duplication Quote/Reply loops.
- * - Enforces absolute 2-person boundaries to protect the frontend dashboard.
+ * 1. ZERO-FAILURE DATA PREPARATION UTILITY LAYER
+ * - Aggressively clamps unique speakers to a maximum of 2, hard-shunting any 3rd wheel identities.
+ * - Handles diverse global timeline schemas (e.g., [25/01, 17:21] and [12:32 pm, 8/2/2026]).
+ * - Automatically neutralizes copied text quote-replies.
  */
 function prepareChatData(text) {
     if (!text || typeof text !== 'string') return { cleanTranscript: '', timeMetadata: [] };
 
     let lines = text.split('\n').map(line => line.trim()).filter(Boolean);
     
-    const explicitNameRegex = /^\[?([A-Z][a-zA-Z0-9_\s]{0,25}?)\]?[:\-\u2014]/;
-    const bracketTimestampRegex = /^\[\d{1,2}:\d{2}\s*(?:AM|PM)?(?:[\s,/\d-]*?)[\]\s\-:]*/i;
-    const standaloneTimestampRegex = /\b(\d{1,2}:\d{2}\s*(?:AM|PM)?)\b/i;
-    
+    // Catch-all regex patterns to peel off bracketed timelines or standalone timeline headers
+    const bracketTimestampRegex = /^\[\d{1,2}[/.\d\s,:]*?(?:\d{1,2}:\d{2})?\s*(?:AM|PM)?.*?\]\s*/i;
+    const standaloneTimestampRegex = /\b(\d{1,2}:\d{2})\s*(?:AM|PM)?\b/i;
+    const explicitNameRegex = /^([^:\n]{1,30}?):/;
+
     let nativeNamesDetected = [];
     let processedLines = [];
-    let seenMessagesHistory = []; // Tracks previously processed text blocks to spot quote-replies
+    let seenMessagesHistory = [];
 
     for (let line of lines) {
         let messageTime = null;
         let workingLine = line;
 
         try {
-            // Extract and normalize metadata timestamps
+            // 1. Isolate and strip out bracket configurations
             let bracketMatch = workingLine.match(bracketTimestampRegex);
             if (bracketMatch) {
-                let innerTime = bracketMatch[0].match(standaloneTimestampRegex);
-                if (innerTime) messageTime = innerTime[1];
+                let timeExtract = bracketMatch[0].match(standaloneTimestampRegex);
+                if (timeExtract) messageTime = timeExtract[0];
                 workingLine = workingLine.replace(bracketTimestampRegex, '').trim();
             } else {
                 let inlineMatch = workingLine.match(standaloneTimestampRegex);
                 if (inlineMatch) {
-                    messageTime = inlineMatch[1];
+                    messageTime = inlineMatch[0];
                     workingLine = workingLine.replace(standaloneTimestampRegex, '').trim();
                 }
             }
 
-            // Remove media wrappers
+            // Strip attachment notifications
             workingLine = workingLine
                 .replace(/\[?(photo|image|video|attachment|sticker|location|missed call)\]?/gi, '')
                 .trim();
 
             if (!workingLine) continue;
 
+            // 2. Identify the speaker label
             let nameMatch = workingLine.match(explicitNameRegex);
             if (nameMatch) {
                 let foundName = nameMatch[1].trim();
                 let actualText = workingLine.replace(explicitNameRegex, '').trim();
                 if (!actualText) continue;
 
-                // --- QUOTE-REPLY DUP DETECTION LOGIC ---
-                // If this exact text block was already said earlier by someone else, 
-                // it's an inline quote/reply fragment. We skip tracking this user label as an actor.
+                // Neutralize text duplicate loops (quote replies)
                 const isQuoteReply = seenMessagesHistory.some(msg => msg.includes(actualText) || actualText.includes(msg));
                 
                 if (!isQuoteReply) {
+                    // CRITICAL GUARDRAIL: Only allow the first 2 unique names into the structural loop
                     if (!nativeNamesDetected.includes(foundName) && nativeNamesDetected.length < 2) {
                         nativeNamesDetected.push(foundName);
                     }
                     processedLines.push({ rawName: foundName, text: actualText, time: messageTime, isQuote: false });
                     seenMessagesHistory.push(actualText);
                 } else {
-                    // Flag it as a quote line so the structure compiler handles it cleanly
                     processedLines.push({ rawName: foundName, text: actualText, time: messageTime, isQuote: true });
                 }
             } else {
@@ -96,7 +106,7 @@ function prepareChatData(text) {
         }
     }
 
-    // Assign fallback roles cleanly
+    // Direct fallback mapping normalization
     let speakerMap = {};
     if (nativeNamesDetected.length === 2) {
         speakerMap[nativeNamesDetected[0]] = nativeNamesDetected[0];
@@ -113,31 +123,28 @@ function prepareChatData(text) {
     let fallbackToggle = 1;
     let lastMessageMinutes = null;
 
-    for (let i = 0; i < processedLines.length; i++) {
-        let item = processedLines[i];
+    for (let item of processedLines) {
         let assignedName = "";
 
         if (item.rawName) {
+            // HARD CLAMP: If a 3rd speaker slips in, automatically map them to whoever isn't speaking right now
             assignedName = speakerMap[item.rawName] || (fallbackToggle === 1 ? nativeNamesDetected[0] : nativeNamesDetected[1]);
         } else {
             assignedName = fallbackToggle === 1 ? nativeNamesDetected[0] : (nativeNamesDetected[1] || "Person 2");
         }
 
-        // Quote Adjustment Guardrail: If this line was flagged as a quote, it means the current speaker 
-        // is just referencing the other person's old message. The text belongs to the conversation, 
-        // but we ensure the *next* actual text line maps back to the current user cleanly.
         if (item.isQuote) {
             finalTranscriptLines.push(`[Quote referenced by speaker]: "${item.text}"`);
-            continue; // Skip calculating deltas or mapping turns on a echoed quote line
+            continue; 
         }
 
-        // --- TIME DELTA PROCESSING ---
+        // --- CALC TIME GAP DELTAS ---
         let delayMinutes = 0;
         try {
             let currentMinutes = parseTimeToMinutes(item.time);
             if (currentMinutes !== null && lastMessageMinutes !== null) {
                 delayMinutes = currentMinutes - lastMessageMinutes;
-                if (delayMinutes < 0) delayMinutes += 1440;
+                if (delayMinutes < 0) delayMinutes += 1440; 
             }
             if (currentMinutes !== null) lastMessageMinutes = currentMinutes;
         } catch (err) {
@@ -161,7 +168,7 @@ function prepareChatData(text) {
     }
 
     return {
-        cleanTranscript: finalTranscriptLines.join('\n'),
+        cleanTranscript: finalTranscriptLines.length > 0 ? finalTranscriptLines.join('\n') : text,
         timeMetadata: timeMetadataCollection
     };
 }
@@ -183,7 +190,7 @@ You may encounter timestamp indicators like "[System Metric: X minutes passed]" 
 CRITICAL REQUIREMENTS:
 1. Treat structural communication delays organically as an auxiliary behavioral evaluation metric.
 2. Only highlight timing parameters or quote trends if they directly drive major conversational tension shifts.
-3. Your output MUST match the schema format below exactly, yielding an array of EXACTLY 2 profiles.
+3. Your output MUST match the schema format below exactly, yielding an array of EXACTLY 2 profiles. Never return a third profile block.
 
 JSON Output Schema:
 {
