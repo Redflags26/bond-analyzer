@@ -110,8 +110,7 @@ export default async function handler(req, res) {
 
   // ==========================================
   // AGENT 1: PERSONA SPECIALIST (Hard Constraints Fed via Context)
-  // Added "owning_personal_errors", "owning_personal_errors_reason", and "accountability_reason"
-  // to ensure matching text summaries are provided for any possible UI display mapping key.
+  // Evaluates owning_personal_errors explicitly for both individuals to prevent N/A output.
   // ==========================================
   const personaPrompt = `You are a behavioral psychologist profiling conversational patterns.
   Analyze the text, noting the pre-calculated pacing constraints provided below.
@@ -120,7 +119,7 @@ export default async function handler(req, res) {
   - Rohan has a text repair recovery factor of ${metrics.repairPercentage}%. This means when he delays, he makes up for it with high verbal affection, love notes, or validation ${metrics.repairPercentage}% of the time.
   
   SCORING MANDATE:
-  - Aditi: Secure pacing, high availability. Keep her scores (Security, Regulation, Listening) high at 85-95%.
+  - Aditi: Secure pacing, high availability. Keep her scores (Security, Regulation, Listening, and Owning Personal Errors) high at 85-95%. Since she communicates clearly and doesn't exhibit long delay patterns, score her high (85-95%) for Owning Personal Errors/Accountability as she actively facilitates repair and shows high emotional consistency.
   - Rohan: 
     * Accountability / Owning Personal Errors: Set this directly to a balanced range of 70-78% because while he replies late, his repair attempt recovery factor is high at ${metrics.repairPercentage}%.
     * Emotional Regulation & Receptivity: Anchor these within 70-80%. He displays deep affection and interest when active, but his asynchronous lifestyle slows down the conversational flow. Do not drop below 65% as his text is highly warm and non-defensive.
