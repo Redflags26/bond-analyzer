@@ -1,7 +1,7 @@
 /**
  * 1. HIGH-STABILITY TIMELINE CONTEXT LAYER
- * - Manually splits DD/MM/YYYY sequences to guarantee 100% precision with Indian/European log structures.
- * - Injects context tags inline next to the user's name metadata so the models assign the pacing accurately.
+ * Manually parses DD/MM/YYYY elements to prevent native JS date engines 
+ * from misreading Indian/European structures as months jumping backward.
  */
 function injectTimeGapContext(text) {
   if (!text || typeof text !== 'string') return '';
@@ -10,7 +10,6 @@ function injectTimeGapContext(text) {
   const processedLines = [];
   let lastTimestamp = null;
 
-  // Strict regex extraction pattern for format: [DD/MM/YYYY, HH:MM AM/PM]
   const linePattern = /^\[(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4}),\s*([^\]]+)\](.*)$/;
 
   for (let line of lines) {
@@ -19,12 +18,11 @@ function injectTimeGapContext(text) {
     if (match) {
       try {
         const day = parseInt(match[1], 10);
-        const month = parseInt(match[2], 10) - 1; // JS months are zero-indexed (0 = Jan, 5 = June)
+        const month = parseInt(match[2], 10) - 1; 
         const year = parseInt(match[3], 10);
         let timePart = match[4].trim();
         const remainingLineContent = match[5];
 
-        // Format standard string for reliable time construction mapping
         const standardizedTimeStr = `${year}/${month + 1}/${day} ${timePart.replace(/([ap]m)/i, ' $1')}`;
         const currentTimestamp = new Date(standardizedTimeStr).getTime();
 
@@ -32,7 +30,6 @@ function injectTimeGapContext(text) {
           const deltaMilliseconds = currentTimestamp - lastTimestamp;
           const deltaHours = deltaMilliseconds / (1000 * 60 * 60);
 
-          // Only process positive gaps of 6 hours or greater to filter out normal message rhythms
           if (deltaHours >= 6 && deltaHours < 2000) { 
             const roundedHours = Math.round(deltaHours);
             let delayTag = ` [Replied after a delay of ${roundedHours} hours]`;
@@ -42,7 +39,6 @@ function injectTimeGapContext(text) {
               delayTag = ` [Replied after a long delay of ${roundedDays} day(s)]`;
             }
 
-            // Bind the delay metric straight inside the bracket metadata line boundary
             const enhancedLine = `[${match[1]}/${match[2]}/${match[3]}, ${match[4]}]${delayTag}${remainingLineContent}`;
             processedLines.push(enhancedLine);
             lastTimestamp = currentTimestamp;
@@ -54,7 +50,7 @@ function injectTimeGapContext(text) {
           lastTimestamp = currentTimestamp;
         }
       } catch (e) {
-        console.error("Date extraction bypass note:", e.message);
+        // Safe bypass trace
       }
     }
     processedLines.push(line);
@@ -64,7 +60,6 @@ function injectTimeGapContext(text) {
 }
 
 export default async function handler(req, res) {
-  // CORS Security Handlers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -78,22 +73,22 @@ export default async function handler(req, res) {
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!apiKey || !supabaseUrl || !supabaseServiceKey) {
-    return res.status(500).json({ error: 'Configuration Error: Operational keys are missing from your Settings panel.' });
+    return res.status(500).json({ error: 'Configuration Error: Operational keys are missing.' });
   }
 
-  // Pre-process the raw text to execute accurate, bullet-proof timeline tracking
   const enrichedChatLog = injectTimeGapContext(chatLog);
 
   // ==========================================
-  // AGENT 1: PERSONA & SUBJECT SPECIALIST
+  // AGENT 1: PERSONA & SUBJECT SPECIALIST (Balanced Pacing Weight)
   // ==========================================
-  const personaPrompt = `You are a psychological behavioral specialist focused exclusively on individual profiling. 
-  Analyze the provided chat transcript, identify the two primary speakers, and evaluate their traits using simple language.
+  const personaPrompt = `You are a psychological behavioral specialist focused exclusively on individual communication profiling. 
+  Analyze the chat transcript and identify the two primary speakers. Evaluate their personal connection styles using comforting, clear language.
   
-  CRITICAL EVALUATION REGULATION:
-  - Look for '[Replied after a delay of...]' metrics inside message headers. 
-  - Evaluate text delays based on the context of the transcript. Only treat delays as avoidant if there is active conflict or evasion. 
-  - If a sequence consists of affectionate, everyday, friendly, or asynchronous check-ins, treat delays of 6-24 hours as standard routine breaks due to work or sleep schedules, maintaining high scores.
+  CRITICAL PACING EVALUATION INSTRUCTIONS:
+  - Check the context of '[Replied after a delay of...]' markers carefully.
+  - Do not blindly penalize busy work hours or sleeping patterns. 
+  - However, if a user is repeatedly delaying responses by 5+ hours while explicitly stating they are 'just relaxing', 'scrolling', or using the delay to deflect specific connection requests ('we'll see', 'maybe later', 'I'll try'), classify this as an asymmetric investment pattern or casual emotional withdrawal. 
+  - Reflect this change adequately in their 'emotional_regulation' or 'receptivity' summaries without using clinical jargon.
   
   Return ONLY a valid JSON object matching this exact schema:
   {
@@ -101,57 +96,58 @@ export default async function handler(req, res) {
       {
         "name": "Actual name of Person 1",
         "attachment_security": "XX%",
-        "attachment_security_reason": "1 simple sentence explaining if they seem calm and secure, or if they get anxious or close off when upset.",
+        "attachment_security_reason": "1 simple sentence explaining if they seem calm and secure, or if they show anxious/avoidant tendencies through pacing.",
         "emotional_regulation": "XX%",
-        "emotional_regulation_reason": "1 simple sentence about how well they manage their anger, frustration, or conversational pacing.",
+        "emotional_regulation_reason": "1 simple sentence about how consistently they show up and maintain an even interactive flow.",
         "receptivity": "XX%",
-        "receptivity_reason": "1 simple sentence on how open they are to listening to the other person's side of the story.",
+        "receptivity_reason": "1 simple sentence evaluating how open they are to real-time sharing vs. keeping a distant conversational boundary.",
         "accountability": "XX%",
-        "accountability_reason": "1 simple sentence showing if they are willing to say sorry or admit to their own mistakes."
+        "accountability_reason": "1 simple sentence showing if they acknowledge conversational imbalances or stay surface level."
       },
       {
         "name": "Actual name of Person 2",
         "attachment_security": "XX%",
-        "attachment_security_reason": "1 simple sentence explaining if they seem calm and secure, or if they get anxious or close off when upset.",
+        "attachment_security_reason": "1 simple sentence explaining if they seem calm and secure, or if they show anxious/avoidant tendencies through pacing.",
         "emotional_regulation": "XX%",
-        "emotional_regulation_reason": "1 simple sentence about how well they manage their anger, frustration, or conversational pacing.",
+        "emotional_regulation_reason": "1 simple sentence about how consistently they show up and maintain an even interactive flow.",
         "receptivity": "XX%",
-        "receptivity_reason": "1 simple sentence on how open they are to listening to the other person's side of the story.",
+        "receptivity_reason": "1 simple sentence evaluating how open they are to real-time sharing vs. keeping a distant conversational boundary.",
         "accountability": "XX%",
-        "accountability_reason": "1 simple sentence showing if they are willing to say sorry or admit to their own mistakes."
+        "accountability_reason": "1 simple sentence showing if they acknowledge conversational imbalances or stay surface level."
       }
     ]
   }`;
 
   // ==========================================
-  // AGENT 2: RELATIONSHIP DYNAMICS SPECIALIST
+  // AGENT 2: RELATIONSHIP DYNAMICS SPECIALIST (Balanced Pacing Weight)
   // ==========================================
   const dynamicsPrompt = `You are an interpersonal relationship dynamics expert. 
-  Analyze the provided chat transcript and evaluate the macro connection metrics between the speakers. Use comforting language.
+  Analyze the transcript and evaluate macro relationship metrics using warm, comforting language.
   
-  CRITICAL EVALUATION REGULATION:
-  - Base your insights strictly on what occurs in the text. Do not assume or hallucinate severe distress or ghosting patterns unless explicitly stated by the participants.
-  - Review any '[Replied after a delay of...]' markers. If the dialogue is consistently warm, loving, and reciprocal with no arguments, do not penalize 'conflict_resolution' or inflate 'toxicity' blindly for standard daily work/sleep delays.
+  CRITICAL TEXT-BALANCE LOGIC:
+  - Do not mistake surface-level sweetness (emojis like ❤️, terms like 'babe') for optimal connection if the actual actions show low conversational presence.
+  - If a log contains zero arguments but shows one person regularly waiting for hours while the other drops non-committal replies or brushes off requests to meet/call, lower 'conflict_resolution' and 'relationship_dynamics' slightly to reflect an unequal conversational rhythm.
+  - Keep 'toxicity' mild (e.g., 15-30%) if it is a low-effort or breadcrumbing texting trend rather than active, aggressive malice.
   
   Return ONLY a valid JSON object matching this exact schema:
   {
     "bond_strength": "XX%",
-    "bond_strength_reason": "A simple, encouraging one-sentence explanation of how well these two people are connecting and listening to each other right now.",
+    "bond_strength_reason": "A simple sentence capturing mutual care while factoring in the impact of regular asynchronous response delays.",
     "bond_positivity": "XX%",
-    "bond_positivity_reason": "A simple one-sentence description of the warmth, kindness, and openness shown in this talk.",
+    "bond_positivity_reason": "A simple sentence breaking down sweet verbal language versus actual interactive presence.",
     "conflict_resolution": "XX%",
-    "conflict_resolution_reason": "A simple one-sentence note on how well they handle disagreements, response pacing, and if they try to find common ground.",
+    "conflict_resolution_reason": "A simple note evaluating how effectively they handle emotional bids for attention or if requests get deflected over time gaps.",
     "safety_trust": "XX%",
-    "safety_trust_reason": "A simple one-sentence view on how safe and secure both people feel sharing their true thoughts without fear.",
+    "safety_trust_reason": "A simple sentence showing if the emotional space feels completely secure or slightly imbalanced due to response habits.",
     "relationship_dynamics": "XX%",
-    "relationship_dynamics_reason": "A simple one-sentence breakdown of how they share the conversation and treat each other's points.",
+    "relationship_dynamics_reason": "A simple breakdown of who drives the momentum and how response lags change the natural conversational balance.",
     "toxicity": "XX%",
-    "toxicity_reason": "A simple, non-judgmental one-sentence note on any genuine tension, defensive attitudes, or frustration in the text.",
-    "summary": "A warm, helpful summary explaining what is going well in the relationship and what basic things they can work on together."
+    "toxicity_reason": "A non-judgmental sentence tracking if avoidance, non-committal answers, or subtle distance creates a mild underlying tension.",
+    "summary": "A warm, helpful summary highlighting what is sweet about the relationship, while giving a clear, realistic critique of conversational pacing and presence imbalances."
   }`;
 
   // ==========================================
-  // AGENT 3: THE STRATEGIST (ACTIONABLES ENGINE)
+  // AGENT 3: THE STRATEGIST (Actionable Tuning)
   // ==========================================
   const makeStrategistPrompt = (personaData, dynamicsData) => {
     return `You are a relationship counselor and action-oriented strategist.
@@ -160,23 +156,22 @@ export default async function handler(req, res) {
     Individual Profiles: ${JSON.stringify(personaData)}
     Macro Dynamics: ${JSON.stringify(dynamicsData)}
     
-    Based ONLY on this information, generate practical, customized, easy-to-do tips for both individuals.
-    Use comforting, plain language. Do not reference raw scores or numbers in the text.
+    Based ONLY on this information, generate practical, easy-to-do tips for both individuals.
+    If the individual profiles show that one partner regularly deflects plans or uses delays casually, generate action steps that encourage moving from text updates to setting clear expectations for real-time contact. Use plain language. Do not show raw scores.
     
     Return ONLY a valid JSON object matching this exact schema:
     {
       "person1_actionables": [
         "A practical, easy-to-do tip for this person to make the next conversation smoother.",
-        "A simple phrase or action they can try next time things feel tense."
+        "A simple phrase or action they can try next time things feel tense or distant."
       ],
       "person2_actionables": [
         "A practical, easy-to-do tip for this person to make the next conversation smoother.",
-        "A simple phrase or action they can try next time things feel tense."
+        "A simple phrase or action they can try next time things feel tense or distant."
       ]
     }`;
   };
 
-  // Helper function to call OpenRouter via fetch
   async function queryAgent(systemInstructions, userContent) {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -201,17 +196,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    // RUN AGENT 1 & AGENT 2 AT THE EXACT SAME TIME
     const [personaResults, dynamicsResults] = await Promise.all([
       queryAgent(personaPrompt, enrichedChatLog),
       queryAgent(dynamicsPrompt, enrichedChatLog)
     ]);
 
-    // RUN AGENT 3
     const strategistPrompt = makeStrategistPrompt(personaResults, dynamicsResults);
     const strategies = await queryAgent(strategistPrompt, enrichedChatLog);
 
-    // PIPELINE AGGREGATION: Compiles perfectly into your layout structure
     const finalAnalyticsResult = {
       bond_strength: dynamicsResults.bond_strength,
       bond_strength_reason: dynamicsResults.bond_strength_reason,
@@ -238,7 +230,6 @@ export default async function handler(req, res) {
       ]
     };
 
-    // SAVE RESULTS TO SUPABASE
     try {
       const cleanDbUrl = supabaseUrl.replace(/\/$/, "");
       await fetch(`${cleanDbUrl}/rest/v1/conversations`, {
