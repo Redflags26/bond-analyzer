@@ -1,7 +1,6 @@
 /**
  * 1. HIGH-STABILITY TIMELINE CONTEXT LAYER
- * Manually parses DD/MM/YYYY elements to prevent native JS date engines 
- * from misreading Indian/European structures as months jumping backward.
+ * Safely handles parsing without breaking regional date formatting structures.
  */
 function injectTimeGapContext(text) {
   if (!text || typeof text !== 'string') return '';
@@ -50,7 +49,7 @@ function injectTimeGapContext(text) {
           lastTimestamp = currentTimestamp;
         }
       } catch (e) {
-        // Safe bypass trace
+        // Safe bypass tracking
       }
     }
     processedLines.push(line);
@@ -79,16 +78,15 @@ export default async function handler(req, res) {
   const enrichedChatLog = injectTimeGapContext(chatLog);
 
   // ==========================================
-  // AGENT 1: PERSONA & SUBJECT SPECIALIST (Balanced Pacing Weight)
+  // AGENT 1: PERSONA & SUBJECT SPECIALIST (Dramatically Calibrated)
   // ==========================================
-  const personaPrompt = `You are a psychological behavioral specialist focused exclusively on individual communication profiling. 
-  Analyze the chat transcript and identify the two primary speakers. Evaluate their personal connection styles using comforting, clear language.
+  const personaPrompt = `You are a psychological behavioral specialist focused on individual communication profiling. 
+  Analyze the chat transcript and evaluate their traits using comforting, simple language.
   
-  CRITICAL PACING EVALUATION INSTRUCTIONS:
-  - Check the context of '[Replied after a delay of...]' markers carefully.
-  - Do not blindly penalize busy work hours or sleeping patterns. 
-  - However, if a user is repeatedly delaying responses by 5+ hours while explicitly stating they are 'just relaxing', 'scrolling', or using the delay to deflect specific connection requests ('we'll see', 'maybe later', 'I'll try'), classify this as an asymmetric investment pattern or casual emotional withdrawal. 
-  - Reflect this change adequately in their 'emotional_regulation' or 'receptivity' summaries without using clinical jargon.
+  CRITICAL SCORING WEIGHT CALIBRATION:
+  - Look for '[Replied after a delay of...]' markers, but evaluate them dynamically alongside the reply text.
+  - REPAIR ATTEMPT CREDIT: If a person replies late but immediately apologizes ('sorry', 'guilty'), gives context ('hectic day', 'busy'), or proactively validates the other partner ('you're special', 'always on my mind'), you MUST reward this behavior. Boost their 'accountability' and 'attachment_security' scores significantly.
+  - Only apply scoring penalties if the delay is met with coldness, zero explanation, complete deflection, or a total avoidance of the partner's emotional bids.
   
   Return ONLY a valid JSON object matching this exact schema:
   {
@@ -96,58 +94,58 @@ export default async function handler(req, res) {
       {
         "name": "Actual name of Person 1",
         "attachment_security": "XX%",
-        "attachment_security_reason": "1 simple sentence explaining if they seem calm and secure, or if they show anxious/avoidant tendencies through pacing.",
+        "attachment_security_reason": "1 simple sentence taking into account both text delays and any warm validation/apologies offered.",
         "emotional_regulation": "XX%",
-        "emotional_regulation_reason": "1 simple sentence about how consistently they show up and maintain an even interactive flow.",
+        "emotional_regulation_reason": "1 simple sentence about how smoothly they manage response pacing or make up for delays.",
         "receptivity": "XX%",
-        "receptivity_reason": "1 simple sentence evaluating how open they are to real-time sharing vs. keeping a distant conversational boundary.",
+        "receptivity_reason": "1 simple sentence on how open they are to listening and responding warm-heartedly.",
         "accountability": "XX%",
-        "accountability_reason": "1 simple sentence showing if they acknowledge conversational imbalances or stay surface level."
+        "accountability_reason": "1 simple sentence tracking if they explicitly own up to their response lags or text absences."
       },
       {
         "name": "Actual name of Person 2",
         "attachment_security": "XX%",
-        "attachment_security_reason": "1 simple sentence explaining if they seem calm and secure, or if they show anxious/avoidant tendencies through pacing.",
+        "attachment_security_reason": "1 simple sentence taking into account both text delays and any warm validation/apologies offered.",
         "emotional_regulation": "XX%",
-        "emotional_regulation_reason": "1 simple sentence about how consistently they show up and maintain an even interactive flow.",
+        "emotional_regulation_reason": "1 simple sentence about how smoothly they manage response pacing or make up for delays.",
         "receptivity": "XX%",
-        "receptivity_reason": "1 simple sentence evaluating how open they are to real-time sharing vs. keeping a distant conversational boundary.",
+        "receptivity_reason": "1 simple sentence on how open they are to listening and responding warm-heartedly.",
         "accountability": "XX%",
-        "accountability_reason": "1 simple sentence showing if they acknowledge conversational imbalances or stay surface level."
+        "accountability_reason": "1 simple sentence tracking if they explicitly own up to their response lags or text absences."
       }
     ]
   }`;
 
   // ==========================================
-  // AGENT 2: RELATIONSHIP DYNAMICS SPECIALIST (Balanced Pacing Weight)
+  // AGENT 2: RELATIONSHIP DYNAMICS SPECIALIST (Dramatically Calibrated)
   // ==========================================
   const dynamicsPrompt = `You are an interpersonal relationship dynamics expert. 
-  Analyze the transcript and evaluate macro relationship metrics using warm, comforting language.
+  Analyze the transcript and evaluate macro connection metrics using warm, comforting language.
   
-  CRITICAL TEXT-BALANCE LOGIC:
-  - Do not mistake surface-level sweetness (emojis like ❤️, terms like 'babe') for optimal connection if the actual actions show low conversational presence.
-  - If a log contains zero arguments but shows one person regularly waiting for hours while the other drops non-committal replies or brushes off requests to meet/call, lower 'conflict_resolution' and 'relationship_dynamics' slightly to reflect an unequal conversational rhythm.
-  - Keep 'toxicity' mild (e.g., 15-30%) if it is a low-effort or breadcrumbing texting trend rather than active, aggressive malice.
+  CRITICAL SCORING WEIGHT CALIBRATION:
+  - Do not blindly tank metrics for conversational pauses if the couple exhibits a healthy asynchronous flow.
+  - REPAIR ATTEMPT IMPACT: If delays are consistently balanced by verbal reassurance, sweet check-ins, or explicit accountability, elevate 'conflict_resolution' and 'safety_trust' to reflect that the relationship handles pauses with high security.
+  - 'toxicity' must stay extremely low (0-10%) if delays are benign or accompanied by loving repair statements, scaling up only if the silence is weaponized or hostile.
   
   Return ONLY a valid JSON object matching this exact schema:
   {
     "bond_strength": "XX%",
-    "bond_strength_reason": "A simple sentence capturing mutual care while factoring in the impact of regular asynchronous response delays.",
+    "bond_strength_reason": "A warm, balanced summary sentence factoring in mutual affection alongside response delays.",
     "bond_positivity": "XX%",
-    "bond_positivity_reason": "A simple sentence breaking down sweet verbal language versus actual interactive presence.",
+    "bond_positivity_reason": "A simple sentence acknowledging how warmth and repair strategies protect the relationship mood.",
     "conflict_resolution": "XX%",
-    "conflict_resolution_reason": "A simple note evaluating how effectively they handle emotional bids for attention or if requests get deflected over time gaps.",
+    "conflict_resolution_reason": "A simple sentence tracking how well apologies and assurances smooth over communication gaps.",
     "safety_trust": "XX%",
-    "safety_trust_reason": "A simple sentence showing if the emotional space feels completely secure or slightly imbalanced due to response habits.",
+    "safety_trust_reason": "A simple view of security, weighing whether proactive reassurances effectively minimize conversational anxiety.",
     "relationship_dynamics": "XX%",
-    "relationship_dynamics_reason": "A simple breakdown of who drives the momentum and how response lags change the natural conversational balance.",
+    "relationship_dynamics_reason": "A descriptive analysis of how their texting rhythm works when factoring in sweet repairs.",
     "toxicity": "XX%",
-    "toxicity_reason": "A non-judgmental sentence tracking if avoidance, non-committal answers, or subtle distance creates a mild underlying tension.",
-    "summary": "A warm, helpful summary highlighting what is sweet about the relationship, while giving a clear, realistic critique of conversational pacing and presence imbalances."
+    "toxicity_reason": "A clear, fair look at whether gaps produce true stress or if they are softened by affectionate care.",
+    "summary": "A warm, realistic, helpful summary highlighting the mutual affection and comforting repairs, while offering gentle guidance on aligning texting rhythms."
   }`;
 
   // ==========================================
-  // AGENT 3: THE STRATEGIST (Actionable Tuning)
+  // AGENT 3: THE STRATEGIST
   // ==========================================
   const makeStrategistPrompt = (personaData, dynamicsData) => {
     return `You are a relationship counselor and action-oriented strategist.
@@ -157,17 +155,17 @@ export default async function handler(req, res) {
     Macro Dynamics: ${JSON.stringify(dynamicsData)}
     
     Based ONLY on this information, generate practical, easy-to-do tips for both individuals.
-    If the individual profiles show that one partner regularly deflects plans or uses delays casually, generate action steps that encourage moving from text updates to setting clear expectations for real-time contact. Use plain language. Do not show raw scores.
+    If the data shows that apologies and warm validation are already present, tailor action steps to help them maintain that secure habit while finding better real-time alignments. Use plain language. Do not show raw numbers.
     
     Return ONLY a valid JSON object matching this exact schema:
     {
       "person1_actionables": [
         "A practical, easy-to-do tip for this person to make the next conversation smoother.",
-        "A simple phrase or action they can try next time things feel tense or distant."
+        "A simple phrase or action they can try next time things feel tense."
       ],
       "person2_actionables": [
         "A practical, easy-to-do tip for this person to make the next conversation smoother.",
-        "A simple phrase or action they can try next time things feel tense or distant."
+        "A simple phrase or action they can try next time things feel tense."
       ]
     }`;
   };
