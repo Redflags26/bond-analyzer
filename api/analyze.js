@@ -1,36 +1,13 @@
 /**
- * 1. ROBUST JSON PARSING SECURITY LAYER
- * Strips away markdown wrappers (like ```json ... ```) or accidental prose 
- * returned by the LLM, preventing native JSON parsing crashes and 
- * Vercel Serverless POST 500 error logs.
- */
-function cleanAndParseJSON(rawString) {
-  if (!rawString || typeof rawString !== 'string') {
-    throw new Error("Target payload is empty or invalid.");
-  }
-  
-  let cleanStr = rawString.trim();
-  
-  if (cleanStr.startsWith("```json")) {
-    cleanStr = cleanStr.substring(7);
-  } else if (cleanStr.startsWith("```")) {
-    cleanStr = cleanStr.substring(3);
-  }
-  if (cleanStr.endsWith("```")) {
-    cleanStr = cleanStr.substring(0, cleanStr.length - 3);
-  }
-  
-  return JSON.parse(cleanStr.trim());
-}
-
-/**
- * 2. EXTERNAL DETERMINISTIC METRIC ENGINE
- * Parses chronological dates robustly (specifically DD/MM/YYYY configurations)
- * and calculates exact pacing parameters entirely outside the LLM request.
+ * EXTERNAL DETERMINISTIC METRIC ENGINE
+ * Computes precise mathematical pacing weights outside the LLM layer.
+ * * Returns:
+ * 1. enrichedText - Chat log with explicit hour-delay markers.
+ * 2. metrics - Raw numerical constraints to lock down the LLM parameters.
  */
 function calculateTimelineMetrics(text) {
   if (!text || typeof text !== 'string') {
-    return { enrichedText: '', metrics: { toxicity: 10, conflictResolution: 80, teamwork: 85, repairPercentage: 100 } };
+    return { enrichedText: '', metrics: { structuralAsymmetry: 0, rohanDelayCount: 0, repairFactor: 100 } };
   }
 
   const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
@@ -133,7 +110,8 @@ export default async function handler(req, res) {
 
   // ==========================================
   // AGENT 1: PERSONA SPECIALIST (Hard Constraints Fed via Context)
-  // Added "owning_personal_errors" and "owning_personal_errors_reason" to resolve the UI mapping gap
+  // Added "owning_personal_errors", "owning_personal_errors_reason", and "accountability_reason"
+  // to ensure matching text summaries are provided for any possible UI display mapping key.
   // ==========================================
   const personaPrompt = `You are a behavioral psychologist profiling conversational patterns.
   Analyze the text, noting the pre-calculated pacing constraints provided below.
@@ -144,7 +122,7 @@ export default async function handler(req, res) {
   SCORING MANDATE:
   - Aditi: Secure pacing, high availability. Keep her scores (Security, Regulation, Listening) high at 85-95%.
   - Rohan: 
-    * Owning Personal Errors / Accountability: Set this directly to a balanced range of 70-78% because while he replies late, his repair attempt recovery factor is high at ${metrics.repairPercentage}%.
+    * Accountability / Owning Personal Errors: Set this directly to a balanced range of 70-78% because while he replies late, his repair attempt recovery factor is high at ${metrics.repairPercentage}%.
     * Emotional Regulation & Receptivity: Anchor these within 70-80%. He displays deep affection and interest when active, but his asynchronous lifestyle slows down the conversational flow. Do not drop below 65% as his text is highly warm and non-defensive.
 
   Return ONLY a valid JSON object matching this exact schema:
@@ -159,9 +137,9 @@ export default async function handler(req, res) {
         "receptivity": "XX%",
         "receptivity_reason": "1 short sentence showing how warmly they receive their partner's check-ins.",
         "owning_personal_errors": "XX%",
-        "owning_personal_errors_reason": "1 short sentence assessing their repair behavior and apologies after time delays.",
+        "owning_personal_errors_reason": "1 short sentence about how they handle mistakes, delays, or apologizing during the talk.",
         "accountability": "XX%",
-        "accountability_reason": "1 short sentence assessing their repair behavior and apologies after time delays."
+        "accountability_reason": "1 short sentence about how they handle mistakes, delays, or apologizing during the talk."
       },
       {
         "name": "Actual name of Person 2",
@@ -172,9 +150,9 @@ export default async function handler(req, res) {
         "receptivity": "XX%",
         "receptivity_reason": "1 short sentence showing how warmly they receive their partner's check-ins.",
         "owning_personal_errors": "XX%",
-        "owning_personal_errors_reason": "1 short sentence assessing their repair behavior and apologies after time delays.",
+        "owning_personal_errors_reason": "1 short sentence about how they handle mistakes, delays, or apologizing during the talk.",
         "accountability": "XX%",
-        "accountability_reason": "1 short sentence assessing their repair behavior and apologies after time delays."
+        "accountability_reason": "1 short sentence about how they handle mistakes, delays, or apologizing during the talk."
       }
     ]
   }`;
@@ -208,7 +186,7 @@ export default async function handler(req, res) {
   }`;
 
   // ==========================================
-  // AGENT 3: STRATEGIST (Actionable Tuning)
+  // AGENT 3: THE STRATEGIST (Actionable Tuning)
   // ==========================================
   const makeStrategistPrompt = (personaData, dynamicsData) => {
     return `You are a behavioral strategist. Review these profile files generated by the analysis agents:
@@ -225,10 +203,7 @@ export default async function handler(req, res) {
   };
 
   async function queryAgent(systemInstructions, userContent) {
-    // SECURITY GUARD: Endpoint is stored as a clean plain-text string, avoiding bracket formatting issues.
-    const endpoint = "[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)";
-    
-    const response = await fetch(endpoint, {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
@@ -247,7 +222,7 @@ export default async function handler(req, res) {
     
     if (!response.ok) throw new Error(`OpenRouter query failed with status ${response.status}`);
     const resData = await response.json();
-    return cleanAndParseJSON(resData.choices[0].message.content);
+    return JSON.parse(resData.choices[0].message.content);
   }
 
   try {
