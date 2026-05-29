@@ -1,7 +1,7 @@
 /**
- * HIGH-STABILITY TIMELINE CONTEXT LAYER
- * Pre-processes the chat log using pure JavaScript to detect and insert explicit time gaps.
- * This feeds time-gap context to the agents as text, removing any risk of LLM timeout crashes.
+ * UPGRADED TIMELINE CONTEXT LAYER
+ * Binds the time delay directly to the speaker who took long to reply.
+ * This directly forces the LLM to score their personal accountability and emotional regulation.
  */
 function injectTimeGapContext(text) {
   if (!text || typeof text !== 'string') return '';
@@ -10,30 +10,37 @@ function injectTimeGapContext(text) {
   const processedLines = [];
   let lastTimestamp = null;
 
-  // Pattern to catch various formats like [10:10 pm, 5/11/2025] or [25/01, 17:21]
-  const timestampRegex = /\[([^\]]+)\]/;
+  // Pattern to extract timestamp inside brackets and the rest of the line
+  const timestampRegex = /^\[([^\]]+)\](.*)$/;
 
   for (let line of lines) {
     const match = timestampRegex.exec(line);
     
     if (match) {
       try {
-        const rawDateStr = match[1].replace(/([ap]m)/i, ' $1'); // Standardize whitespace for AM/PM if squeezed
+        const rawDateStr = match[1].replace(/([ap]m)/i, ' $1');
+        const remainingLineContent = match[2];
         const currentTimestamp = Date.parse(rawDateStr) || new Date(rawDateStr).getTime();
 
         if (currentTimestamp && lastTimestamp) {
           const deltaMilliseconds = currentTimestamp - lastTimestamp;
           const deltaHours = deltaMilliseconds / (1000 * 60 * 60);
 
-          // If there is a meaningful gap (e.g., more than 6 hours), inject a safe system contextual note
+          // If there is a meaningful delay (6 hours or more)
           if (deltaHours >= 6) {
             const roundedHours = Math.round(deltaHours);
-            let gapMarker = `[System Note: Contextual communication pause of approximately ${roundedHours} hours before this next message]`;
+            let delayTag = ` [Replied after a delay of ${roundedHours} hours]`;
+            
             if (deltaHours >= 24) {
               const roundedDays = Math.round(deltaHours / 24);
-              gapMarker = `[System Note: Long communication pause of approximately ${roundedDays} day(s) before this next message]`;
+              delayTag = ` [Replied after a long delay of ${roundedDays} day(s)]`;
             }
-            processedLines.push(gapMarker);
+
+            // INJECTION MATRIX: Inject the delay note directly into this speaker's message header
+            const enhancedLine = `[${match[1]}]${delayTag}${remainingLineContent}`;
+            processedLines.push(enhancedLine);
+            lastTimestamp = currentTimestamp;
+            continue;
           }
         }
 
@@ -41,7 +48,7 @@ function injectTimeGapContext(text) {
           lastTimestamp = currentTimestamp;
         }
       } catch (e) {
-        // Safe protection if a specific row format doesn't natively parse; code execution continues normally.
+        // Safe fallback tracking
       }
     }
     processedLines.push(line);
@@ -65,18 +72,20 @@ export default async function handler(req, res) {
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!apiKey || !supabaseUrl || !supabaseServiceKey) {
-    return res.status(500).json({ error: 'Configuration Error: Operational keys are missing from your Vercel Settings panel.' });
+    return res.status(500).json({ error: 'Configuration Error: Operational keys are missing.' });
   }
 
-  // Pre-process the transcript to safely expose time lag anomalies to your prompts
   const enrichedChatLog = injectTimeGapContext(chatLog);
 
   // ==========================================
-  // AGENT 1: PERSONA & SUBJECT SPECIALIST
+  // AGENT 1: PERSONA & SUBJECT SPECIALIST (Sharpened for Gaps)
   // ==========================================
-  const personaPrompt = `You are a psychological behavioral specialist focused exclusively on individual profiling. 
-  Analyze the provided chat transcript, identify the two primary speakers, and evaluate their individual traits.
-  Pay close attention to any '[System Note: ... pause]' markers injected into the log, factoring response delays into emotional regulation and receptivity indices. Use comforting, simple language.
+  const personaPrompt = `You are a psychological behavioral specialist focused on individual profiling. 
+  Analyze the provided chat transcript, identify the two primary speakers, and evaluate their traits.
+  
+  CRITICAL INPUT CRITERIA: Look for explicit '[Replied after a delay of...]' tags attached to message headers. 
+  - Treat unannounced multi-hour or multi-day delays as avoidant behavior, emotional withdrawal, or a struggle with emotional regulation.
+  - If a speaker consistently leaves the other hanging, heavily penalize their 'emotional_regulation' and 'receptivity' scores, and document it in their reason string.
   
   Return ONLY a valid JSON object matching this exact schema:
   {
@@ -84,55 +93,58 @@ export default async function handler(req, res) {
       {
         "name": "Actual name of Person 1",
         "attachment_security": "XX%",
-        "attachment_security_reason": "1 simple sentence explaining if they seem calm and secure, or if they get anxious or close off when upset.",
+        "attachment_security_reason": "1 simple sentence explaining if they seem calm and secure, or if they withdraw/get anxious using text delays.",
         "emotional_regulation": "XX%",
-        "emotional_regulation_reason": "1 simple sentence about how well they manage their anger, response pacing, or frustration during the talk.",
+        "emotional_regulation_reason": "1 simple sentence about how well they manage their response pacing, delays, or irritation during the talk.",
         "receptivity": "XX%",
-        "receptivity_reason": "1 simple sentence on how open they are to listening and processing the other person's side, even after a pause.",
+        "receptivity_reason": "1 simple sentence on how open they are to listening, taking into account if they shut down or delay responding.",
         "accountability": "XX%",
-        "accountability_reason": "1 simple sentence showing if they are willing to say sorry or admit to their own mistakes."
+        "accountability_reason": "1 simple sentence showing if they acknowledge their delays or admit to mistakes."
       },
       {
         "name": "Actual name of Person 2",
         "attachment_security": "XX%",
-        "attachment_security_reason": "1 simple sentence explaining if they seem calm and secure, or if they get anxious or close off when upset.",
+        "attachment_security_reason": "1 simple sentence explaining if they seem calm and secure, or if they withdraw/get anxious using text delays.",
         "emotional_regulation": "XX%",
-        "emotional_regulation_reason": "1 simple sentence about how well they manage their anger, response pacing, or frustration during the talk.",
+        "emotional_regulation_reason": "1 simple sentence about how well they manage their response pacing, delays, or irritation during the talk.",
         "receptivity": "XX%",
-        "receptivity_reason": "1 simple sentence on how open they are to listening and processing the other person's side, even after a pause.",
+        "receptivity_reason": "1 simple sentence on how open they are to listening, taking into account if they shut down or delay responding.",
         "accountability": "XX%",
-        "accountability_reason": "1 simple sentence showing if they are willing to say sorry or admit to their own mistakes."
+        "accountability_reason": "1 simple sentence showing if they acknowledge their delays or admit to mistakes."
       }
     ]
   }`;
 
   // ==========================================
-  // AGENT 2: RELATIONSHIP DYNAMICS SPECIALIST
+  // AGENT 2: RELATIONSHIP DYNAMICS SPECIALIST (Sharpened for Gaps)
   // ==========================================
   const dynamicsPrompt = `You are an interpersonal relationship dynamics expert. 
-  Analyze the provided chat transcript and evaluate the macro connection metrics between the speakers.
-  Account for '[System Note: ... pause]' entries to adjust conflict resolution speed or pinpoint communication blockages.
-  Use simple, conversational, comforting language that a regular person would easily understand.
+  Analyze the provided chat transcript and evaluate macro connection metrics.
+  
+  CRITICAL INPUT CRITERIA: Pay heavy attention to '[Replied after a delay of...]' metrics.
+  - Long unaddressed time gaps signal communication breakdowns, stonewalling, or a lack of real-time conversational momentum.
+  - Adjust 'conflict_resolution' lower if arguments are left unresolved for days.
+  - Adjust 'toxicity' higher if the delay functions as a silent treatment or passive-aggressive block.
   
   Return ONLY a valid JSON object matching this exact schema:
   {
     "bond_strength": "XX%",
-    "bond_strength_reason": "A simple, encouraging one-sentence explanation of how well these two people are connecting and listening to each other right now.",
+    "bond_strength_reason": "A simple sentence explaining how well they connect, incorporating the impact of conversational pacing and pauses.",
     "bond_positivity": "XX%",
-    "bond_positivity_reason": "A simple one-sentence description of the warmth, kindness, and openness shown in this talk.",
+    "bond_positivity_reason": "A simple description of warmth vs. cold distances/delays in this talk.",
     "conflict_resolution": "XX%",
-    "conflict_resolution_reason": "A simple one-sentence note on how well they handle disagreements, response delays, and if they try to find common ground.",
+    "conflict_resolution_reason": "A simple note on whether they resolve issues quickly or let them fester over long time gaps.",
     "safety_trust": "XX%",
-    "safety_trust_reason": "A simple one-sentence view on how safe and secure both people feel sharing their true thoughts without fear or avoidant withdrawal.",
+    "safety_trust_reason": "A simple view on how secure both feel, or if text delays create conversational anxiety.",
     "relationship_dynamics": "XX%",
-    "relationship_dynamics_reason": "A simple one-sentence breakdown of how they share the conversation, handle pauses, and treat each other's points.",
+    "relationship_dynamics_reason": "A simple breakdown of the conversational rhythm, turn-taking, and response lag handling.",
     "toxicity": "XX%",
-    "toxicity_reason": "A simple, non-judgmental one-sentence note on any tension, defensive attitudes, long silent treatments, or frustration in the text.",
-    "summary": "A warm, helpful summary explaining what is going well in the relationship and what basic things they can work on together."
+    "toxicity_reason": "A simple note on tension, defense mechanisms, or frustration caused by silent gaps.",
+    "summary": "A warm, helpful summary explaining relationship health and how to handle communication pacing or response delays together."
   }`;
 
   // ==========================================
-  // AGENT 3: THE STRATEGIST (ACTIONABLES ENGINE)
+  // AGENT 3: THE STRATEGIST (Sharpened for Gaps)
   // ==========================================
   const makeStrategistPrompt = (personaData, dynamicsData) => {
     return `You are a relationship counselor and action-oriented strategist.
@@ -141,18 +153,18 @@ export default async function handler(req, res) {
     Individual Profiles: ${JSON.stringify(personaData)}
     Macro Dynamics: ${JSON.stringify(dynamicsData)}
     
-    Based ONLY on this information, generate practical, customized, easy-to-do tips for both individuals.
-    If the data hints at long response times or avoidant gaps, make action steps directly target healthy pacing. Use comforting, plain language. Do not reference raw scores or numbers in the text.
+    Based ONLY on this information, generate practical, customized tips for both individuals.
+    If long response gaps or silent intervals were noted, generate at least one action step specifically advising how to communicate response expectations better (e.g., 'Let the other person know if you need space instead of dropping off'). Do not reference scores.
     
     Return ONLY a valid JSON object matching this exact schema:
     {
       "person1_actionables": [
         "A practical, easy-to-do tip for this person to make the next conversation smoother.",
-        "A simple phrase or action they can try next time things feel tense."
+        "A simple phrase or action they can try next time things feel tense or delayed."
       ],
       "person2_actionables": [
         "A practical, easy-to-do tip for this person to make the next conversation smoother.",
-        "A simple phrase or action they can try next time things feel tense."
+        "A simple phrase or action they can try next time things feel tense or delayed."
       ]
     }`;
   };
@@ -182,20 +194,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    // RUN AGENT 1 & AGENT 2 AT THE EXACT SAME TIME (Parallel Cloud Execution)
-    // Both agents process the conversation with time gaps explicitly marked out
     const [personaResults, dynamicsResults] = await Promise.all([
       queryAgent(personaPrompt, enrichedChatLog),
       queryAgent(dynamicsPrompt, enrichedChatLog)
     ]);
 
-    // RUN AGENT 3 (Passes the insights gathered above to generate target action steps)
     const strategistPrompt = makeStrategistPrompt(personaResults, dynamicsResults);
     const strategies = await queryAgent(strategistPrompt, enrichedChatLog);
 
-    // ========================================================
-    // PIPELINE AGGREGATION: Compiles perfectly into your Option A layout structure
-    // ========================================================
     const finalAnalyticsResult = {
       bond_strength: dynamicsResults.bond_strength,
       bond_strength_reason: dynamicsResults.bond_strength_reason,
@@ -222,7 +228,6 @@ export default async function handler(req, res) {
       ]
     };
 
-    // SAVE COMPREHENSIVE COMBINED RESULTS TO SUPABASE CLOUD
     try {
       const cleanDbUrl = supabaseUrl.replace(/\/$/, "");
       await fetch(`${cleanDbUrl}/rest/v1/conversations`, {
@@ -243,7 +248,6 @@ export default async function handler(req, res) {
       console.error("Database storage tracking failure:", dbError.message);
     }
 
-    // Return the perfectly formatted JSON architecture back to your HTML interface
     return res.status(200).json({
       modelUsed: "multi-agent-pipeline",
       analytics: finalAnalyticsResult
