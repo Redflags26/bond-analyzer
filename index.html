@@ -3,456 +3,348 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Truvah — Relationship Conversation Helper</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Truvah | Understanding Your Conversations</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        :root {
-            --bg-color: #FAF9F6; /* Soft, warm off-white */
-            --card-color: #FFFFFF;
-            --text-main: #2B2A27; /* Gentle dark charcoal, softer than pure black */
-            --text-muted: #6E6D6A;
-            --brand-green: #124C41; /* Premium deep forest green */
-            --brand-light: #F1F5F4;
-            --border-color: #E6E4DF;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: var(--bg-color); 
-            color: var(--text-main); 
-            line-height: 1.6;
-        }
-
-        /* Two-Column Clean Layout */
-        .app-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 3rem 2rem;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 3.5rem;
-            align-items: start;
-        }
-
-        @media (max-width: 968px) {
-            .app-container { grid-template-columns: 1fr; gap: 2rem; padding: 1.5rem 1rem; }
-        }
-
-        /* Left Column: Branding and Input Box */
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--brand-green);
-            letter-spacing: -0.02em;
-            margin-bottom: 1.5rem;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght=0,300;0,400;0,500;0,600;0,700;1,300&family=Playfair+Display:ital,wght=0,400;0,500;1,400&display=swap');
         
-        .headline {
-            font-size: 2.25rem;
-            font-weight: 600;
-            line-height: 1.25;
-            margin-bottom: 1rem;
-            letter-spacing: -0.01em;
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .serif-font { font-family: 'Playfair Display', serif; }
+        .custom-transition { transition: all 1.6s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        /* Rhythmic breathing prompt */
+        @keyframes breath {
+            0%, 100% { transform: scale(1); opacity: 0.4; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+        .breathing-indicator {
+            animation: breath 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         }
 
-        .subtitle {
-            font-size: 1.05rem;
-            color: var(--text-muted);
-            margin-bottom: 2.5rem;
+        /* Text fade-out animation */
+        @keyframes textFade {
+            0% { opacity: 1; filter: blur(0); }
+            100% { opacity: 0; filter: blur(2px); }
+        }
+        .animate-text-fade {
+            animation: textFade 0.8s ease-out forwards;
         }
 
-        .input-card {
-            background: var(--card-color);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+        /* Smooth slide in for alert box */
+        @keyframes slideIn {
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
-
-        .input-label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted);
-            margin-bottom: 0.75rem;
-            display: block;
-        }
-
-        textarea {
-            width: 100%;
-            height: 250px;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1rem;
-            font-family: inherit;
-            font-size: 0.95rem;
-            color: var(--text-main);
-            resize: none;
-            background-color: #FCFBFA;
-            margin-bottom: 1.25rem;
-            transition: all 0.2s ease;
-        }
-        textarea:focus {
-            outline: none;
-            border-color: var(--brand-green);
-            background-color: #FFFFFF;
-            box-shadow: 0 0 0 4px rgba(18, 76, 65, 0.05);
-        }
-
-        .btn-analyze {
-            width: 100%;
-            background: var(--brand-green);
-            color: #FFFFFF;
-            border: none;
-            border-radius: 10px;
-            padding: 1rem;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s ease;
-        }
-        .btn-analyze:hover { background: #0A332B; }
-        .btn-analyze:disabled { background: #C5C2BC; cursor: not-allowed; }
-
-        /* Right Column: Loading and Beautiful Results */
-        .loading-state {
-            display: none;
-            background: var(--card-color);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 4rem 2rem;
-            text-align: center;
-        }
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #E6E4DF;
-            border-top: 3px solid var(--brand-green);
-            border-radius: 50%;
-            margin: 0 auto 1.5rem;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .results-state { display: none; }
-        
-        .results-header {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 1.25rem;
-        }
-
-        .summary-box {
-            background: var(--brand-light);
-            border-radius: 12px;
-            padding: 1.5rem;
-            font-size: 1.05rem;
-            color: var(--brand-green);
-            margin-bottom: 2rem;
-            border-left: 4px solid var(--brand-green);
-        }
-
-        /* 2-Column Grid for Quick Scores */
-        .score-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 2.5rem;
-        }
-        @media (max-width: 480px) { .score-grid { grid-template-columns: 1fr; } }
-
-        .score-card {
-            background: var(--card-color);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.25rem;
-        }
-        .score-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 0.35rem;
-        }
-        .score-label {
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            color: var(--text-muted);
-        }
-        .score-number {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--brand-green);
-        }
-        .score-reason {
-            font-size: 0.88rem;
-            color: var(--text-muted);
-            line-height: 1.4;
-        }
-
-        /* Individual Profile Cards */
-        .profile-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-        .profile-card {
-            background: var(--card-color);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 2rem;
-        }
-        .profile-title {
-            font-size: 1.35rem;
-            font-weight: 600;
-            margin-bottom: 1.25rem;
-            color: var(--brand-green);
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.5rem;
-        }
-
-        .trait-item {
-            margin-bottom: 1.25rem;
-        }
-        .trait-meta {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--text-main);
-        }
-        .trait-value {
-            color: var(--brand-green);
-            font-weight: 700;
-            margin-left: 0.35rem;
-        }
-        .trait-reason {
-            display: block;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-top: 0.15rem;
-            font-weight: 400;
-        }
-
-        .tips-heading {
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted);
-            margin: 1.5rem 0 0.75rem 0;
-        }
-        .tips-list {
-            list-style: none;
-        }
-        .tips-list li {
-            font-size: 0.92rem;
-            background: #FAF9F6;
-            border: 1px solid var(--border-color);
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            color: var(--text-main);
+        .animate-banner-slide {
+            animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
     </style>
 </head>
-<body>
+<body class="bg-[#FAF9F5] text-stone-800 min-h-screen flex flex-col justify-between selection:bg-stone-200 antialiased">
 
-    <div class="app-container">
+    <header class="bg-[#FAF9F5]/80 backdrop-blur-md sticky top-0 z-50 border-b border-stone-200/40 py-4 px-6 md:px-12">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2.5">
+                <div class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-stone-300 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-stone-800"></span>
+                </div>
+                <span class="text-[10px] tracking-[0.2em] font-medium text-stone-400 uppercase">Ask</span>
+                <span class="text-xl font-bold tracking-tight text-stone-900 serif-font italic">Truvah</span>
+            </div>
+            <div id="modelBadge" class="hidden text-[10px] bg-white text-stone-500 tracking-wider px-3 py-1 rounded border border-stone-200/60 shadow-3xs">
+                System Active: <span id="modelNameText" class="font-semibold text-stone-800">Online</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl w-full mx-auto p-6 md:p-12 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         
-        <div class="left-pane">
-            <div class="logo">truvah.</div>
-            <h1 class="headline">See clearly into your relationship conversations.</h1>
-            <p class="subtitle">Truvah looks at chat conversations to provide gentle, easy-to-understand insights into how two people talk to each other, helping you communication better and understand each other's feelings.</p>
-
-            <div class="input-card">
-                <label class="input-label">Paste Chat Transcript</label>
-                <textarea id="chatInput" placeholder="Person 1: Your message here...&#10;Person 2: Your message here..."></textarea>
-                <button id="analyzeBtn" class="btn-analyze" onclick="processConversation()">Analyze Conversation</button>
-            </div>
-        </div>
-
-        <div class="right-pane">
-            
-            <div id="loadingState" class="loading-state">
-                <div class="spinner"></div>
-                <h3 style="font-size: 1.25rem; margin-bottom: 0.25rem;">Reading conversation...</h3>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Understanding the text lines and gathering insights.</p>
+        <section class="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
+            <div class="space-y-4">
+                <div class="inline-flex items-center gap-2 bg-white border border-stone-200/60 px-3 py-1 rounded-full text-stone-600 font-medium text-[9px] tracking-widest uppercase shadow-3xs">
+                    🔒 Safe & Private Space
+                </div>
+                <h2 class="text-3xl md:text-4xl font-normal text-stone-900 tracking-tight leading-[1.2] serif-font">
+                    See clearly into your <br><span class="italic text-stone-500">relationship conversations</span>.
+                </h2>
+                <p class="text-stone-500 text-sm font-light leading-relaxed">
+                    Truvah helps you look past the heat of an argument to find out how you and your partner can better support each other.
+                </p>
             </div>
 
-            <div id="resultsWrapper" class="results-state">
-                <h2 class="results-header">Conversation Analysis</h2>
+            <div class="bg-white p-6 rounded-2xl border border-stone-200/60 shadow-xs space-y-5">
+                <div class="flex items-center justify-between bg-[#FAF9F5] border border-stone-200/50 p-3 rounded-xl">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-2 h-2 rounded-full bg-stone-400 breathing-indicator"></div>
+                        <p class="text-[11px] text-stone-600 font-light tracking-wide">Take a slow, quiet breath before you look over things.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="chatInput" class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest">I'm listening..</label>
+                    <p class="text-xs text-stone-500 font-light leading-relaxed">Copy and paste a part of your chat history. Using names helps make your results clearer!</p>
+                </div>
                 
-                <div id="summaryText" class="summary-box"></div>
-
-                <div class="score-grid">
-                    <div class="score-card">
-                        <div class="score-row"><span class="score-label">Bond Strength</span><span id="score_bond" class="score-number">-</span></div>
-                        <p id="reason_bond" class="score-reason">-</p>
-                    </div>
-                    <div class="score-card">
-                        <div class="score-row"><span class="score-label">Bond Positivity</span><span id="score_positivity" class="score-number">-</span></div>
-                        <p id="reason_positivity" class="score-reason">-</p>
-                    </div>
-                    <div class="score-card">
-                        <div class="score-row"><span class="score-label">Conflict Resolution</span><span id="score_conflict" class="score-number">-</span></div>
-                        <p id="reason_conflict" class="score-reason">-</p>
-                    </div>
-                    <div class="score-card">
-                        <div class="score-row"><span class="score-label">Safety & Trust</span><span id="score_trust" class="score-number">-</span></div>
-                        <p id="reason_trust" class="score-reason">-</p>
-                    </div>
-                    <div class="score-card">
-                        <div class="score-row"><span class="score-label">Relationship Dynamics</span><span id="score_dynamics" class="score-number">-</span></div>
-                        <p id="reason_dynamics" class="score-reason">-</p>
-                    </div>
-                    <div class="score-card">
-                        <div class="score-row"><span class="score-label">Toxicity</span><span id="score_toxicity" class="score-number">-</span></div>
-                        <p id="reason_toxicity" class="score-reason">-</p>
+                <div class="relative">
+                    <textarea id="chatInput" rows="8" placeholder="Alex: You always get defensive when I ask about plans.&#10;Jordan: Because you bring it up right when I walk through the door after a long shift." class="w-full p-4 bg-[#FAF9F5] border border-stone-200/60 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-sm tracking-wide font-light placeholder-stone-300 shadow-2xs transition-all leading-relaxed"></textarea>
+                    <div id="statusLabel" class="absolute bottom-3 right-3 text-[9px] uppercase tracking-wider text-stone-400 font-mono bg-white/90 px-2 py-0.5 rounded border border-stone-200/40 flex items-center gap-1.5 shadow-3xs">
+                        <span class="w-1 h-1 rounded-full bg-emerald-500"></span> Safe
                     </div>
                 </div>
 
-                <div class="profile-container">
-                    <div class="profile-card">
-                        <h3 id="p1_name" class="profile-title">Person 1</h3>
-                        <div class="trait-item">
-                            <span class="trait-meta">Attachment security:<span id="p1_attach_val" class="trait-value">-</span></span>
-                            <span id="p1_attach_reason" class="trait-reason">-</span>
-                        </div>
-                        <div class="trait-item">
-                            <span class="trait-meta">Emotional regulation:<span id="p1_reg_val" class="trait-value">-</span></span>
-                            <span id="p1_reg_reason" class="trait-reason">-</span>
-                        </div>
-                        <div class="trait-item">
-                            <span class="trait-meta">Receptivity:<span id="p1_rec_val" class="trait-value">-</span></span>
-                            <span id="p1_rec_reason" class="trait-reason">-</span>
-                        </div>
-                        <div class="trait-item">
-                            <span class="trait-meta">Accountability:<span id="p1_acc_val" class="trait-value">-</span></span>
-                            <span id="p1_acc_reason" class="trait-reason">-</span>
-                        </div>
-                        <h4 class="tips-heading">Things to try</h4>
-                        <ul id="p1_actionables" class="tips-list"></ul>
-                    </div>
-
-                    <div class="profile-card">
-                        <h3 id="p2_name" class="profile-title">Person 2</h3>
-                        <div class="trait-item">
-                            <span class="trait-meta">Attachment security:<span id="p2_attach_val" class="trait-value">-</span></span>
-                            <span id="p2_attach_reason" class="trait-reason">-</span>
-                        </div>
-                        <div class="trait-item">
-                            <span class="trait-meta">Emotional regulation:<span id="p2_reg_val" class="trait-value">-</span></span>
-                            <span id="p2_reg_reason" class="trait-reason">-</span>
-                        </div>
-                        <div class="trait-item">
-                            <span class="trait-meta">Receptivity:<span id="p2_rec_val" class="trait-value">-</span></span>
-                            <span id="p2_rec_reason" class="trait-reason">-</span>
-                        </div>
-                        <div class="trait-item">
-                            <span class="trait-meta">Accountability:<span id="p2_acc_val" class="trait-value">-</span></span>
-                            <span id="p2_acc_reason" class="trait-reason">-</span>
-                        </div>
-                        <h4 class="tips-heading">Things to try</h4>
-                        <ul id="p2_actionables" class="tips-list"></ul>
-                    </div>
+                <div id="deleteSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                    <span class="text-emerald-600 font-bold">✓</span>
+                    <span>Your text has been completely cleared and deleted from this session.</span>
                 </div>
 
+                <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3.5 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-3 text-xs tracking-[0.12em] uppercase shadow-xs">
+                    Analyze Conversation
+                </button>
             </div>
-        </div>
 
-    </div>
+            <p class="italic text-stone-400 text-[11px] border-l border-stone-200 pl-3 max-w-sm font-light">
+                "Paste your text above. We show you the emotional highlights and create simple steps to bring back harmony."
+            </p>
+        </section>
+
+        <section class="lg:col-span-7 w-full">
+            
+            <div id="emptyState" class="bg-white border border-stone-200/40 rounded-2xl p-12 text-center text-stone-400 font-light text-sm shadow-xs flex flex-col items-center justify-center min-h-[350px]">
+                <div class="text-2xl mb-2">✨</div>
+                <p class="font-serif italic text-stone-500 text-base mb-1">Your Analysis Dashboard</p>
+                <p class="text-xs max-w-xs leading-relaxed">Paste your dialog blocks on the left panel to display overall scores, personal styles, and communication optimization options.</p>
+            </div>
+
+            <div id="resultSection" class="hidden bg-white p-6 md:p-8 rounded-2xl border border-stone-200/60 shadow-xs space-y-8">
+                
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-6">
+                    <div class="space-y-1.5">
+                        <span class="text-[9px] bg-stone-100 text-stone-600 font-bold tracking-widest uppercase px-2 py-0.5 rounded">Overall Summary</span>
+                        <h3 class="text-xl font-medium text-stone-900 tracking-tight serif-font">Conversation Score</h3>
+                        <p id="bondStrengthReason" class="text-xs md:text-sm text-stone-500 max-w-md leading-relaxed italic font-light"></p>
+                    </div>
+                    <div class="flex flex-col items-center justify-center bg-[#FAF9F5] px-5 py-4 rounded-xl border border-stone-200/50 min-w-[130px] text-center shadow-3xs">
+                        <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Match Level</span>
+                        <span id="bondStrengthMeter" class="text-3xl font-serif font-light text-stone-950 tracking-tighter">0%</span>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">How well things went</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">General Warmth & Kindness</span><span id="positivityVal" class="text-xs font-mono text-stone-500">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="positivityBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
+                            <p id="positivityReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
+                        </div>
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Solving Problems Together</span><span id="conflictVal" class="text-xs font-mono text-stone-500">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="conflictBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
+                            <p id="conflictReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
+                        </div>
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Comfortable Sharing Feelings</span><span id="safetyVal" class="text-xs font-mono text-stone-500">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="safetyBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
+                            <p id="safetyReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
+                        </div>
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Teamwork & Connection</span><span id="dynamicsVal" class="text-xs font-mono text-stone-500">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="dynamicsBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
+                            <p id="dynamicsReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
+                        </div>
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 md:col-span-2 space-y-2 shadow-3xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Tension & Defensiveness Level</span><span id="toxicityVal" class="text-xs font-mono text-stone-500">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="toxicityBar" class="custom-transition bg-stone-400 h-full" style="width: 0%"></div></div>
+                            <p id="toxicityReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4 border-t border-stone-100 pt-6">
+                    <div class="space-y-0.5">
+                        <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Personal Communication Styles</h4>
+                        <p class="text-xs text-stone-500 font-light">See how each person handled the conversation and reacted during tense moments.</p>
+                    </div>
+                    <div id="profileContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        </div>
+                </div>
+
+                <div class="bg-stone-950 text-[#FAF9F5] p-6 rounded-xl space-y-2.5 shadow-xs relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 text-stone-800 opacity-15 text-6xl serif-font pointer-events-none italic select-none">♥</div>
+                    <h4 class="text-[9px] text-stone-400 font-bold uppercase tracking-[0.25em]">Friendly Takeaway Advice</h4>
+                    <p id="summaryText" class="text-sm font-serif font-light leading-relaxed italic text-stone-200 relative z-10"></p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center py-6 text-[10px] text-stone-400 tracking-[0.15em] font-light border-t border-stone-200/40 bg-white/30">
+        TRUVAH • DISCUSSIONS MADE SIMPLER
+    </footer>
 
     <script>
-        async function processConversation() {
-            const chatLog = document.getElementById('chatInput').value.trim();
-            if (!chatLog) {
-                alert('Please paste some chat lines first.');
-                return;
-            }
-
+        async function analyzeChat() {
+            const chatInputElem = document.getElementById('chatInput');
+            const deleteSuccessBanner = document.getElementById('deleteSuccessBanner');
+            const chatLog = chatInputElem.value.trim();
             const analyzeBtn = document.getElementById('analyzeBtn');
-            const loadingState = document.getElementById('loadingState');
-            const resultsWrapper = document.getElementById('resultsWrapper');
+            const resultSection = document.getElementById('resultSection');
+            const emptyState = document.getElementById('emptyState');
+            const modelBadge = document.getElementById('modelBadge');
+            const profileContainer = document.getElementById('profileContainer');
+            
+            if (!chatLog) return alert('Please paste some text lines to analyze.');
 
             analyzeBtn.disabled = true;
-            resultsWrapper.style.display = 'none';
-            loadingState.style.display = 'block';
+            analyzeBtn.innerText = 'Reading through your conversation...';
+            resultSection.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+            modelBadge.classList.add('hidden');
+            deleteSuccessBanner.classList.add('hidden');
+            
+            chatInputElem.classList.remove('animate-text-fade');
+            profileContainer.innerHTML = ''; 
 
             try {
-                const response = await fetch('/api/analyze', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const response = await fetch("/api/analyze", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ chatLog })
                 });
 
-                if (!response.ok) throw new Error('Failed to get analysis response.');
-                const serverData = await response.json();
-                const metrics = serverData.analytics;
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Could not process text.');
 
-                // Set Top Summary and Scores
-                document.getElementById('summaryText').innerText = metrics.summary;
-                document.getElementById('score_bond').innerText = metrics.bond_strength;
-                document.getElementById('reason_bond').innerText = metrics.bond_strength_reason;
-                document.getElementById('score_positivity').innerText = metrics.bond_positivity;
-                document.getElementById('reason_positivity').innerText = metrics.bond_positivity_reason;
-                document.getElementById('score_conflict').innerText = metrics.conflict_resolution;
-                document.getElementById('reason_conflict').innerText = metrics.conflict_resolution_reason;
-                document.getElementById('score_trust').innerText = metrics.safety_trust;
-                document.getElementById('reason_trust').innerText = metrics.safety_trust_reason;
-                document.getElementById('score_dynamics').innerText = metrics.relationship_dynamics;
-                document.getElementById('reason_dynamics').innerText = metrics.relationship_dynamics_reason;
-                document.getElementById('score_toxicity').innerText = metrics.toxicity;
-                document.getElementById('reason_toxicity').innerText = metrics.toxicity_reason;
-
-                // Set Person 1 Profile
-                const p1 = metrics.profiles[0];
-                document.getElementById('p1_name').innerText = p1.name || "Person 1";
-                document.getElementById('p1_attach_val').innerText = p1.attachment_security || "N/A";
-                document.getElementById('p1_attach_reason').innerText = p1.attachment_security_reason || "";
-                document.getElementById('p1_reg_val').innerText = p1.emotional_regulation || "N/A";
-                document.getElementById('p1_reg_reason').innerText = p1.emotional_regulation_reason || "";
-                document.getElementById('p1_rec_val').innerText = p1.receptivity || "N/A";
-                document.getElementById('p1_rec_reason').innerText = p1.receptivity_reason || "";
-                document.getElementById('p1_acc_val').innerText = p1.accountability || "N/A";
-                document.getElementById('p1_acc_reason').innerText = p1.accountability_reason || "";
+                // Text beautifully fades out smoothly
+                chatInputElem.classList.add('animate-text-fade');
                 
-                const p1List = document.getElementById('p1_actionables');
-                p1List.innerHTML = '';
-                p1.actionables.forEach(tip => {
-                    const li = document.createElement('li'); li.innerText = tip; p1List.appendChild(li);
-                });
+                setTimeout(() => {
+                    chatInputElem.value = '';
+                    chatInputElem.classList.remove('animate-text-fade');
+                    deleteSuccessBanner.classList.remove('hidden');
+                }, 800);
 
-                // Set Person 2 Profile
-                const p2 = metrics.profiles[1];
-                document.getElementById('p2_name').innerText = p2.name || "Person 2";
-                document.getElementById('p2_attach_val').innerText = p2.attachment_security || "N/A";
-                document.getElementById('p2_attach_reason').innerText = p2.attachment_security_reason || "";
-                document.getElementById('p2_reg_val').innerText = p2.emotional_regulation || "N/A";
-                document.getElementById('p2_reg_reason').innerText = p2.emotional_regulation_reason || "";
-                document.getElementById('p2_rec_val').innerText = p2.receptivity || "N/A";
-                document.getElementById('p2_rec_reason').innerText = p2.receptivity_reason || "";
-                document.getElementById('p2_acc_val').innerText = p2.accountability || "N/A";
-                document.getElementById('p2_acc_reason').innerText = p2.accountability_reason || "";
+                if (document.getElementById('modelNameText')) {
+                    document.getElementById('modelNameText').innerText = "Active Connection";
+                }
+                modelBadge.classList.remove('hidden');
 
-                const p2List = document.getElementById('p2_actionables');
-                p2List.innerHTML = '';
-                p2.actionables.forEach(tip => {
-                    const li = document.createElement('li'); li.innerText = tip; p2List.appendChild(li);
-                });
+                const scores = data.analytics;
+                
+                document.getElementById('bondStrengthMeter').innerText = scores.bond_strength || '0%';
+                document.getElementById('bondStrengthReason').innerText = scores.bond_strength_reason ? `"${scores.bond_strength_reason}"` : '';
+                document.getElementById('positivityVal').innerText = scores.bond_positivity || '--';
+                document.getElementById('positivityReason').innerText = scores.bond_positivity_reason || '';
+                document.getElementById('conflictVal').innerText = scores.conflict_resolution || '--';
+                document.getElementById('conflictReason').innerText = scores.conflict_resolution_reason || '';
+                document.getElementById('safetyVal').innerText = scores.safety_trust || '--';
+                document.getElementById('safetyReason').innerText = scores.safety_trust_reason || '';
+                document.getElementById('dynamicsVal').innerText = scores.relationship_dynamics || '--';
+                document.getElementById('dynamicsReason').innerText = scores.relationship_dynamics_reason || '';
+                document.getElementById('toxicityVal').innerText = scores.toxicity || '--';
+                document.getElementById('toxicityReason').innerText = scores.toxicity_reason || '';
+                document.getElementById('summaryText').innerText = scores.summary ? `"${scores.summary}"` : '';
+                
+                setTimeout(() => {
+                    document.getElementById('positivityBar').style.width = scores.bond_positivity || '0%';
+                    document.getElementById('conflictBar').style.width = scores.conflict_resolution || '0%';
+                    document.getElementById('safetyBar').style.width = scores.safety_trust || '0%';
+                    document.getElementById('dynamicsBar').style.width = scores.relationship_dynamics || '0%';
+                    document.getElementById('toxicityBar').style.width = scores.toxicity || '0%';
+                }, 100);
 
-                loadingState.style.display = 'none';
-                resultsWrapper.style.display = 'block';
-                document.getElementById('chatInput').value = '';
+                if (scores.profiles && Array.isArray(scores.profiles)) {
+                    scores.profiles.forEach((user, idx) => {
+                        const profileCard = document.createElement('div');
+                        profileCard.className = "bg-[#FAF9F5]/50 border border-stone-200/60 rounded-xl p-5 shadow-3xs flex flex-col justify-between space-y-4";
+                        
+                        const actionsHtml = user.actionables.map(action => `
+                            <li class="flex items-start gap-2.5 text-xs text-stone-600 bg-white p-2.5 rounded border border-stone-200/40 font-light shadow-3xs">
+                                <span class="text-stone-400 font-mono mt-0.5">→</span>
+                                <span>${action}</span>
+                            </li>
+                        `).join('');
 
-            } catch (error) {
-                alert(`Something went wrong: ${error.message}`);
-                loadingState.style.display = 'none';
+                        profileCard.innerHTML = `
+                            <div class="space-y-4">
+                                <div class="border-b border-stone-200/40 pb-2">
+                                    <span class="text-[9px] uppercase font-bold tracking-widest text-stone-400 block">Personal Style</span>
+                                    <h5 class="text-base font-normal font-serif text-stone-900 mt-0.5">${user.name}</h5>
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="font-medium text-stone-700 tracking-wide">Calmness & Security</span>
+                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.attachment_security || '0%'}</span>
+                                        </div>
+                                        <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
+                                            <div id="p${idx}-attachBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
+                                        </div>
+                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.attachment_security_reason || ''}</p>
+                                    </div>
+
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="font-medium text-stone-700 tracking-wide">Managing Frustration</span>
+                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.emotional_regulation || '0%'}</span>
+                                        </div>
+                                        <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
+                                            <div id="p${idx}-regBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
+                                        </div>
+                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.emotional_regulation_reason || ''}</p>
+                                    </div>
+
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="font-medium text-stone-700 tracking-wide">Willingness to Listen</span>
+                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.receptivity || '0%'}</span>
+                                        </div>
+                                        <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
+                                            <div id="p${idx}-recepBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
+                                        </div>
+                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.receptivity_reason || ''}</p>
+                                    </div>
+
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="font-medium text-stone-700 tracking-wide">Owning Personal Errors</span>
+                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.accountability || '0%'}</span>
+                                        </div>
+                                        <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
+                                            <div id="p${idx}-accBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
+                                        </div>
+                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.accountability_reason || ''}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2 pt-3 border-t border-stone-200/40">
+                                <span class="text-[10px] uppercase font-bold tracking-wider text-stone-400 block">Easy Next Steps</span>
+                                <ul class="space-y-1.5">${actionsHtml}</ul>
+                            </div>
+                        `;
+                        profileContainer.appendChild(profileCard);
+
+                        setTimeout(() => {
+                            if(document.getElementById(`p${idx}-attachBar`)) document.getElementById(`p${idx}-attachBar`).style.width = user.attachment_security || '0%';
+                            if(document.getElementById(`p${idx}-regBar`)) document.getElementById(`p${idx}-regBar`).style.width = user.emotional_regulation || '0%';
+                            if(document.getElementById(`p${idx}-recepBar`)) document.getElementById(`p${idx}-recepBar`).style.width = user.receptivity || '0%';
+                            if(document.getElementById(`p${idx}-accBar`)) document.getElementById(`p${idx}-accBar`).style.width = user.accountability || '0%';
+                        }, 150);
+                    });
+                }
+
+                emptyState.classList.add('hidden');
+                resultSection.classList.remove('hidden');
+                resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            } catch (err) {
+                alert(`Could not complete analysis right now: ${err.message}`);
             } finally {
                 analyzeBtn.disabled = false;
+                analyzeBtn.innerText = 'Analyze Conversation';
             }
         }
     </script>
