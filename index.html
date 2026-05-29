@@ -3,363 +3,445 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Truvah | Understanding Your Conversations</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Truvah — Deep Communication & Relationship Dynamics Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,300;9..144,0,400;9..144,1,300&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght=0,300;0,400;0,500;0,700;1,300&family=Playfair+Display:ital,wght=0,400;0,500;1,400&display=swap');
+        :root {
+            --bg-canvas: #FAF8F5;
+            --surface-card: #FFFFFF;
+            --text-main: #1A1917;
+            --text-muted: #605E5A;
+            --accent-primary: #114B43;
+            --accent-hover: #0A332D;
+            --border-soft: #EBE8E2;
+            --shadow-subtle: 0 4px 20px rgba(26, 25, 23, 0.03);
+            --shadow-focus: 0 12px 40px rgba(17, 75, 67, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--bg-canvas); 
+            color: var(--text-main); 
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Layout Architecture */
+        .app-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2.5rem 2rem;
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1.1fr 1.1fr;
+            gap: 4rem;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .app-container { grid-template-columns: 1fr; gap: 3rem; padding: 1.5rem 1rem; }
+        }
+
+        /* Branding & Copy Space */
+        header { margin-bottom: 2.5rem; }
+        .logo-mark {
+            font-family: 'Fraunces', serif;
+            font-size: 1.75rem;
+            font-weight: 400;
+            color: var(--text-main);
+            letter-spacing: -0.03em;
+            margin-bottom: 2rem;
+            display: inline-block;
+        }
+        .logo-mark span { font-style: italic; font-weight: 300; color: var(--accent-primary); }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #E8ECEB;
+            color: var(--accent-primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 0.4rem 0.8rem;
+            border-radius: 100px;
+            margin-bottom: 1.5rem;
+        }
+
+        .headline {
+            font-family: 'Fraunces', serif;
+            font-size: 3rem;
+            font-weight: 300;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            color: var(--text-main);
+            margin-bottom: 1.5rem;
+        }
+        .headline em { font-style: italic; font-weight: 300; }
+
+        .paragraph {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            max-width: 90%;
+        }
+
+        /* Workspace & Input Form styling */
+        .workspace-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-soft);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-subtle);
+            position: sticky;
+            top: 2.5rem;
+            transition: box-shadow 0.3s ease;
+        }
+        .workspace-card:focus-within { box-shadow: var(--shadow-focus); }
+
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        .textarea-wrapper { position: relative; margin-bottom: 1.5rem; }
+        textarea {
+            width: 100%;
+            height: 280px;
+            background: #FAFAFA;
+            border: 1px solid var(--border-soft);
+            border-radius: 16px;
+            padding: 1.25rem;
+            font-family: inherit;
+            font-size: 1rem;
+            color: var(--text-main);
+            resize: none;
+            transition: all 0.25s ease;
+        }
+        textarea:focus {
+            outline: none;
+            background: var(--surface-card);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(17, 75, 67, 0.06);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: var(--accent-primary);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 14px;
+            padding: 1.1rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            transition: all 0.2s ease;
+        }
+        .btn-submit:hover { background: var(--accent-hover); transform: translateY(-1px); }
+        .btn-submit:disabled { background: #C5C2BC; cursor: not-allowed; transform: none; }
+
+        /* Real-time Processing Screen Overlay */
+        .loading-state {
+            display: none;
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border-soft);
+            border-top: 3px solid var(--accent-primary);
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Output Metrics Display Space */
+        .results-wrapper { display: none; }
+        .summary-box {
+            background: #F3F6F5;
+            border-left: 4px solid var(--accent-primary);
+            padding: 1.5rem;
+            border-radius: 0 16px 16px 0;
+            margin-bottom: 2.5rem;
+            font-size: 1.05rem;
+            color: var(--accent-primary);
+        }
+
+        .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 3rem; }
+        @media (max-width: 640px) { .metric-grid { grid-template-columns: 1fr; } }
+
+        .metric-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-soft);
+            border-radius: 16px;
+            padding: 1.25rem;
+            box-shadow: var(--shadow-subtle);
+        }
+        .metric-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; }
+        .metric-title { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+        .metric-score { font-family: 'Fraunces', serif; font-size: 1.75rem; font-weight: 400; color: var(--accent-primary); }
+        .metric-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.4; }
+
+        /* Subject Profile Section styling */
+        .profiles-section {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            border-top: 1px solid var(--border-soft);
+            padding-top: 2.5rem;
+        }
+        .profile-card { background: #FFFFFF; border: 1px solid var(--border-soft); border-radius: 20px; padding: 2rem; }
+        .profile-name { font-family: 'Fraunces', serif; font-size: 1.75rem; font-weight: 400; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-soft); padding-bottom: 0.75rem; }
         
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .serif-font { font-family: 'Playfair Display', serif; }
-        .custom-transition { transition: all 1.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        .submetric-row { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+        .submetric-item { font-size: 0.95rem; }
+        .submetric-label { font-weight: 600; color: var(--text-main); }
+        .submetric-val { color: var(--accent-primary); font-weight: 600; margin-left: 0.25rem; }
+        .submetric-reason { display: block; color: var(--text-muted); font-size: 0.9rem; margin-top: 0.15rem; }
 
-        /* Rhythmic breathing prompt */
-        @keyframes breath {
-            0%, 100% { transform: scale(1); opacity: 0.4; }
-            50% { transform: scale(1.3); opacity: 0.8; }
+        .actionables-title { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.75rem; }
+        .actionables-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+        .actionables-list li {
+            font-size: 0.95rem;
+            background: #FAFAFA;
+            border: 1px solid var(--border-soft);
+            padding: 0.85rem 1.2rem;
+            border-radius: 10px;
+            position: relative;
+            padding-left: 2rem;
         }
-        .breathing-indicator {
-            animation: breath 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-        }
-
-        /* Text fade-out animation */
-        @keyframes textFade {
-            0% { opacity: 1; filter: blur(0); }
-            100% { opacity: 0; filter: blur(2px); }
-        }
-        .animate-text-fade {
-            animation: textFade 0.8s ease-out forwards;
-        }
-
-        /* Smooth slide in for alert box */
-        @keyframes slideIn {
-            0% { opacity: 0; transform: translateY(8px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-        .animate-banner-slide {
-            animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        .actionables-list li::before {
+            content: "→";
+            position: absolute;
+            left: 0.8rem;
+            color: var(--accent-primary);
+            font-weight: bold;
         }
     </style>
 </head>
-<body class="bg-[#FAF9F5] text-stone-800 min-h-screen flex flex-col justify-between selection:bg-stone-200 antialiased">
+<body>
 
-    <!-- Top Navigation Bar -->
-    <header class="bg-[#FAF9F5]/80 backdrop-blur-md sticky top-0 z-50 border-b border-stone-200/50 py-5 px-6 md:px-12">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-stone-300 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-stone-800"></span>
-                </div>
-                <span class="text-[10px] tracking-[0.2em] font-medium text-stone-400 uppercase">Ask</span>
-                <span class="text-xl font-bold tracking-tight text-stone-900 serif-font italic">Truvah</span>
-            </div>
-            <!-- FIX: Re-added element structure to safely catch system updates without breaking -->
-            <div id="modelBadge" class="hidden text-[10px] bg-stone-100/80 text-stone-500 tracking-wider px-3 py-1 rounded border border-stone-200/60">
-                System Active: <span id="modelNameText" class="font-semibold text-stone-800">Online</span>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content Layout -->
-    <main class="max-w-7xl w-full mx-auto p-6 md:p-12 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+    <div class="app-container">
         
-        <!-- Left Side: Comforting Intro Description -->
-        <section class="lg:col-span-5 space-y-6 lg:sticky lg:top-28 pt-4">
-            <div class="inline-flex items-center gap-2 bg-white border border-stone-200/80 px-3 py-1 rounded-full text-stone-600 font-medium text-[9px] tracking-widest uppercase shadow-2xs">
-                🔒 Safe & Private Space
-            </div>
-            <h2 class="text-3xl md:text-4xl font-normal text-stone-900 tracking-tight leading-[1.2] serif-font">
-                See clearly into your <br><span class="italic text-stone-500">relationship conversations</span>.
-            </h2>
-            <div class="space-y-4 text-stone-500 text-sm font-light leading-relaxed max-w-md">
-                <p>
-                    Truvah helps you look past the heat of an argument to find out how you and your partner can better support each other.
-                </p>
-                <p class="border-l border-stone-200 pl-4 italic text-stone-400 text-xs">
-                    "Paste your text below. We show you the emotional highlights and create simple steps to bring back harmony."
-                </p>
-                
-                <div class="flex items-center gap-2 pt-2 text-[11px] font-mono text-stone-400">
-                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-stone-300"></span>
-                    Your chat is deleted automatically as soon as your results show up.
-                </div>
-            </div>
-        </section>
+        <main class="left-hero">
+            <header>
+                <div class="logo-mark">truvah<span>.</span></div>
+                <div class="badge">🛡️ Protected Cloud Architecture</div>
+                <h1 class="headline">See clearly into your <em>relationship conversations.</em></h1>
+                <p class="paragraph">Truvah utilizes a parallel multi-agent behavioral synthesis engine to look beyond surface-level tension. Upload text transcripts to receive objective structural mapping on communication alignment, core profiles, and specialized interaction optimization guidance.</p>
+            </header>
 
-        <!-- Right Side: Interaction Window -->
-        <section class="lg:col-span-7 space-y-8 w-full">
-            
-            <!-- Chat Input Card Box -->
-            <div class="bg-white p-6 md:p-8 rounded-2xl border border-stone-200/80 shadow-xs space-y-6">
-                
-                <!-- Calming Breathing Reminder Banner -->
-                <div class="flex items-center justify-between bg-[#FAF9F5] border border-stone-200/60 p-3.5 rounded-xl">
-                    <div class="flex items-center gap-3">
-                        <div class="w-2.5 h-2.5 rounded-full bg-stone-400 breathing-indicator"></div>
-                        <p class="text-xs text-stone-600 font-light tracking-wide">Take a slow, quiet breath before you look over things.</p>
-                    </div>
-                    <span class="text-[9px] font-mono tracking-widest uppercase text-stone-400 hidden sm:inline-block">Pause & Breathe</span>
+            <div class="workspace-card">
+                <label class="form-label">Paste Raw Conversation Ledger</label>
+                <div class="textarea-wrapper">
+                    <textarea id="chatInput" placeholder="[1:08 PM] Person A: Let's talk...&#10;[1:10 PM] Person B: I'm listening..."></textarea>
                 </div>
-
-                <div class="space-y-1.5">
-                    <label for="chatInput" class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest">I'm listening..</label>
-                    <p class="text-xs text-stone-500 font-light">Copy and paste a part of your chat history. Using names helps make your results clearer!</p>
-                </div>
-                
-                <!-- Textarea Window -->
-                <div class="relative">
-                    <textarea id="chatInput" rows="7" placeholder="Alex: You always get defensive when I ask about plans.&#10;Jordan: Because you bring it up right when I walk through the door after a long shift." class="w-full p-5 bg-[#FAF9F5] border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-sm tracking-wide font-light placeholder-stone-300 shadow-inner transition-all leading-relaxed"></textarea>
-                    <div id="statusLabel" class="absolute bottom-4 right-4 text-[9px] uppercase tracking-wider text-stone-400 font-mono bg-white/80 px-2.5 py-1 rounded border border-stone-200/60 flex items-center gap-1.5 shadow-3xs">
-                        <span class="w-1 h-1 rounded-full bg-emerald-500"></span> Safe Auto-Delete Enabled
-                    </div>
-                </div>
-
-                <!-- Friendly Success Notification (Appears under input box) -->
-                <div id="deleteSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/60 border border-emerald-200/60 text-emerald-800 p-4 rounded-xl text-xs font-light flex items-center gap-2.5">
-                    <span class="text-emerald-600 text-base">✓</span>
-                    <span>Your text has been completely cleared and deleted from this session to protect your privacy.</span>
-                </div>
-
-                <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-4 px-6 rounded-xl transition-all duration-300 cursor-pointer flex justify-center items-center gap-3 text-xs tracking-[0.15em] uppercase shadow-sm">
-                    Analyze Conversation
+                <button id="analyzeBtn" class="btn-submit" onclick="processConversation()">
+                    <span>Run Strategic Pipeline Analysis</span>
                 </button>
             </div>
+        </main>
 
-            <!-- Output Dashboard -->
-            <div id="resultSection" class="hidden bg-white p-6 md:p-10 rounded-2xl border border-stone-200/80 shadow-sm space-y-12">
+        <section class="right-display">
+            
+            <div id="loadingState" class="loading-state">
+                <div class="spinner"></div>
+                <h3 style="font-family: 'Fraunces', serif; font-size: 1.5rem; margin-bottom: 0.5rem;">Synthesizing Conversation</h3>
+                <p style="color: var(--text-muted); font-size: 0.95rem;">Multi-agent system mapping behavioral frameworks, calculating tone weights, and generating actionable optimizations...</p>
+            </div>
+
+            <div id="resultsWrapper" class="results-wrapper">
+                <h2 style="font-family: 'Fraunces', serif; font-size: 2.25rem; font-weight: 300; margin-bottom: 1.5rem;">Structural Evaluation Summary</h2>
                 
-                <!-- Main Communication Score -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-stone-100 pb-8">
-                    <div class="space-y-2">
-                        <span class="text-[9px] bg-stone-100 text-stone-600 font-bold tracking-widest uppercase px-2.5 py-1 rounded">Overall Summary</span>
-                        <h3 class="text-2xl font-normal text-stone-900 tracking-tight serif-font">Conversation Score</h3>
-                        <p id="bondStrengthReason" class="text-xs md:text-sm text-stone-500 max-w-md leading-relaxed italic font-light"></p>
+                <div id="summaryText" class="summary-box"></div>
+
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-header"><span class="metric-title">Bond Strength</span><span id="score_bond" class="metric-score">-</span></div>
+                        <p id="reason_bond" class="metric-desc">-</p>
                     </div>
-                    <div class="flex flex-col items-center justify-center bg-[#FAF9F5] p-6 rounded-xl border border-stone-200/60 min-w-[160px] text-center shadow-2xs">
-                        <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Match Level</span>
-                        <span id="bondStrengthMeter" class="text-4xl font-serif font-light text-stone-950 tracking-tighter">0%</span>
+                    <div class="metric-card">
+                        <div class="metric-header"><span class="metric-title">Positivity Baseline</span><span id="score_positivity" class="metric-score">-</span></div>
+                        <p id="reason_positivity" class="metric-desc">-</p>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header"><span class="metric-title">Friction Resolution</span><span id="score_conflict" class="metric-score">-</span></div>
+                        <p id="reason_conflict" class="metric-desc">-</p>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header"><span class="metric-title">Vulnerability Space</span><span id="score_trust" class="metric-score">-</span></div>
+                        <p id="reason_trust" class="metric-desc">-</p>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header"><span class="metric-title">Symmetry Footprint</span><span id="score_dynamics" class="metric-score">-</span></div>
+                        <p id="reason_dynamics" class="metric-desc">-</p>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header"><span class="metric-title">Ego Friction Threshold</span><span id="score_toxicity" class="metric-score">-</span></div>
+                        <p id="reason_toxicity" class="metric-desc">-</p>
                     </div>
                 </div>
 
-                <!-- Score Categories Bars Grid -->
-                <div class="space-y-6">
-                    <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">How well things went</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="p-6 bg-[#FAF9F5]/40 rounded-xl border border-stone-200/40 space-y-3 shadow-2xs">
-                            <div class="flex justify-between items-center"><span class="text-xs font-semibold text-stone-700 tracking-wide">General Warmth & Kindness</span><span id="positivityVal" class="text-xs font-mono text-stone-500 font-medium">--</span></div>
-                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="positivityBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
-                            <p id="positivityReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
+                <div class="profiles-section">
+                    <div class="profile-card">
+                        <h3 id="p1_name" class="profile-name">Subject 1</h3>
+                        <div class="submetric-row">
+                            <div class="submetric-item">
+                                <span class="submetric-label">Attachment Matrix Boundary:</span><span id="p1_attach_val" class="submetric-val">-</span>
+                                <span id="p1_attach_reason" class="submetric-reason">-</span>
+                            </div>
+                            <div class="submetric-item">
+                                <span class="submetric-label">Friction Threshold Modulation:</span><span id="p1_reg_val" class="submetric-val">-</span>
+                                <span id="p1_reg_reason" class="submetric-reason">-</span>
+                            </div>
+                            <div class="submetric-item">
+                                <span class="submetric-label">Data Stream Receptivity:</span><span id="p1_rec_val" class="submetric-val">-</span>
+                                <span id="p1_rec_reason" class="submetric-reason">-</span>
+                            </div>
+                            <div class="submetric-item">
+                                <span class="submetric-label">Error Ownership Baseline:</span><span id="p1_acc_val" class="submetric-val">-</span>
+                                <span id="p1_acc_reason" class="submetric-reason">-</span>
+                            </div>
                         </div>
-                        <div class="p-6 bg-[#FAF9F5]/40 rounded-xl border border-stone-200/40 space-y-3 shadow-2xs">
-                            <div class="flex justify-between items-center"><span class="text-xs font-semibold text-stone-700 tracking-wide">Solving Problems Together</span><span id="conflictVal" class="text-xs font-mono text-stone-500 font-medium">--</span></div>
-                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="conflictBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
-                            <p id="conflictReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
+                        <h4 class="actionables-title">Strategic Action Optimization Protocols</h4>
+                        <ul id="p1_actionables" class="actionables-list"></ul>
+                    </div>
+
+                    <div class="profile-card">
+                        <h3 id="p2_name" class="profile-name">Subject 2</h3>
+                        <div class="submetric-row">
+                            <div class="submetric-item">
+                                <span class="submetric-label">Attachment Matrix Boundary:</span><span id="p2_attach_val" class="submetric-val">-</span>
+                                <span id="p2_attach_reason" class="submetric-reason">-</span>
+                            </div>
+                            <div class="submetric-item">
+                                <span class="submetric-label">Friction Threshold Modulation:</span><span id="p2_reg_val" class="submetric-val">-</span>
+                                <span id="p2_reg_reason" class="submetric-reason">-</span>
+                            </div>
+                            <div class="submetric-item">
+                                <span class="submetric-label">Data Stream Receptivity:</span><span id="p2_rec_val" class="submetric-val">-</span>
+                                <span id="p2_rec_reason" class="submetric-reason">-</span>
+                            </div>
+                            <div class="submetric-item">
+                                <span class="submetric-label">Error Ownership Baseline:</span><span id="p2_acc_val" class="submetric-val">-</span>
+                                <span id="p2_acc_reason" class="submetric-reason">-</span>
+                            </div>
                         </div>
-                        <div class="p-6 bg-[#FAF9F5]/40 rounded-xl border border-stone-200/40 space-y-3 shadow-2xs">
-                            <div class="flex justify-between items-center"><span class="text-xs font-semibold text-stone-700 tracking-wide">Comfortable Sharing Feelings</span><span id="safetyVal" class="text-xs font-mono text-stone-500 font-medium">--</span></div>
-                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="safetyBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
-                            <p id="safetyReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
-                        </div>
-                        <div class="p-6 bg-[#FAF9F5]/40 rounded-xl border border-stone-200/40 space-y-3 shadow-2xs">
-                            <div class="flex justify-between items-center"><span class="text-xs font-semibold text-stone-700 tracking-wide">Teamwork & Connection</span><span id="dynamicsVal" class="text-xs font-mono text-stone-500 font-medium">--</span></div>
-                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="dynamicsBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
-                            <p id="dynamicsReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
-                        </div>
-                        <div class="p-6 bg-[#FAF9F5]/40 rounded-xl border border-stone-200/40 md:col-span-2 space-y-3 shadow-2xs">
-                            <div class="flex justify-between items-center"><span class="text-xs font-semibold text-stone-700 tracking-wide">Tension & Defensiveness Level</span><span id="toxicityVal" class="text-xs font-mono text-stone-500 font-medium">--</span></div>
-                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="toxicityBar" class="custom-transition bg-stone-400 h-full" style="width: 0%"></div></div>
-                            <p id="toxicityReason" class="text-xs text-stone-500 leading-relaxed font-light"></p>
-                        </div>
+                        <h4 class="actionables-title">Strategic Action Optimization Protocols</h4>
+                        <ul id="p2_actionables" class="actionables-list"></ul>
                     </div>
                 </div>
 
-                <!-- Personal Profiles Section -->
-                <div class="space-y-6 border-t border-stone-100 pt-10">
-                    <div class="space-y-1">
-                        <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Personal Communication Styles</h4>
-                        <p class="text-xs text-stone-500 font-light">See how each person handled the conversation and reacted during tense moments.</p>
-                    </div>
-                    <div id="profileContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <!-- User cards load dynamically here -->
-                    </div>
-                </div>
-
-                <!-- Heartfelt Advice Footer Block -->
-                <div class="bg-stone-950 text-[#FAF9F5] p-6 md:p-8 rounded-2xl space-y-3 shadow-md relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-8 text-stone-800 opacity-20 text-7xl serif-font pointer-events-none italic select-none">♥</div>
-                    <h4 class="text-[9px] text-stone-400 font-bold uppercase tracking-[0.25em]">Friendly Takeaway Advice</h4>
-                    <p id="summaryText" class="text-sm md:text-base font-serif font-light leading-relaxed italic text-stone-200 relative z-10"></p>
-                </div>
             </div>
         </section>
-    </main>
 
-    <!-- Simple Footer Section -->
-    <footer class="text-center py-8 text-[10px] text-stone-400 tracking-[0.15em] font-light border-t border-stone-200/50 bg-white/40 mt-12">
-        TRUVAH • DISCUSSIONS MADE SIMPLER
-    </footer>
+    </div>
 
     <script>
-        async function analyzeChat() {
-            const chatInputElem = document.getElementById('chatInput');
-            const deleteSuccessBanner = document.getElementById('deleteSuccessBanner');
-            const chatLog = chatInputElem.value.trim();
-            const analyzeBtn = document.getElementById('analyzeBtn');
-            const resultSection = document.getElementById('resultSection');
-            const modelBadge = document.getElementById('modelBadge');
-            const profileContainer = document.getElementById('profileContainer');
-            
-            if (!chatLog) return alert('Please paste some text lines to analyze.');
+        async function processConversation() {
+            const chatLog = document.getElementById('chatInput').value.trim();
+            if (!chatLog) {
+                alert('Please input a chat log block before initiating analysis calculations.');
+                return;
+            }
 
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const loadingState = document.getElementById('loadingState');
+            const resultsWrapper = document.getElementById('resultsWrapper');
+
+            // Set state to loading
             analyzeBtn.disabled = true;
-            analyzeBtn.innerText = 'Reading through your conversation...';
-            resultSection.classList.add('hidden');
-            modelBadge.classList.add('hidden');
-            deleteSuccessBanner.classList.add('hidden');
-            
-            chatInputElem.classList.remove('animate-text-fade');
-            profileContainer.innerHTML = ''; 
+            resultsWrapper.style.display = 'none';
+            loadingState.style.display = 'block';
 
             try {
-                const response = await fetch("/api/analyze", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ chatLog })
                 });
 
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Could not process text.');
+                if (!response.ok) throw new Error('Network tracking endpoint returned validation fault.');
+                const serverData = await response.json();
+                const metrics = serverData.analytics;
 
-                // Text beautifully fades out but the window box elements stay exactly intact
-                chatInputElem.classList.add('animate-text-fade');
+                // Bind Master Macro Parameter Fields
+                document.getElementById('summaryText').innerText = metrics.summary;
+                document.getElementById('score_bond').innerText = metrics.bond_strength;
+                document.getElementById('reason_bond').innerText = metrics.bond_strength_reason;
+                document.getElementById('score_positivity').innerText = metrics.bond_positivity;
+                document.getElementById('reason_positivity').innerText = metrics.bond_positivity_reason;
+                document.getElementById('score_conflict').innerText = metrics.conflict_resolution;
+                document.getElementById('reason_conflict').innerText = metrics.conflict_resolution_reason;
+                document.getElementById('score_trust').innerText = metrics.safety_trust;
+                document.getElementById('reason_trust').innerText = metrics.safety_trust_reason;
+                document.getElementById('score_dynamics').innerText = metrics.relationship_dynamics;
+                document.getElementById('reason_dynamics').innerText = metrics.relationship_dynamics_reason;
+                document.getElementById('score_toxicity').innerText = metrics.toxicity;
+                document.getElementById('reason_toxicity').innerText = metrics.toxicity_reason;
+
+                // Bind Profile Subject 1 Fields
+                const p1 = metrics.profiles[0];
+                document.getElementById('p1_name').innerText = p1.name || "Subject 1";
+                document.getElementById('p1_attach_val').innerText = p1.get_anxious_or_close_off || p1.attachment_security || "N/A";
+                document.getElementById('p1_attach_reason').innerText = p1.attachment_security_reason || "";
+                document.getElementById('p1_reg_val').innerText = p1.manage_anger_or_frustration || p1.emotional_regulation || "N/A";
+                document.getElementById('p1_reg_reason').innerText = p1.emotional_regulation_reason || "";
+                document.getElementById('p1_rec_val').innerText = p1.open_to_listening || p1.receptivity || "N/A";
+                document.getElementById('p1_rec_reason').innerText = p1.receptivity_reason || "";
+                document.getElementById('p1_acc_val').innerText = p1.willing_to_say_sorry || p1.accountability || "N/A";
+                document.getElementById('p1_acc_reason').innerText = p1.accountability_reason || "";
                 
-                setTimeout(() => {
-                    chatInputElem.value = '';
-                    chatInputElem.classList.remove('animate-text-fade');
-                    deleteSuccessBanner.classList.remove('hidden');
-                }, 800);
+                const p1List = document.getElementById('p1_actionables');
+                p1List.innerHTML = '';
+                p1.actionables.forEach(tip => {
+                    const li = document.createElement('li'); li.innerText = tip; p1List.appendChild(li);
+                });
 
-                // FIX: Target safe elements now available in DOM to prevent innerText crash
-                if (document.getElementById('modelNameText')) {
-                    document.getElementById('modelNameText').innerText = "Active Connection";
-                }
-                modelBadge.classList.remove('hidden');
+                // Bind Profile Subject 2 Fields
+                const p2 = metrics.profiles[1];
+                document.getElementById('p2_name').innerText = p2.name || "Subject 2";
+                document.getElementById('p2_attach_val').innerText = p2.get_anxious_or_close_off || p2.attachment_security || "N/A";
+                document.getElementById('p2_attach_reason').innerText = p2.attachment_security_reason || "";
+                document.getElementById('p2_reg_val').innerText = p2.manage_anger_or_frustration || p2.emotional_regulation || "N/A";
+                document.getElementById('p2_reg_reason').innerText = p2.emotional_regulation_reason || "";
+                document.getElementById('p2_rec_val').innerText = p2.open_to_listening || p2.receptivity || "N/A";
+                document.getElementById('p2_rec_reason').innerText = p2.receptivity_reason || "";
+                document.getElementById('p2_acc_val').innerText = p2.willing_to_say_sorry || p2.accountability || "N/A";
+                document.getElementById('p2_acc_reason').innerText = p2.accountability_reason || "";
 
-                const scores = data.analytics;
-                
-                document.getElementById('bondStrengthMeter').innerText = scores.bond_strength || '0%';
-                document.getElementById('bondStrengthReason').innerText = scores.bond_strength_reason ? `"${scores.bond_strength_reason}"` : '';
-                document.getElementById('positivityVal').innerText = scores.bond_positivity || '--';
-                document.getElementById('positivityReason').innerText = scores.bond_positivity_reason || '';
-                document.getElementById('conflictVal').innerText = scores.conflict_resolution || '--';
-                document.getElementById('conflictReason').innerText = scores.conflict_resolution_reason || '';
-                document.getElementById('safetyVal').innerText = scores.safety_trust || '--';
-                document.getElementById('safetyReason').innerText = scores.safety_trust_reason || '';
-                document.getElementById('dynamicsVal').innerText = scores.relationship_dynamics || '--';
-                document.getElementById('dynamicsReason').innerText = scores.relationship_dynamics_reason || '';
-                document.getElementById('toxicityVal').innerText = scores.toxicity || '--';
-                document.getElementById('toxicityReason').innerText = scores.toxicity_reason || '';
-                document.getElementById('summaryText').innerText = scores.summary ? `"${scores.summary}"` : '';
-                
-                setTimeout(() => {
-                    document.getElementById('positivityBar').style.width = scores.bond_positivity || '0%';
-                    document.getElementById('conflictBar').style.width = scores.conflict_resolution || '0%';
-                    document.getElementById('safetyBar').style.width = scores.safety_trust || '0%';
-                    document.getElementById('dynamicsBar').style.width = scores.relationship_dynamics || '0%';
-                    document.getElementById('toxicityBar').style.width = scores.toxicity || '0%';
-                }, 100);
+                const p2List = document.getElementById('p2_actionables');
+                p2List.innerHTML = '';
+                p2.actionables.forEach(tip => {
+                    const li = document.createElement('li'); li.innerText = tip; p2List.appendChild(li);
+                });
 
-                if (scores.profiles && Array.isArray(scores.profiles)) {
-                    scores.profiles.forEach((user, idx) => {
-                        const profileCard = document.createElement('div');
-                        profileCard.className = "bg-[#FAF9F5]/30 border border-stone-200 rounded-xl p-6 shadow-2xs flex flex-col justify-between space-y-6";
-                        
-                        const actionsHtml = user.actionables.map(action => `
-                            <li class="flex items-start gap-3 text-xs text-stone-600 bg-white p-3 rounded border border-stone-200/50 font-light shadow-3xs">
-                                <span class="text-stone-400 font-mono mt-0.5">→</span>
-                                <span>${action}</span>
-                            </li>
-                        `).join('');
+                // Transition viewport states
+                loadingState.style.display = 'none';
+                resultsWrapper.style.display = 'block';
+                document.getElementById('chatInput').value = ''; // Clean field state seamlessly
 
-                        profileCard.innerHTML = `
-                            <div class="space-y-6">
-                                <div class="border-b border-stone-200/40 pb-3">
-                                    <span class="text-[9px] uppercase font-bold tracking-widest text-stone-400 block">Personal Style</span>
-                                    <h5 class="text-lg font-normal font-serif text-stone-900 mt-0.5">${user.name}</h5>
-                                </div>
-                                
-                                <div class="space-y-5">
-                                    <div class="space-y-1.5">
-                                        <div class="flex justify-between items-center text-xs">
-                                            <span class="font-medium text-stone-700 tracking-wide">Calmness & Security</span>
-                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.attachment_security || '0%'}</span>
-                                        </div>
-                                        <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
-                                            <div id="p${idx}-attachBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
-                                        </div>
-                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.attachment_security_reason || ''}</p>
-                                    </div>
-
-                                    <div class="space-y-1.5">
-                                        <div class="flex justify-between items-center text-xs">
-                                            <span class="font-medium text-stone-700 tracking-wide">Managing Frustration</span>
-                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.emotional_regulation || '0%'}</span>
-                                        </div>
-                                        <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
-                                            <div id="p${idx}-regBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
-                                        </div>
-                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.emotional_regulation_reason || ''}</p>
-                                    </div>
-
-                                    <div class="space-y-1.5">
-                                        <div class="flex justify-between items-center text-xs">
-                                            <span class="font-medium text-stone-700 tracking-wide">Willingness to Listen</span>
-                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.receptivity || '0%'}</span>
-                                        </div>
-                                        <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
-                                            <div id="p${idx}-recepBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
-                                        </div>
-                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.receptivity_reason || ''}</p>
-                                    </div>
-
-                                    <div class="space-y-1.5">
-                                        <div class="flex justify-between items-center text-xs">
-                                            <span class="font-medium text-stone-700 tracking-wide">Owning Personal Errors</span>
-                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.accountability || '0%'}</span>
-                                        </div>
-                                        <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
-                                            <div id="p${idx}-accBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
-                                        </div>
-                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.accountability_reason || ''}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="space-y-3 pt-4 border-t border-stone-200/40">
-                                <span class="text-[10px] uppercase font-bold tracking-wider text-stone-400 block">Easy Next Steps</span>
-                                <ul class="space-y-2">${actionsHtml}</ul>
-                            </div>
-                        `;
-                        profileContainer.appendChild(profileCard);
-
-                        setTimeout(() => {
-                            if(document.getElementById(`p${idx}-attachBar`)) document.getElementById(`p${idx}-attachBar`).style.width = user.attachment_security || '0%';
-                            if(document.getElementById(`p${idx}-regBar`)) document.getElementById(`p${idx}-regBar`).style.width = user.emotional_regulation || '0%';
-                            if(document.getElementById(`p${idx}-recepBar`)) document.getElementById(`p${idx}-recepBar`).style.width = user.receptivity || '0%';
-                            if(document.getElementById(`p${idx}-accBar`)) document.getElementById(`p${idx}-accBar`).style.width = user.accountability || '0%';
-                        }, 150);
-                    });
-                }
-
-                resultSection.classList.remove('hidden');
-                resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-            } catch (err) {
-                alert(`Could not complete analysis right now: ${err.message}`);
+            } catch (error) {
+                alert(`Analysis processing fault: ${error.message}`);
+                loadingState.style.display = 'none';
             } finally {
-                // FIX: Removed block logic syntax layout bugs
                 analyzeBtn.disabled = false;
-                analyzeBtn.innerText = 'Analyze Conversation';
             }
         }
     </script>
