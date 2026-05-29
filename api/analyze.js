@@ -1,50 +1,75 @@
-// pages/api/analyze.js (or your backend route equivalent)
-
 /**
- * UTILITY: Prepares, sanitizes, and forces a strict 2-person boundary.
+ * Truvah Chat Log Preprocessor Utility
+ * * Main Responsibilities:
+ * 1. Cleans out platform-specific messaging noise (timestamps, attachment text).
+ * 2. Smart-detects speaker names or alternating text blocks.
+ * 3. Strictly enforces a maximum of 2 distinct actors to protect frontend layouts.
  */
+
 function prepareChatData(text) {
     if (!text || typeof text !== 'string') return '';
+
     let lines = text.split('\n').map(line => line.trim()).filter(Boolean);
+    
+    // Capture explicit speaker prefixes at line starts (e.g., "Alex:", "Jordan -", "[Sam]")
     const explicitNameRegex = /^\[?([A-Z][a-zA-Z0-9_\s]{0,15}?)\]?[:\-\u2014]/;
     
     let nativeNamesDetected = [];
     let processedLines = [];
 
+    // --- STEP 1: REMOVE METADATA NOISE & ISOLATE ACTORS ---
     for (let line of lines) {
-        // Strip out messaging artifacts, system tags, and timestamps
+        // Strip app-specific system notifications, media tags, and standard time structures
         let cleanLine = line
             .replace(/\[?(photo|image|video|attachment|sticker|location|missed call)\]?/gi, '')
             .replace(/\b\d{1,2}:\d{2}\s*(?:AM|PM)?\b/gi, '')
             .trim();
 
         if (!cleanLine) continue;
+
         let match = cleanLine.match(explicitNameRegex);
         
         if (match) {
             let foundName = match[1].trim();
             let actualText = cleanLine.replace(explicitNameRegex, '').trim();
-            if (!actualText) continue;
+            
+            if (!actualText) continue; // Ignore lines that only contained structural labels
 
+            // Register names sequentially up to an absolute limit of 2
             if (!nativeNamesDetected.includes(foundName) && nativeNamesDetected.length < 2) {
                 nativeNamesDetected.push(foundName);
             }
-            processedLines.push({ rawName: foundName, text: actualText });
+
+            processedLines.push({
+                rawName: foundName,
+                text: actualText
+            });
         } else {
-            processedLines.push({ rawName: null, text: cleanLine });
+            // Handle raw continuous chat transcripts that lack explicit prefix tracking
+            processedLines.push({
+                rawName: null,
+                text: cleanLine
+            });
         }
     }
 
+    // --- STEP 2: RESOLVE SPEAKER IDENTITIES AND CLAMP TO 2 ---
     let speakerMap = {};
+    
     if (nativeNamesDetected.length === 2) {
+        // Balanced Scenario: Two clean names found natively.
         speakerMap[nativeNamesDetected[0]] = nativeNamesDetected[0];
         speakerMap[nativeNamesDetected[1]] = nativeNamesDetected[1];
     } else if (nativeNamesDetected.length === 1) {
+        // Asymmetric Scenario: Only one clear speaker tracked. Fallback second user to 'Person 2'.
         speakerMap[nativeNamesDetected[0]] = nativeNamesDetected[0];
         speakerMap["__fallback_other__"] = "Person 2";
     } else {
+        // Fallback Scenario: No clean name structures found OR more than 2 distinct cross-talking labels.
+        // Force a strict Person 1 / Person 2 alternating ping-pong array.
         let finalOutput = [];
         let currentToggle = 1;
+        
         for (let item of processedLines) {
             finalOutput.push(`Person ${currentToggle}: ${item.text}`);
             currentToggle = currentToggle === 1 ? 2 : 1; 
@@ -52,119 +77,34 @@ function prepareChatData(text) {
         return finalOutput.join('\n');
     }
 
+    // --- STEP 3: CONSOLIDATE FINAL TWO-PERSON BOUNDARY TRANSCRIPT ---
     let finalOutput = [];
     let fallbackToggle = 1;
 
     for (let item of processedLines) {
         let assignedName = "";
+
         if (item.rawName) {
             if (speakerMap[item.rawName]) {
                 assignedName = speakerMap[item.rawName];
             } else {
+                // Layout Guardrail: If a 3rd speaker/group message label hits, force-route the line 
+                // to whoever didn't take the immediate last turn to prevent layout duplication breaks.
                 assignedName = fallbackToggle === 1 ? nativeNamesDetected[0] : nativeNamesDetected[1];
             }
         } else {
+            // Unlabeled alternating blocks get tracked back to known actors
             assignedName = fallbackToggle === 1 ? nativeNamesDetected[0] : (nativeNamesDetected[1] || "Person 2");
         }
+
         finalOutput.push(`${assignedName}: ${item.text}`);
+        
+        // Cache the toggle state tracking context
         fallbackToggle = (assignedName === nativeNamesDetected[0]) ? 2 : 1;
     }
+
     return finalOutput.join('\n');
 }
 
-/**
- * MAIN ROUTE HANDLER
- */
-export default async function handler(req, res) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
-
-    const { chatLog } = req.body;
-    if (!chatLog) {
-        return res.status(400).json({ error: 'Please provide a valid conversation log.' });
-    }
-
-    // Run the preprocessing utility first
-    const cleanChatTranscript = prepareChatData(chatLog);
-
-    // Strictly engineered system prompt to guarantee clean JSON synchronization
-    const systemPrompt = `You are an expert conversation analyst. Analyze the provided chat transcript. 
-You must output a single, well-formed JSON object matching the schema below.
-
-CRITICAL INSTRUCTIONS:
-1. The transcript will feature exactly two people. Use their exact names as found in the transcript line prefixes.
-2. Provide precise scores (percentage strings, e.g., "75%") and contextual logic reasoning.
-3. You must output EXACTLY 2 entries in the "profiles" array—one for each person. Never more, never less.
-
-JSON Schema Output Format:
-{
-  "analytics": {
-    "bond_strength": "Percentage string",
-    "bond_strength_reason": "Overall summary sentence",
-    "bond_positivity": "Percentage string",
-    "bond_positivity_reason": "Short contextual critique",
-    "conflict_resolution": "Percentage string",
-    "conflict_resolution_reason": "Short contextual critique",
-    "safety_trust": "Percentage string",
-    "safety_trust_reason": "Short contextual critique",
-    "relationship_dynamics": "Percentage string",
-    "relationship_dynamics_reason": "Short contextual critique",
-    "toxicity": "Percentage string",
-    "toxicity_reason": "Short contextual critique",
-    "summary": "Final warm takeaway advice line",
-    "profiles": [
-      {
-        "name": "Exact Name of Person 1",
-        "attachment_security": "Percentage string",
-        "attachment_security_reason": "Short analytical insight",
-        "emotional_regulation": "Percentage string",
-        "emotional_regulation_reason": "Short analytical insight",
-        "receptivity": "Percentage string",
-        "receptivity_reason": "Short analytical insight",
-        "accountability": "Percentage string",
-        "accountability_reason": "Short analytical insight",
-        "actionables": ["Action step 1", "Action step 2"]
-      },
-      {
-        "name": "Exact Name of Person 2",
-        "attachment_security": "Percentage string",
-        "attachment_security_reason": "Short analytical insight",
-        "emotional_regulation": "Percentage string",
-        "emotional_regulation_reason": "Short analytical insight",
-        "receptivity": "Percentage string",
-        "receptivity_reason": "Short analytical insight",
-        "accountability": "Percentage string",
-        "accountability_reason": "Short analytical insight",
-        "actionables": ["Action step 1", "Action step 2"]
-      }
-    ]
-  }
-}`;
-
-    try {
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                model: "google/gemini-2.5-flash", 
-                response_format: { type: "json_object" }, 
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: cleanChatTranscript }
-                ]
-            })
-        });
-
-        const rawData = await response.json();
-        const analyticalPayload = JSON.parse(rawData.choices[0].message.content);
-        return res.status(200).json(analyticalPayload);
-
-    } catch (error) {
-        console.error("Pipeline Error:", error);
-        return res.status(500).json({ error: "Failed to evaluate the chat timeline correctly." });
-    }
-}
+// Export for application architecture consumption
+module.exports = { prepareChatData };
