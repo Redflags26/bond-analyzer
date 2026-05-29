@@ -1,8 +1,8 @@
 /**
  * 1. ROBUST JSON PARSING SECURITY LAYER
- * Strips away markdown wrappers (like ```json ... ```) or accidental prose 
- * returned by the LLM, preventing native JSON parsing crashes and 
- * Vercel Serverless POST 500 error logs.
+ * Prevents any accidental prose, markdown wrapper strings, or nested quotes
+ * returned by the LLM from crashing the native JSON parser and triggering 
+ * Next.js server error pages.
  */
 function cleanAndParseJSON(rawString) {
   if (!rawString || typeof rawString !== 'string') {
