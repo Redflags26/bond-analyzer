@@ -12,15 +12,6 @@
         .serif-font { font-family: 'Playfair Display', serif; }
         .custom-transition { transition: all 1.6s cubic-bezier(0.16, 1, 0.3, 1); }
 
-        /* Rhythmic breathing prompt */
-        @keyframes breath {
-            0%, 100% { transform: scale(1); opacity: 0.4; }
-            50% { transform: scale(1.2); opacity: 0.8; }
-        }
-        .breathing-indicator {
-            animation: breath 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-        }
-
         /* Text fade-out animation */
         @keyframes textFade {
             0% { opacity: 1; filter: blur(0); }
@@ -66,7 +57,7 @@
                     🔒 Safe & Private Space
                 </div>
                 <h2 class="text-3xl md:text-4xl font-normal text-stone-900 tracking-tight leading-[1.2] serif-font">
-                    See clearly into your <br><span class="italic text-stone-500">relationship conversations</span>.
+                    See clearly into your <br><span class="italic text-stone-500">conversations</span>.
                 </h2>
                 <p class="text-stone-500 text-sm font-light leading-relaxed">
                     Truvah helps you look past the heat of an argument to find out how you and your partner can better support each other.
@@ -74,22 +65,14 @@
             </div>
 
             <div class="bg-white p-6 rounded-2xl border border-stone-200/60 shadow-xs space-y-5">
-                <div class="flex items-center justify-between bg-[#FAF9F5] border border-stone-200/50 p-3 rounded-xl">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-2 h-2 rounded-full bg-stone-400 breathing-indicator"></div>
-                        <p class="text-[11px] text-stone-600 font-light tracking-wide">Take a slow, quiet breath before you look over things.</p>
-                    </div>
-                </div>
-
-                <div class="space-y-1">
-                    <label for="chatInput" class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest">I'm listening..</label>
-                    <p class="text-xs text-stone-500 font-light leading-relaxed">Copy and paste a part of your chat history. Using names helps make your results clearer!</p>
+                <div class="space-y-1.5">
+                    <p class="text-xs text-stone-500 font-light leading-relaxed">Paste your text below. We show you the emotional highlights and create simple steps to bring back harmony.</p>
                 </div>
                 
                 <div class="relative">
                     <textarea id="chatInput" rows="8" placeholder="Alex: You always get defensive when I ask about plans.&#10;Jordan: Because you bring it up right when I walk through the door after a long shift." class="w-full p-4 bg-[#FAF9F5] border border-stone-200/60 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-sm tracking-wide font-light placeholder-stone-300 shadow-2xs transition-all leading-relaxed"></textarea>
                     <div id="statusLabel" class="absolute bottom-3 right-3 text-[9px] uppercase tracking-wider text-stone-400 font-mono bg-white/90 px-2 py-0.5 rounded border border-stone-200/40 flex items-center gap-1.5 shadow-3xs">
-                        <span class="w-1 h-1 rounded-full bg-emerald-500"></span> Safe
+                        <span class="w-1 h-1 rounded-full bg-emerald-500"></span> Auto-Delete Enabled
                     </div>
                 </div>
 
@@ -102,10 +85,6 @@
                     Analyze Conversation
                 </button>
             </div>
-
-            <p class="italic text-stone-400 text-[11px] border-l border-stone-200 pl-3 max-w-sm font-light">
-                "Paste your text above. We show you the emotional highlights and create simple steps to bring back harmony."
-            </p>
         </section>
 
         <section class="lg:col-span-7 w-full">
@@ -216,7 +195,6 @@
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Could not process text.');
 
-                // Text beautifully fades out smoothly
                 chatInputElem.classList.add('animate-text-fade');
                 
                 setTimeout(() => {
