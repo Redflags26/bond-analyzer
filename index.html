@@ -3,108 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Truvah — Deep Communication & Relationship Dynamics Intelligence</title>
+    <title>Truvah — Relationship Conversation Helper</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,300;9..144,0,400;9..144,1,300&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-canvas: #FAF8F5;
-            --surface-card: #FFFFFF;
-            --text-main: #1A1917;
-            --text-muted: #605E5A;
-            --accent-primary: #114B43;
-            --accent-hover: #0A332D;
-            --border-soft: #EBE8E2;
-            --shadow-subtle: 0 4px 20px rgba(26, 25, 23, 0.03);
-            --shadow-focus: 0 12px 40px rgba(17, 75, 67, 0.08);
+            --bg-color: #FAF9F6; /* Soft, warm off-white */
+            --card-color: #FFFFFF;
+            --text-main: #2B2A27; /* Gentle dark charcoal, softer than pure black */
+            --text-muted: #6E6D6A;
+            --brand-green: #124C41; /* Premium deep forest green */
+            --brand-light: #F1F5F4;
+            --border-color: #E6E4DF;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: var(--bg-canvas); 
+            background-color: var(--bg-color); 
             color: var(--text-main); 
             line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
         }
 
-        /* Layout Architecture */
+        /* Two-Column Clean Layout */
         .app-container {
-            max-width: 1280px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 2.5rem 2rem;
-            min-height: 100vh;
+            padding: 3rem 2rem;
             display: grid;
-            grid-template-columns: 1.1fr 1.1fr;
-            gap: 4rem;
+            grid-template-columns: 1fr 1fr;
+            gap: 3.5rem;
             align-items: start;
         }
 
-        @media (max-width: 1024px) {
-            .app-container { grid-template-columns: 1fr; gap: 3rem; padding: 1.5rem 1rem; }
+        @media (max-width: 968px) {
+            .app-container { grid-template-columns: 1fr; gap: 2rem; padding: 1.5rem 1rem; }
         }
 
-        /* Branding & Copy Space */
-        header { margin-bottom: 2.5rem; }
-        .logo-mark {
-            font-family: 'Fraunces', serif;
-            font-size: 1.75rem;
-            font-weight: 400;
-            color: var(--text-main);
-            letter-spacing: -0.03em;
-            margin-bottom: 2rem;
-            display: inline-block;
-        }
-        .logo-mark span { font-style: italic; font-weight: 300; color: var(--accent-primary); }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: #E8ECEB;
-            color: var(--accent-primary);
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            padding: 0.4rem 0.8rem;
-            border-radius: 100px;
-            margin-bottom: 1.5rem;
-        }
-
-        .headline {
-            font-family: 'Fraunces', serif;
-            font-size: 3rem;
-            font-weight: 300;
-            line-height: 1.15;
+        /* Left Column: Branding and Input Box */
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--brand-green);
             letter-spacing: -0.02em;
-            color: var(--text-main);
             margin-bottom: 1.5rem;
         }
-        .headline em { font-style: italic; font-weight: 300; }
+        
+        .headline {
+            font-size: 2.25rem;
+            font-weight: 600;
+            line-height: 1.25;
+            margin-bottom: 1rem;
+            letter-spacing: -0.01em;
+        }
 
-        .paragraph {
+        .subtitle {
             font-size: 1.05rem;
             color: var(--text-muted);
-            margin-bottom: 1.5rem;
-            max-width: 90%;
+            margin-bottom: 2.5rem;
         }
 
-        /* Workspace & Input Form styling */
-        .workspace-card {
-            background: var(--surface-card);
-            border: 1px solid var(--border-soft);
-            border-radius: 24px;
-            padding: 2.5rem;
-            box-shadow: var(--shadow-subtle);
-            position: sticky;
-            top: 2.5rem;
-            transition: box-shadow 0.3s ease;
+        .input-card {
+            background: var(--card-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
         }
-        .workspace-card:focus-within { box-shadow: var(--shadow-focus); }
 
-        .form-label {
+        .input-label {
             font-size: 0.85rem;
             font-weight: 600;
             text-transform: uppercase;
@@ -114,124 +82,180 @@
             display: block;
         }
 
-        .textarea-wrapper { position: relative; margin-bottom: 1.5rem; }
         textarea {
             width: 100%;
-            height: 280px;
-            background: #FAFAFA;
-            border: 1px solid var(--border-soft);
-            border-radius: 16px;
-            padding: 1.25rem;
+            height: 250px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
             font-family: inherit;
-            font-size: 1rem;
+            font-size: 0.95rem;
             color: var(--text-main);
             resize: none;
-            transition: all 0.25s ease;
+            background-color: #FCFBFA;
+            margin-bottom: 1.25rem;
+            transition: all 0.2s ease;
         }
         textarea:focus {
             outline: none;
-            background: var(--surface-card);
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 4px rgba(17, 75, 67, 0.06);
+            border-color: var(--brand-green);
+            background-color: #FFFFFF;
+            box-shadow: 0 0 0 4px rgba(18, 76, 65, 0.05);
         }
 
-        .btn-submit {
+        .btn-analyze {
             width: 100%;
-            background: var(--accent-primary);
+            background: var(--brand-green);
             color: #FFFFFF;
             border: none;
-            border-radius: 14px;
-            padding: 1.1rem;
+            border-radius: 10px;
+            padding: 1rem;
             font-size: 1rem;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            transition: all 0.2s ease;
+            transition: background 0.2s ease;
         }
-        .btn-submit:hover { background: var(--accent-hover); transform: translateY(-1px); }
-        .btn-submit:disabled { background: #C5C2BC; cursor: not-allowed; transform: none; }
+        .btn-analyze:hover { background: #0A332B; }
+        .btn-analyze:disabled { background: #C5C2BC; cursor: not-allowed; }
 
-        /* Real-time Processing Screen Overlay */
+        /* Right Column: Loading and Beautiful Results */
         .loading-state {
             display: none;
-            text-align: center;
+            background: var(--card-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
             padding: 4rem 2rem;
+            text-align: center;
         }
         .spinner {
-            width: 48px;
-            height: 48px;
-            border: 3px solid var(--border-soft);
-            border-top: 3px solid var(--accent-primary);
+            width: 40px;
+            height: 40px;
+            border: 3px solid #E6E4DF;
+            border-top: 3px solid var(--brand-green);
             border-radius: 50%;
             margin: 0 auto 1.5rem;
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Output Metrics Display Space */
-        .results-wrapper { display: none; }
+        .results-state { display: none; }
+        
+        .results-header {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+        }
+
         .summary-box {
-            background: #F3F6F5;
-            border-left: 4px solid var(--accent-primary);
+            background: var(--brand-light);
+            border-radius: 12px;
             padding: 1.5rem;
-            border-radius: 0 16px 16px 0;
-            margin-bottom: 2.5rem;
             font-size: 1.05rem;
-            color: var(--accent-primary);
+            color: var(--brand-green);
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--brand-green);
         }
 
-        .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 3rem; }
-        @media (max-width: 640px) { .metric-grid { grid-template-columns: 1fr; } }
+        /* 2-Column Grid for Quick Scores */
+        .score-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+        }
+        @media (max-width: 480px) { .score-grid { grid-template-columns: 1fr; } }
 
-        .metric-card {
-            background: var(--surface-card);
-            border: 1px solid var(--border-soft);
-            border-radius: 16px;
+        .score-card {
+            background: var(--card-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
             padding: 1.25rem;
-            box-shadow: var(--shadow-subtle);
         }
-        .metric-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; }
-        .metric-title { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
-        .metric-score { font-family: 'Fraunces', serif; font-size: 1.75rem; font-weight: 400; color: var(--accent-primary); }
-        .metric-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.4; }
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.35rem;
+        }
+        .score-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--text-muted);
+        }
+        .score-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--brand-green);
+        }
+        .score-reason {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
 
-        /* Subject Profile Section styling */
-        .profiles-section {
+        /* Individual Profile Cards */
+        .profile-container {
             display: flex;
             flex-direction: column;
-            gap: 2rem;
-            border-top: 1px solid var(--border-soft);
-            padding-top: 2.5rem;
+            gap: 1.5rem;
         }
-        .profile-card { background: #FFFFFF; border: 1px solid var(--border-soft); border-radius: 20px; padding: 2rem; }
-        .profile-name { font-family: 'Fraunces', serif; font-size: 1.75rem; font-weight: 400; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-soft); padding-bottom: 0.75rem; }
-        
-        .submetric-row { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1.5rem; }
-        .submetric-item { font-size: 0.95rem; }
-        .submetric-label { font-weight: 600; color: var(--text-main); }
-        .submetric-val { color: var(--accent-primary); font-weight: 600; margin-left: 0.25rem; }
-        .submetric-reason { display: block; color: var(--text-muted); font-size: 0.9rem; margin-top: 0.15rem; }
+        .profile-card {
+            background: var(--card-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+        .profile-title {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            color: var(--brand-green);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
 
-        .actionables-title { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.75rem; }
-        .actionables-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
-        .actionables-list li {
-            font-size: 0.95rem;
-            background: #FAFAFA;
-            border: 1px solid var(--border-soft);
-            padding: 0.85rem 1.2rem;
-            border-radius: 10px;
-            position: relative;
-            padding-left: 2rem;
+        .trait-item {
+            margin-bottom: 1.25rem;
         }
-        .actionables-list li::before {
-            content: "→";
-            position: absolute;
-            left: 0.8rem;
-            color: var(--accent-primary);
-            font-weight: bold;
+        .trait-meta {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        .trait-value {
+            color: var(--brand-green);
+            font-weight: 700;
+            margin-left: 0.35rem;
+        }
+        .trait-reason {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 0.15rem;
+            font-weight: 400;
+        }
+
+        .tips-heading {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin: 1.5rem 0 0.75rem 0;
+        }
+        .tips-list {
+            list-style: none;
+        }
+        .tips-list li {
+            font-size: 0.92rem;
+            background: #FAF9F6;
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
         }
     </style>
 </head>
@@ -239,117 +263,106 @@
 
     <div class="app-container">
         
-        <main class="left-hero">
-            <header>
-                <div class="logo-mark">truvah<span>.</span></div>
-                <div class="badge">🛡️ Protected Cloud Architecture</div>
-                <h1 class="headline">See clearly into your <em>relationship conversations.</em></h1>
-                <p class="paragraph">Truvah utilizes a parallel multi-agent behavioral synthesis engine to look beyond surface-level tension. Upload text transcripts to receive objective structural mapping on communication alignment, core profiles, and specialized interaction optimization guidance.</p>
-            </header>
+        <div class="left-pane">
+            <div class="logo">truvah.</div>
+            <h1 class="headline">See clearly into your relationship conversations.</h1>
+            <p class="subtitle">Truvah looks at chat conversations to provide gentle, easy-to-understand insights into how two people talk to each other, helping you communication better and understand each other's feelings.</p>
 
-            <div class="workspace-card">
-                <label class="form-label">Paste Raw Conversation Ledger</label>
-                <div class="textarea-wrapper">
-                    <textarea id="chatInput" placeholder="[1:08 PM] Person A: Let's talk...&#10;[1:10 PM] Person B: I'm listening..."></textarea>
-                </div>
-                <button id="analyzeBtn" class="btn-submit" onclick="processConversation()">
-                    <span>Run Strategic Pipeline Analysis</span>
-                </button>
+            <div class="input-card">
+                <label class="input-label">Paste Chat Transcript</label>
+                <textarea id="chatInput" placeholder="Person 1: Your message here...&#10;Person 2: Your message here..."></textarea>
+                <button id="analyzeBtn" class="btn-analyze" onclick="processConversation()">Analyze Conversation</button>
             </div>
-        </main>
+        </div>
 
-        <section class="right-display">
+        <div class="right-pane">
             
             <div id="loadingState" class="loading-state">
                 <div class="spinner"></div>
-                <h3 style="font-family: 'Fraunces', serif; font-size: 1.5rem; margin-bottom: 0.5rem;">Synthesizing Conversation</h3>
-                <p style="color: var(--text-muted); font-size: 0.95rem;">Multi-agent system mapping behavioral frameworks, calculating tone weights, and generating actionable optimizations...</p>
+                <h3 style="font-size: 1.25rem; margin-bottom: 0.25rem;">Reading conversation...</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Understanding the text lines and gathering insights.</p>
             </div>
 
-            <div id="resultsWrapper" class="results-wrapper">
-                <h2 style="font-family: 'Fraunces', serif; font-size: 2.25rem; font-weight: 300; margin-bottom: 1.5rem;">Structural Evaluation Summary</h2>
+            <div id="resultsWrapper" class="results-state">
+                <h2 class="results-header">Conversation Analysis</h2>
                 
                 <div id="summaryText" class="summary-box"></div>
 
-                <div class="metric-grid">
-                    <div class="metric-card">
-                        <div class="metric-header"><span class="metric-title">Bond Strength</span><span id="score_bond" class="metric-score">-</span></div>
-                        <p id="reason_bond" class="metric-desc">-</p>
+                <div class="score-grid">
+                    <div class="score-card">
+                        <div class="score-row"><span class="score-label">Bond Strength</span><span id="score_bond" class="score-number">-</span></div>
+                        <p id="reason_bond" class="score-reason">-</p>
                     </div>
-                    <div class="metric-card">
-                        <div class="metric-header"><span class="metric-title">Positivity Baseline</span><span id="score_positivity" class="metric-score">-</span></div>
-                        <p id="reason_positivity" class="metric-desc">-</p>
+                    <div class="score-card">
+                        <div class="score-row"><span class="score-label">Bond Positivity</span><span id="score_positivity" class="score-number">-</span></div>
+                        <p id="reason_positivity" class="score-reason">-</p>
                     </div>
-                    <div class="metric-card">
-                        <div class="metric-header"><span class="metric-title">Friction Resolution</span><span id="score_conflict" class="metric-score">-</span></div>
-                        <p id="reason_conflict" class="metric-desc">-</p>
+                    <div class="score-card">
+                        <div class="score-row"><span class="score-label">Conflict Resolution</span><span id="score_conflict" class="score-number">-</span></div>
+                        <p id="reason_conflict" class="score-reason">-</p>
                     </div>
-                    <div class="metric-card">
-                        <div class="metric-header"><span class="metric-title">Vulnerability Space</span><span id="score_trust" class="metric-score">-</span></div>
-                        <p id="reason_trust" class="metric-desc">-</p>
+                    <div class="score-card">
+                        <div class="score-row"><span class="score-label">Safety & Trust</span><span id="score_trust" class="score-number">-</span></div>
+                        <p id="reason_trust" class="score-reason">-</p>
                     </div>
-                    <div class="metric-card">
-                        <div class="metric-header"><span class="metric-title">Symmetry Footprint</span><span id="score_dynamics" class="metric-score">-</span></div>
-                        <p id="reason_dynamics" class="metric-desc">-</p>
+                    <div class="score-card">
+                        <div class="score-row"><span class="score-label">Relationship Dynamics</span><span id="score_dynamics" class="score-number">-</span></div>
+                        <p id="reason_dynamics" class="score-reason">-</p>
                     </div>
-                    <div class="metric-card">
-                        <div class="metric-header"><span class="metric-title">Ego Friction Threshold</span><span id="score_toxicity" class="metric-score">-</span></div>
-                        <p id="reason_toxicity" class="metric-desc">-</p>
+                    <div class="score-card">
+                        <div class="score-row"><span class="score-label">Toxicity</span><span id="score_toxicity" class="score-number">-</span></div>
+                        <p id="reason_toxicity" class="score-reason">-</p>
                     </div>
                 </div>
 
-                <div class="profiles-section">
+                <div class="profile-container">
                     <div class="profile-card">
-                        <h3 id="p1_name" class="profile-name">Subject 1</h3>
-                        <div class="submetric-row">
-                            <div class="submetric-item">
-                                <span class="submetric-label">Attachment Matrix Boundary:</span><span id="p1_attach_val" class="submetric-val">-</span>
-                                <span id="p1_attach_reason" class="submetric-reason">-</span>
-                            </div>
-                            <div class="submetric-item">
-                                <span class="submetric-label">Friction Threshold Modulation:</span><span id="p1_reg_val" class="submetric-val">-</span>
-                                <span id="p1_reg_reason" class="submetric-reason">-</span>
-                            </div>
-                            <div class="submetric-item">
-                                <span class="submetric-label">Data Stream Receptivity:</span><span id="p1_rec_val" class="submetric-val">-</span>
-                                <span id="p1_rec_reason" class="submetric-reason">-</span>
-                            </div>
-                            <div class="submetric-item">
-                                <span class="submetric-label">Error Ownership Baseline:</span><span id="p1_acc_val" class="submetric-val">-</span>
-                                <span id="p1_acc_reason" class="submetric-reason">-</span>
-                            </div>
+                        <h3 id="p1_name" class="profile-title">Person 1</h3>
+                        <div class="trait-item">
+                            <span class="trait-meta">Attachment security:<span id="p1_attach_val" class="trait-value">-</span></span>
+                            <span id="p1_attach_reason" class="trait-reason">-</span>
                         </div>
-                        <h4 class="actionables-title">Strategic Action Optimization Protocols</h4>
-                        <ul id="p1_actionables" class="actionables-list"></ul>
+                        <div class="trait-item">
+                            <span class="trait-meta">Emotional regulation:<span id="p1_reg_val" class="trait-value">-</span></span>
+                            <span id="p1_reg_reason" class="trait-reason">-</span>
+                        </div>
+                        <div class="trait-item">
+                            <span class="trait-meta">Receptivity:<span id="p1_rec_val" class="trait-value">-</span></span>
+                            <span id="p1_rec_reason" class="trait-reason">-</span>
+                        </div>
+                        <div class="trait-item">
+                            <span class="trait-meta">Accountability:<span id="p1_acc_val" class="trait-value">-</span></span>
+                            <span id="p1_acc_reason" class="trait-reason">-</span>
+                        </div>
+                        <h4 class="tips-heading">Things to try</h4>
+                        <ul id="p1_actionables" class="tips-list"></ul>
                     </div>
 
                     <div class="profile-card">
-                        <h3 id="p2_name" class="profile-name">Subject 2</h3>
-                        <div class="submetric-row">
-                            <div class="submetric-item">
-                                <span class="submetric-label">Attachment Matrix Boundary:</span><span id="p2_attach_val" class="submetric-val">-</span>
-                                <span id="p2_attach_reason" class="submetric-reason">-</span>
-                            </div>
-                            <div class="submetric-item">
-                                <span class="submetric-label">Friction Threshold Modulation:</span><span id="p2_reg_val" class="submetric-val">-</span>
-                                <span id="p2_reg_reason" class="submetric-reason">-</span>
-                            </div>
-                            <div class="submetric-item">
-                                <span class="submetric-label">Data Stream Receptivity:</span><span id="p2_rec_val" class="submetric-val">-</span>
-                                <span id="p2_rec_reason" class="submetric-reason">-</span>
-                            </div>
-                            <div class="submetric-item">
-                                <span class="submetric-label">Error Ownership Baseline:</span><span id="p2_acc_val" class="submetric-val">-</span>
-                                <span id="p2_acc_reason" class="submetric-reason">-</span>
-                            </div>
+                        <h3 id="p2_name" class="profile-title">Person 2</h3>
+                        <div class="trait-item">
+                            <span class="trait-meta">Attachment security:<span id="p2_attach_val" class="trait-value">-</span></span>
+                            <span id="p2_attach_reason" class="trait-reason">-</span>
                         </div>
-                        <h4 class="actionables-title">Strategic Action Optimization Protocols</h4>
-                        <ul id="p2_actionables" class="actionables-list"></ul>
+                        <div class="trait-item">
+                            <span class="trait-meta">Emotional regulation:<span id="p2_reg_val" class="trait-value">-</span></span>
+                            <span id="p2_reg_reason" class="trait-reason">-</span>
+                        </div>
+                        <div class="trait-item">
+                            <span class="trait-meta">Receptivity:<span id="p2_rec_val" class="trait-value">-</span></span>
+                            <span id="p2_rec_reason" class="trait-reason">-</span>
+                        </div>
+                        <div class="trait-item">
+                            <span class="trait-meta">Accountability:<span id="p2_acc_val" class="trait-value">-</span></span>
+                            <span id="p2_acc_reason" class="trait-reason">-</span>
+                        </div>
+                        <h4 class="tips-heading">Things to try</h4>
+                        <ul id="p2_actionables" class="tips-list"></ul>
                     </div>
                 </div>
 
             </div>
-        </section>
+        </div>
 
     </div>
 
@@ -357,7 +370,7 @@
         async function processConversation() {
             const chatLog = document.getElementById('chatInput').value.trim();
             if (!chatLog) {
-                alert('Please input a chat log block before initiating analysis calculations.');
+                alert('Please paste some chat lines first.');
                 return;
             }
 
@@ -365,7 +378,6 @@
             const loadingState = document.getElementById('loadingState');
             const resultsWrapper = document.getElementById('resultsWrapper');
 
-            // Set state to loading
             analyzeBtn.disabled = true;
             resultsWrapper.style.display = 'none';
             loadingState.style.display = 'block';
@@ -377,11 +389,11 @@
                     body: JSON.stringify({ chatLog })
                 });
 
-                if (!response.ok) throw new Error('Network tracking endpoint returned validation fault.');
+                if (!response.ok) throw new Error('Failed to get analysis response.');
                 const serverData = await response.json();
                 const metrics = serverData.analytics;
 
-                // Bind Master Macro Parameter Fields
+                // Set Top Summary and Scores
                 document.getElementById('summaryText').innerText = metrics.summary;
                 document.getElementById('score_bond').innerText = metrics.bond_strength;
                 document.getElementById('reason_bond').innerText = metrics.bond_strength_reason;
@@ -396,16 +408,16 @@
                 document.getElementById('score_toxicity').innerText = metrics.toxicity;
                 document.getElementById('reason_toxicity').innerText = metrics.toxicity_reason;
 
-                // Bind Profile Subject 1 Fields
+                // Set Person 1 Profile
                 const p1 = metrics.profiles[0];
-                document.getElementById('p1_name').innerText = p1.name || "Subject 1";
-                document.getElementById('p1_attach_val').innerText = p1.get_anxious_or_close_off || p1.attachment_security || "N/A";
+                document.getElementById('p1_name').innerText = p1.name || "Person 1";
+                document.getElementById('p1_attach_val').innerText = p1.attachment_security || "N/A";
                 document.getElementById('p1_attach_reason').innerText = p1.attachment_security_reason || "";
-                document.getElementById('p1_reg_val').innerText = p1.manage_anger_or_frustration || p1.emotional_regulation || "N/A";
+                document.getElementById('p1_reg_val').innerText = p1.emotional_regulation || "N/A";
                 document.getElementById('p1_reg_reason').innerText = p1.emotional_regulation_reason || "";
-                document.getElementById('p1_rec_val').innerText = p1.open_to_listening || p1.receptivity || "N/A";
+                document.getElementById('p1_rec_val').innerText = p1.receptivity || "N/A";
                 document.getElementById('p1_rec_reason').innerText = p1.receptivity_reason || "";
-                document.getElementById('p1_acc_val').innerText = p1.willing_to_say_sorry || p1.accountability || "N/A";
+                document.getElementById('p1_acc_val').innerText = p1.accountability || "N/A";
                 document.getElementById('p1_acc_reason').innerText = p1.accountability_reason || "";
                 
                 const p1List = document.getElementById('p1_actionables');
@@ -414,16 +426,16 @@
                     const li = document.createElement('li'); li.innerText = tip; p1List.appendChild(li);
                 });
 
-                // Bind Profile Subject 2 Fields
+                // Set Person 2 Profile
                 const p2 = metrics.profiles[1];
-                document.getElementById('p2_name').innerText = p2.name || "Subject 2";
-                document.getElementById('p2_attach_val').innerText = p2.get_anxious_or_close_off || p2.attachment_security || "N/A";
+                document.getElementById('p2_name').innerText = p2.name || "Person 2";
+                document.getElementById('p2_attach_val').innerText = p2.attachment_security || "N/A";
                 document.getElementById('p2_attach_reason').innerText = p2.attachment_security_reason || "";
-                document.getElementById('p2_reg_val').innerText = p2.manage_anger_or_frustration || p2.emotional_regulation || "N/A";
+                document.getElementById('p2_reg_val').innerText = p2.emotional_regulation || "N/A";
                 document.getElementById('p2_reg_reason').innerText = p2.emotional_regulation_reason || "";
-                document.getElementById('p2_rec_val').innerText = p2.open_to_listening || p2.receptivity || "N/A";
+                document.getElementById('p2_rec_val').innerText = p2.receptivity || "N/A";
                 document.getElementById('p2_rec_reason').innerText = p2.receptivity_reason || "";
-                document.getElementById('p2_acc_val').innerText = p2.willing_to_say_sorry || p2.accountability || "N/A";
+                document.getElementById('p2_acc_val').innerText = p2.accountability || "N/A";
                 document.getElementById('p2_acc_reason').innerText = p2.accountability_reason || "";
 
                 const p2List = document.getElementById('p2_actionables');
@@ -432,13 +444,12 @@
                     const li = document.createElement('li'); li.innerText = tip; p2List.appendChild(li);
                 });
 
-                // Transition viewport states
                 loadingState.style.display = 'none';
                 resultsWrapper.style.display = 'block';
-                document.getElementById('chatInput').value = ''; // Clean field state seamlessly
+                document.getElementById('chatInput').value = '';
 
             } catch (error) {
-                alert(`Analysis processing fault: ${error.message}`);
+                alert(`Something went wrong: ${error.message}`);
                 loadingState.style.display = 'none';
             } finally {
                 analyzeBtn.disabled = false;
