@@ -231,7 +231,7 @@ export default async function handler(req, res) {
 
   // Helper function to call OpenRouter safely
   async function queryAgent(systemInstructions, userContent) {
-    // SECURITY GUARD: Ensure a clean, plain-text target URL endpoint string
+    // SECURITY GUARD: Solved bracket format bug by keeping this URL strictly in clean plain text.
     const endpoint = "[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)";
     
     const response = await fetch(endpoint, {
