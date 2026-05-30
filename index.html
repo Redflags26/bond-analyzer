@@ -7,13 +7,28 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght=0,300;0,400;0,500;0,600;0,700;1,300&family=Playfair+Display:ital,wght=0,400;0,500;1,400&display=swap');
+        
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .serif-font { font-family: 'Playfair Display', serif; }
         .custom-transition { transition: all 1.6s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes textFade { 0% { opacity: 1; filter: blur(0); } 100% { opacity: 0; filter: blur(2px); } }
-        .animate-text-fade { animation: textFade 0.8s ease-out forwards; }
-        @keyframes slideIn { 0% { opacity: 0; transform: translateY(8px); } 100% { opacity: 1; transform: translateY(0); } }
-        .animate-banner-slide { animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        /* Text fade-out animation */
+        @keyframes textFade {
+            0% { opacity: 1; filter: blur(0); }
+            100% { opacity: 0; filter: blur(2px); }
+        }
+        .animate-text-fade {
+            animation: textFade 0.8s ease-out forwards;
+        }
+
+        /* Smooth slide in for alert box */
+        @keyframes slideIn {
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-banner-slide {
+            animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
     </style>
 </head>
 <body class="bg-[#FAF9F5] text-stone-800 min-h-screen flex flex-col justify-between selection:bg-stone-200 antialiased">
@@ -35,45 +50,181 @@
     </header>
 
     <main class="max-w-7xl w-full mx-auto p-6 md:p-12 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+        
         <section class="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
+            <div class="space-y-4">
+                <div class="inline-flex items-center gap-2 bg-white border border-stone-200/60 px-3 py-1 rounded-full text-stone-600 font-medium text-[9px] tracking-widest uppercase shadow-3xs">
+                    🔒 Safe & Private Space
+                </div>
+                <h2 class="text-3xl md:text-4xl font-normal text-stone-900 tracking-tight leading-[1.2] serif-font">
+                    See clearly into your <br><span class="italic text-stone-500">conversations</span>.
+                </h2>
+                <p class="text-stone-500 text-sm font-light leading-relaxed">
+                    Truvah helps you look past arguments to strengthen your bond.
+                </p>
+            </div>
+
             <div class="bg-white p-6 rounded-2xl border border-stone-200/60 shadow-xs space-y-5">
-                <textarea id="chatInput" rows="8" placeholder="Paste conversation..." class="w-full p-4 bg-[#FAF9F5] border border-stone-200/60 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-sm tracking-wide font-light placeholder-stone-300"></textarea>
-                <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3.5 rounded-xl transition-all cursor-pointer flex justify-center items-center gap-3 text-xs uppercase shadow-xs">
+                <div class="space-y-1.5">
+                    <p class="text-xs text-stone-500 font-light leading-relaxed">Paste the conversation below.</p>
+                </div>
+                
+                <div class="relative">
+                    <textarea id="chatInput" rows="8" placeholder="Alex: You always get defensive when I ask about plans.&#10;Jordan: Because you bring it up right when I walk through the door after a long shift." class="w-full p-4 bg-[#FAF9F5] border border-stone-200/60 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-sm tracking-wide font-light placeholder-stone-300 shadow-2xs transition-all leading-relaxed"></textarea>
+                    <div id="statusLabel" class="absolute bottom-3 right-3 text-[9px] uppercase tracking-wider text-stone-400 font-mono bg-white/90 px-2 py-0.5 rounded border border-stone-200/40 flex items-center gap-1.5 shadow-3xs">
+                        <span class="w-1 h-1 rounded-full bg-emerald-500"></span> Auto-Delete Enabled
+                    </div>
+                </div>
+
+                <div id="deleteSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                    <span class="text-emerald-600 font-bold">✓</span>
+                    <span>Your text has been completely cleared and deleted from this session.</span>
+                </div>
+
+                <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3.5 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-3 text-xs tracking-[0.12em] uppercase shadow-xs">
                     Analyze Conversation
                 </button>
             </div>
         </section>
 
         <section class="lg:col-span-7 w-full">
-            <div id="emptyState" class="bg-white border border-stone-200/40 rounded-2xl p-12 text-center text-stone-400 font-light text-sm shadow-xs min-h-[350px] flex items-center justify-center">
-                Your Analysis Dashboard
+            
+            <div id="emptyState" class="bg-white border border-stone-200/40 rounded-2xl p-12 text-center text-stone-400 font-light text-sm shadow-xs flex flex-col items-center justify-center min-h-[350px]">
+                <div class="text-2xl mb-2">✨</div>
+                <p class="font-serif italic text-stone-500 text-base mb-1">Your Analysis Dashboard</p>
+                <p class="text-xs max-w-xs leading-relaxed">Paste your dialog blocks on the left panel to display overall scores, personal styles, and communication optimization options.</p>
             </div>
-            <div id="resultSection" class="hidden bg-white p-8 rounded-2xl border border-stone-200/60 shadow-xs space-y-8">
-                <div class="flex flex-col sm:flex-row justify-between items-center border-b border-stone-100 pb-8">
-                    <span id="bondStrengthMeter" class="text-3xl font-serif">0%</span>
+
+            <div id="resultSection" class="hidden bg-white p-6 md:p-8 rounded-2xl border border-stone-200/60 shadow-xs space-y-8">
+                
+            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6 border-b border-stone-100 pb-8">
+                <div class="space-y-3 max-w-xl">
+                    <div>
+                        <span class="text-[9px] bg-stone-100 text-stone-600 font-bold tracking-widest uppercase px-2 py-0.5 rounded">Overall Summary</span>
+                    </div>
+                    <p id="bondStrengthReason" class="text-sm md:text-base text-stone-600 leading-relaxed italic font-light font-serif"></p>
                 </div>
-                <div class="pt-6 border-t border-stone-100 flex justify-center">
-                    <button id="emailReportBtn" class="bg-stone-100 hover:bg-stone-200 text-stone-700 py-2 px-6 rounded-lg text-xs font-bold uppercase tracking-widest transition">
-                        Email This Report
+                <div class="flex flex-col items-center justify-center bg-[#FAF9F5] px-6 py-5 rounded-2xl border border-stone-200/50 min-w-[140px] text-center shadow-3xs self-center sm:self-start">
+                    <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Match Level</span>
+                    <span id="bondStrengthMeter" class="text-3xl font-serif font-light text-stone-950 tracking-tighter">0%</span>
+                </div>
+            </div>
+
+                <div class="space-y-4">
+                    <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">How well things went</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">General Warmth & Kindness</span><span id="positivityVal" class="text-xs font-mono text-stone-500">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="positivityBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
+                            <p id="positivityReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
+                        </div>
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Solving Problems Together</span><span id="conflictVal" class="text-xs font-mono text-stone-500">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="conflictBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
+                            <p id="conflictReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
+                        </div>
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Comfortable Sharing Feelings</span><span id="safetyVal" class="text-xs font-mono text-stone-500">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="safetyBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
+                            <p id="safetyReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
+                        </div>
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Teamwork & Connection</span><span id="dynamicsVal" class="text-xs font-mono text-stone-500">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="dynamicsBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
+                            <p id="dynamicsReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
+                        </div>
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 md:col-span-2 space-y-2 shadow-3xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Toxicity Level</span><span id="toxicityVal" class="text-xs font-mono text-stone-500">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="toxicityBar" class="custom-transition bg-stone-400 h-full" style="width: 0%"></div></div>
+                            <p id="toxicityReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4 border-t border-stone-100 pt-6">
+                    <div class="space-y-0.5">
+                        <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Personal Communication Styles</h4>
+                        <p class="text-xs text-stone-500 font-light">See how each person handled the conversation and reacted during tense moments.</p>
+                    </div>
+                    <div id="profileContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        </div>
+                </div>
+
+                <div class="bg-stone-950 text-[#FAF9F5] p-6 rounded-xl space-y-2.5 shadow-xs relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 text-stone-800 opacity-15 text-6xl serif-font pointer-events-none italic select-none">♥</div>
+                    <h4 class="text-[9px] text-stone-400 font-bold uppercase tracking-[0.25em]">Friendly Takeaway Advice</h4>
+                    <p id="summaryText" class="text-sm font-serif font-light leading-relaxed italic text-stone-200 relative z-10"></p>
+                </div>
+
+                <div class="flex justify-center pt-2">
+                    <button id="emailReportBtn" onclick="emailReport()" class="px-8 py-3 bg-white border border-stone-200/80 text-stone-700 hover:bg-stone-50 hover:border-stone-300 font-medium text-xs tracking-[0.12em] uppercase rounded-xl transition-all duration-200 shadow-xs flex items-center gap-2.5 cursor-pointer">
+                        <span>✉</span> Email This Report
                     </button>
                 </div>
             </div>
         </section>
     </main>
 
+    <footer class="text-center py-6 text-[10px] text-stone-400 tracking-[0.15em] font-light border-t border-stone-200/40 bg-white/30">
+        TRUVAH • DISCUSSIONS MADE SIMPLER
+    </footer>
+
     <script>
         let latestAnalytics = null;
 
+        async function emailReport() {
+            if (!latestAnalytics) return alert("Please run an analysis first.");
+
+            const email = prompt("Enter your email address to receive this report:");
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email || !emailRegex.test(email)) {
+                alert("Please enter a valid email address.");
+                return;
+            }
+
+            const btn = document.getElementById('emailReportBtn');
+            btn.disabled = true;
+            btn.innerText = 'Sending...';
+
+            try {
+                const response = await fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ recipientEmail: email, analytics: latestAnalytics })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || "Email sending failed");
+                btn.innerText = '✓ Report Sent!';
+                btn.classList.add('text-emerald-700', 'border-emerald-300', 'bg-emerald-50');
+            } catch (err) {
+                alert("Could not send email: " + err.message);
+                btn.disabled = false;
+                btn.innerText = '✉ Email This Report';
+            }
+        }
+
         async function analyzeChat() {
             const chatInputElem = document.getElementById('chatInput');
-            const analyzeBtn = document.getElementById('analyzeBtn');
+            const deleteSuccessBanner = document.getElementById('deleteSuccessBanner');
             const chatLog = chatInputElem.value.trim();
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const resultSection = document.getElementById('resultSection');
+            const emptyState = document.getElementById('emptyState');
+            const modelBadge = document.getElementById('modelBadge');
+            const profileContainer = document.getElementById('profileContainer');
             
-            if (!chatLog) return alert('Please paste some text.');
+            if (!chatLog) return alert('Please paste some text lines to analyze.');
 
             analyzeBtn.disabled = true;
-            analyzeBtn.innerText = 'Analyzing...';
+            analyzeBtn.innerText = 'Reading through your conversation...';
+            resultSection.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+            modelBadge.classList.add('hidden');
+            deleteSuccessBanner.classList.add('hidden');
             
+            chatInputElem.classList.remove('animate-text-fade');
+            profileContainer.innerHTML = ''; 
+
             try {
                 const response = await fetch("/api/analyze", {
                     method: "POST",
@@ -82,40 +233,147 @@
                 });
 
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Processing failed.');
+                if (!response.ok) throw new Error(data.error || 'Could not process text.');
 
-                latestAnalytics = data.analytics;
+                chatInputElem.classList.add('animate-text-fade');
                 
-                // UI updates
-                document.getElementById('bondStrengthMeter').innerText = latestAnalytics.bond_strength || '0%';
-                document.getElementById('emptyState').classList.add('hidden');
-                document.getElementById('resultSection').classList.remove('hidden');
-                document.getElementById('modelBadge').classList.remove('hidden');
+                setTimeout(() => {
+                    chatInputElem.value = '';
+                    chatInputElem.classList.remove('animate-text-fade');
+                    deleteSuccessBanner.classList.remove('hidden');
+                }, 800);
+
+                if (document.getElementById('modelNameText')) {
+                    document.getElementById('modelNameText').innerText = "Active Connection";
+                }
+                modelBadge.classList.remove('hidden');
+
+                const scores = data.analytics;
+                latestAnalytics = scores;
+
+                // Reset email button for new report
+                const emailBtn = document.getElementById('emailReportBtn');
+                if (emailBtn) {
+                    emailBtn.disabled = false;
+                    emailBtn.innerText = '✉ Email This Report';
+                    emailBtn.classList.remove('text-emerald-700', 'border-emerald-300', 'bg-emerald-50');
+                }
                 
+                document.getElementById('bondStrengthMeter').innerText = scores.bond_strength || '0%';
+                document.getElementById('bondStrengthReason').innerText = scores.bond_strength_reason ? `"${scores.bond_strength_reason}"` : '';
+                document.getElementById('positivityVal').innerText = scores.bond_positivity || '--';
+                document.getElementById('positivityReason').innerText = scores.bond_positivity_reason || '';
+                document.getElementById('conflictVal').innerText = scores.conflict_resolution || '--';
+                document.getElementById('conflictReason').innerText = scores.conflict_resolution_reason || '';
+                document.getElementById('safetyVal').innerText = scores.safety_trust || '--';
+                document.getElementById('safetyReason').innerText = scores.safety_trust_reason || '';
+                document.getElementById('dynamicsVal').innerText = scores.relationship_dynamics || '--';
+                document.getElementById('dynamicsReason').innerText = scores.relationship_dynamics_reason || '';
+                document.getElementById('toxicityVal').innerText = scores.toxicity || '--';
+                document.getElementById('toxicityReason').innerText = scores.toxicity_reason || '';
+                document.getElementById('summaryText').innerText = scores.summary ? `"${scores.summary}"` : '';
+                
+                setTimeout(() => {
+                    document.getElementById('positivityBar').style.width = scores.bond_positivity || '0%';
+                    document.getElementById('conflictBar').style.width = scores.conflict_resolution || '0%';
+                    document.getElementById('safetyBar').style.width = scores.safety_trust || '0%';
+                    document.getElementById('dynamicsBar').style.width = scores.relationship_dynamics || '0%';
+                    document.getElementById('toxicityBar').style.width = scores.toxicity || '0%';
+                }, 100);
+
+                if (scores.profiles && Array.isArray(scores.profiles)) {
+                    scores.profiles.forEach((user, idx) => {
+                        const profileCard = document.createElement('div');
+                        profileCard.className = "bg-[#FAF9F5]/50 border border-stone-200/60 rounded-xl p-5 shadow-3xs flex flex-col justify-between space-y-4";
+                        
+                        const actionsHtml = user.actionables.map(action => `
+                            <li class="flex items-start gap-2.5 text-xs text-stone-600 bg-white p-2.5 rounded border border-stone-200/40 font-light shadow-3xs">
+                                <span class="text-stone-400 font-mono mt-0.5">→</span>
+                                <span>${action}</span>
+                            </li>
+                        `).join('');
+
+                        profileCard.innerHTML = `
+                            <div class="space-y-4">
+                                <div class="border-b border-stone-200/40 pb-2">
+                                    <span class="text-[9px] uppercase font-bold tracking-widest text-stone-400 block">Personal Style</span>
+                                    <h5 class="text-base font-normal font-serif text-stone-900 mt-0.5">${user.name}</h5>
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="font-medium text-stone-700 tracking-wide">Calmness & Security</span>
+                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.attachment_security || '0%'}</span>
+                                        </div>
+                                        <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
+                                            <div id="p${idx}-attachBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
+                                        </div>
+                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.attachment_security_reason || ''}</p>
+                                    </div>
+
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="font-medium text-stone-700 tracking-wide">Managing Frustration</span>
+                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.emotional_regulation || '0%'}</span>
+                                        </div>
+                                        <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
+                                            <div id="p${idx}-regBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
+                                        </div>
+                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.emotional_regulation_reason || ''}</p>
+                                    </div>
+
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="font-medium text-stone-700 tracking-wide">Willingness to Listen</span>
+                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.receptivity || '0%'}</span>
+                                        </div>
+                                        <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
+                                            <div id="p${idx}-recepBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
+                                        </div>
+                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.receptivity_reason || ''}</p>
+                                    </div>
+
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="font-medium text-stone-700 tracking-wide">Owning Personal Errors</span>
+                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.accountability || '0%'}</span>
+                                        </div>
+                                        <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
+                                            <div id="p${idx}-accBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
+                                        </div>
+                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.accountability_reason || ''}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2 pt-3 border-t border-stone-200/40">
+                                <span class="text-[10px] uppercase font-bold tracking-wider text-stone-400 block">Easy Next Steps</span>
+                                <ul class="space-y-1.5">${actionsHtml}</ul>
+                            </div>
+                        `;
+                        profileContainer.appendChild(profileCard);
+
+                        setTimeout(() => {
+                            if(document.getElementById(`p${idx}-attachBar`)) document.getElementById(`p${idx}-attachBar`).style.width = user.attachment_security || '0%';
+                            if(document.getElementById(`p${idx}-regBar`)) document.getElementById(`p${idx}-regBar`).style.width = user.emotional_regulation || '0%';
+                            if(document.getElementById(`p${idx}-recepBar`)) document.getElementById(`p${idx}-recepBar`).style.width = user.receptivity || '0%';
+                            if(document.getElementById(`p${idx}-accBar`)) document.getElementById(`p${idx}-accBar`).style.width = user.accountability || '0%';
+                        }, 150);
+                    });
+                }
+
+                emptyState.classList.add('hidden');
+                resultSection.classList.remove('hidden');
+                resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
             } catch (err) {
-                alert(err.message);
+                alert(`Could not complete analysis right now: ${err.message}`);
             } finally {
                 analyzeBtn.disabled = false;
                 analyzeBtn.innerText = 'Analyze Conversation';
             }
         }
-
-        document.getElementById('emailReportBtn').addEventListener('click', async () => {
-            if (!latestAnalytics) return alert("No analysis data available.");
-            const email = prompt("Enter your email address:");
-            if (!email) return;
-
-            try {
-                const response = await fetch('/api/send-email', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ recipientEmail: email, analytics: latestAnalytics })
-                });
-                if (response.ok) alert("Report sent!");
-            } catch (e) {
-                alert("Failed to send email.");
-            }
-        });
     </script>
 </body>
 </html>
