@@ -116,9 +116,9 @@ export default async function handler(req, res) {
           <!-- CTA -->
           <tr>
             <td class="section-pad" style="padding:28px 32px;text-align:center;">
-              <a href="https://truvah.com"
+              <a href="https://www.asktruvah.com/"
                  style="display:inline-block;background:#1c1917;color:#faf9f5;text-decoration:none;font-family:Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;padding:14px 40px;border-radius:10px;">
-                Try Truvah &rarr;
+                Ask Truvah &rarr;
               </a>
             </td>
           </tr>
