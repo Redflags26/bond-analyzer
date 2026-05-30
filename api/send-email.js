@@ -13,7 +13,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        from: "reports@truvah.app",
+	from: "Truvah Reports <onboarding@resend.dev>",
         to: recipientEmail,
         subject: "Your Truvah Relationship Report",
         html: `
