@@ -12,7 +12,6 @@
         .serif-font { font-family: 'Playfair Display', serif; }
         .custom-transition { transition: all 1.6s cubic-bezier(0.16, 1, 0.3, 1); }
 
-        /* Text fade-out animation */
         @keyframes textFade {
             0% { opacity: 1; filter: blur(0); }
             100% { opacity: 0; filter: blur(2px); }
@@ -21,13 +20,50 @@
             animation: textFade 0.8s ease-out forwards;
         }
 
-        /* Smooth slide in for alert box */
         @keyframes slideIn {
             0% { opacity: 0; transform: translateY(8px); }
             100% { opacity: 1; transform: translateY(0); }
         }
         .animate-banner-slide {
             animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Scroll-triggered attention pulse for email panel */
+        @keyframes panelPulse {
+            0%   { box-shadow: 0 0 0 0 rgba(28,25,23,0.0), 0 0 0 0 rgba(28,25,23,0.0); }
+            20%  { box-shadow: 0 0 0 4px rgba(28,25,23,0.08), 0 0 0 8px rgba(28,25,23,0.04); }
+            60%  { box-shadow: 0 0 0 6px rgba(28,25,23,0.05), 0 0 0 14px rgba(28,25,23,0.02); }
+            100% { box-shadow: 0 0 0 0 rgba(28,25,23,0.0), 0 0 0 0 rgba(28,25,23,0.0); }
+        }
+        @keyframes emailBorderFade {
+            0%   { border-color: rgba(214,211,209,0.6); }
+            30%  { border-color: rgba(28,25,23,0.4); }
+            70%  { border-color: rgba(28,25,23,0.4); }
+            100% { border-color: rgba(214,211,209,0.6); }
+        }
+        .panel-pulse {
+            animation: panelPulse 1.4s ease-out forwards, emailBorderFade 1.4s ease-out forwards;
+            border-radius: 0.75rem;
+        }
+
+        /* Subtle floating arrow animation */
+        @keyframes floatArrow {
+            0%, 100% { transform: translateY(0); opacity: 0.5; }
+            50%       { transform: translateY(4px); opacity: 1; }
+        }
+        .float-arrow {
+            animation: floatArrow 1.6s ease-in-out infinite;
+        }
+
+        /* Email icon attention shimmer */
+        @keyframes iconPop {
+            0%   { transform: scale(1); }
+            40%  { transform: scale(1.18); }
+            70%  { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+        .icon-pop {
+            animation: iconPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
     </style>
 </head>
@@ -97,18 +133,18 @@
 
             <div id="resultSection" class="hidden bg-white p-6 md:p-8 rounded-2xl border border-stone-200/60 shadow-xs space-y-8">
                 
-            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6 border-b border-stone-100 pb-8">
-                <div class="space-y-3 max-w-xl">
-                    <div>
-                        <span class="text-[9px] bg-stone-100 text-stone-600 font-bold tracking-widest uppercase px-2 py-0.5 rounded">Overall Summary</span>
+                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6 border-b border-stone-100 pb-8">
+                    <div class="space-y-3 max-w-xl">
+                        <div>
+                            <span class="text-[9px] bg-stone-100 text-stone-600 font-bold tracking-widest uppercase px-2 py-0.5 rounded">Overall Summary</span>
+                        </div>
+                        <p id="bondStrengthReason" class="text-sm md:text-base text-stone-600 leading-relaxed italic font-light font-serif"></p>
                     </div>
-                    <p id="bondStrengthReason" class="text-sm md:text-base text-stone-600 leading-relaxed italic font-light font-serif"></p>
+                    <div class="flex flex-col items-center justify-center bg-[#FAF9F5] px-6 py-5 rounded-2xl border border-stone-200/50 min-w-[140px] text-center shadow-3xs self-center sm:self-start">
+                        <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Match Level</span>
+                        <span id="bondStrengthMeter" class="text-3xl font-serif font-light text-stone-950 tracking-tighter">0%</span>
+                    </div>
                 </div>
-                <div class="flex flex-col items-center justify-center bg-[#FAF9F5] px-6 py-5 rounded-2xl border border-stone-200/50 min-w-[140px] text-center shadow-3xs self-center sm:self-start">
-                    <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Match Level</span>
-                    <span id="bondStrengthMeter" class="text-3xl font-serif font-light text-stone-950 tracking-tighter">0%</span>
-                </div>
-            </div>
 
                 <div class="space-y-4">
                     <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">How well things went</h4>
@@ -147,7 +183,7 @@
                         <p class="text-xs text-stone-500 font-light">See how each person handled the conversation and reacted during tense moments.</p>
                     </div>
                     <div id="profileContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        </div>
+                    </div>
                 </div>
 
                 <div class="bg-stone-950 text-[#FAF9F5] p-6 rounded-xl space-y-2.5 shadow-xs relative overflow-hidden">
@@ -159,30 +195,36 @@
                 <!-- Email CTA -->
                 <div id="emailPanel">
 
-                    <!-- Collapsed state — just a quiet invite -->
+                    <!-- Scroll-triggered nudge label — visible briefly before user acts -->
+                    <div id="emailNudge" class="hidden flex items-center justify-center gap-1.5 pb-1">
+                        <svg class="float-arrow w-3 h-3 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        <span class="text-[10px] text-stone-400 tracking-widest uppercase font-medium">Save or share this report</span>
+                        <svg class="float-arrow w-3 h-3 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </div>
+
+                    <!-- Collapsed state -->
                     <div id="emailCollapsed" onclick="expandEmailPanel()"
                         class="group flex items-center justify-between px-5 py-4 bg-white border border-stone-200/60 rounded-xl shadow-xs cursor-pointer hover:border-stone-300 hover:shadow-sm transition-all duration-200">
                         <div class="flex items-center gap-3">
-                            <div class="w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center shrink-0 group-hover:bg-stone-200 transition-colors">
+                            <div id="emailIconWrap" class="w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center shrink-0 group-hover:bg-stone-200 transition-colors">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-stone-500">
                                     <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
                                 </svg>
                             </div>
                             <div>
-                                <p class="text-xs font-medium text-stone-700">DON'T LOSE THIS INSIGHT!</p>
-                                <p class="text-[11px] text-stone-400 font-light">Email it to yourself or your partner</p>
+                                <p class="text-xs font-medium text-stone-700">Save this report</p>
+                                <p class="text-[11px] text-stone-400 font-light">Email it to yourself or your partner — it disappears when you close this tab</p>
                             </div>
                         </div>
-                        <svg id="emailChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-stone-300 transition-transform duration-300">
+                        <svg id="emailChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-stone-300 transition-transform duration-300 shrink-0 ml-3">
                             <path d="m6 9 6 6 6-6"/>
                         </svg>
                     </div>
 
-                    <!-- Expanded state — hidden until clicked -->
+                    <!-- Expanded state -->
                     <div id="emailExpanded" class="hidden">
                         <div class="bg-white border border-stone-200/60 border-t-0 rounded-b-xl px-5 py-5 space-y-4 shadow-xs">
 
-                            <!-- Who -->
                             <div class="flex gap-2">
                                 <button type="button" id="optMe" onclick="selectOpt('me')"
                                     class="flex-1 py-2 text-[11px] font-medium rounded-lg border border-stone-200 text-stone-500 bg-stone-50 hover:border-stone-400 hover:text-stone-700 transition-all cursor-pointer">
@@ -198,7 +240,6 @@
                                 </button>
                             </div>
 
-                            <!-- Inputs -->
                             <div id="emailInputs" class="hidden space-y-2.5">
                                 <div id="selfInputWrap" class="hidden">
                                     <label class="text-[10px] uppercase tracking-widest font-bold text-stone-400 block mb-1.5">Your email</label>
@@ -228,6 +269,7 @@
                         </div>
                     </div>
                 </div>
+
             </div>
         </section>
     </main>
@@ -239,36 +281,83 @@
     <script>
         let latestAnalytics = null;
         let activeRecipientOption = null;
+        let emailPanelObserver = null;
 
+        /* ── Intersection Observer: pulse email panel when scrolled into view ── */
+        function setupEmailPanelObserver() {
+            if (emailPanelObserver) emailPanelObserver.disconnect();
+
+            emailPanelObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const panel = document.getElementById('emailCollapsed');
+                        const nudge = document.getElementById('emailNudge');
+                        const iconWrap = document.getElementById('emailIconWrap');
+
+                        // Show nudge label
+                        nudge.classList.remove('hidden');
+
+                        // Pulse the panel border + shadow
+                        panel.classList.add('panel-pulse');
+                        panel.addEventListener('animationend', () => {
+                            panel.classList.remove('panel-pulse');
+                        }, { once: true });
+
+                        // Pop the icon
+                        iconWrap.classList.add('icon-pop');
+                        iconWrap.addEventListener('animationend', () => {
+                            iconWrap.classList.remove('icon-pop');
+                        }, { once: true });
+
+                        // Hide nudge after 3s
+                        setTimeout(() => {
+                            nudge.classList.add('hidden');
+                        }, 3000);
+
+                        emailPanelObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.9 });
+
+            emailPanelObserver.observe(document.getElementById('emailPanel'));
+        }
+
+        /* ── Email panel expand/collapse ── */
         function expandEmailPanel() {
             const collapsed = document.getElementById('emailCollapsed');
             const expanded  = document.getElementById('emailExpanded');
             const chevron   = document.getElementById('emailChevron');
+            const nudge     = document.getElementById('emailNudge');
+
+            nudge.classList.add('hidden');
             collapsed.classList.add('rounded-b-none');
-            collapsed.onclick = null; // disable re-click
+            collapsed.onclick = null;
             expanded.classList.remove('hidden');
             chevron.style.transform = 'rotate(180deg)';
         }
 
+        /* ── Recipient selector ── */
         function selectOpt(option) {
             activeRecipientOption = option;
             ['me', 'partner', 'both'].forEach(o => {
                 const el = document.getElementById('opt' + o.charAt(0).toUpperCase() + o.slice(1));
+                el.style.cssText = '';
                 if (o === option) {
-                    el.className = el.className.replace('border-stone-200 text-stone-500 bg-stone-50', '');
-                    el.style.cssText = 'border-color:#1c1917; background:#f5f4f0; color:#1c1917; font-weight:600;';
-                } else {
-                    el.style.cssText = '';
+                    el.style.borderColor = '#1c1917';
+                    el.style.background  = '#f5f4f0';
+                    el.style.color       = '#1c1917';
+                    el.style.fontWeight  = '600';
                 }
             });
 
             document.getElementById('emailInputs').classList.remove('hidden');
             document.getElementById('selfInputWrap').classList.toggle('hidden',    option === 'partner');
             document.getElementById('partnerInputWrap').classList.toggle('hidden', option === 'me');
-            if (option !== 'me' && option !== 'both')      document.getElementById('emailSelf').value = '';
+            if (option !== 'me'      && option !== 'both') document.getElementById('emailSelf').value    = '';
             if (option !== 'partner' && option !== 'both') document.getElementById('emailPartner').value = '';
         }
 
+        /* ── Send email ── */
         async function emailReport() {
             if (!latestAnalytics) return;
 
@@ -321,19 +410,20 @@
             }
         }
 
+        /* ── Main analysis ── */
         async function analyzeChat() {
-            const chatInputElem = document.getElementById('chatInput');
+            const chatInputElem       = document.getElementById('chatInput');
             const deleteSuccessBanner = document.getElementById('deleteSuccessBanner');
-            const chatLog = chatInputElem.value.trim();
-            const analyzeBtn = document.getElementById('analyzeBtn');
-            const resultSection = document.getElementById('resultSection');
-            const emptyState = document.getElementById('emptyState');
-            const modelBadge = document.getElementById('modelBadge');
-            const profileContainer = document.getElementById('profileContainer');
+            const chatLog             = chatInputElem.value.trim();
+            const analyzeBtn          = document.getElementById('analyzeBtn');
+            const resultSection       = document.getElementById('resultSection');
+            const emptyState          = document.getElementById('emptyState');
+            const modelBadge          = document.getElementById('modelBadge');
+            const profileContainer    = document.getElementById('profileContainer');
             
             if (!chatLog) return alert('Please paste some text lines to analyze.');
 
-            analyzeBtn.disabled = true;
+            analyzeBtn.disabled  = true;
             analyzeBtn.innerText = 'Reading through your conversation...';
             resultSection.classList.add('hidden');
             emptyState.classList.remove('hidden');
@@ -341,7 +431,7 @@
             deleteSuccessBanner.classList.add('hidden');
             
             chatInputElem.classList.remove('animate-text-fade');
-            profileContainer.innerHTML = ''; 
+            profileContainer.innerHTML = '';
 
             try {
                 const response = await fetch("/api/analyze", {
@@ -369,46 +459,57 @@
                 const scores = data.analytics;
                 latestAnalytics = scores;
 
-                // Reset email panel for new report
+                /* Reset email panel for new report */
                 activeRecipientOption = null;
                 ['Me', 'Partner', 'Both'].forEach(o => {
                     const el = document.getElementById('opt' + o);
-                    if (el) { el.style.borderColor = '#e0d0c8'; el.style.background = 'white'; el.style.boxShadow = 'none'; }
+                    if (el) { el.style.cssText = ''; }
                 });
                 document.getElementById('emailInputs').classList.add('hidden');
                 document.getElementById('selfInputWrap').classList.add('hidden');
                 document.getElementById('partnerInputWrap').classList.add('hidden');
-                document.getElementById('emailSelf').value = '';
+                document.getElementById('emailSelf').value    = '';
                 document.getElementById('emailPartner').value = '';
                 document.getElementById('emailSuccessBanner').classList.add('hidden');
                 document.getElementById('emailErrorBanner').classList.add('hidden');
+
+                // Reset collapsed state
+                const collapsed = document.getElementById('emailCollapsed');
+                const expanded  = document.getElementById('emailExpanded');
+                const chevron   = document.getElementById('emailChevron');
+                collapsed.classList.remove('rounded-b-none');
+                collapsed.onclick = expandEmailPanel;
+                expanded.classList.add('hidden');
+                chevron.style.transform = '';
+
                 const emailBtn = document.getElementById('emailReportBtn');
                 if (emailBtn) {
-                    emailBtn.disabled = false;
-                    emailBtn.innerHTML = '<span>💌</span> Send this report';
-                    emailBtn.style.background = 'linear-gradient(135deg, #4a3728, #6b4c38)';
+                    emailBtn.disabled    = false;
+                    emailBtn.innerText   = 'Send Report';
+                    emailBtn.style.cssText = '';
+                    emailBtn.className   = 'w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs';
                 }
                 
                 document.getElementById('bondStrengthMeter').innerText = scores.bond_strength || '0%';
                 document.getElementById('bondStrengthReason').innerText = scores.bond_strength_reason ? `"${scores.bond_strength_reason}"` : '';
-                document.getElementById('positivityVal').innerText = scores.bond_positivity || '--';
+                document.getElementById('positivityVal').innerText   = scores.bond_positivity || '--';
                 document.getElementById('positivityReason').innerText = scores.bond_positivity_reason || '';
-                document.getElementById('conflictVal').innerText = scores.conflict_resolution || '--';
-                document.getElementById('conflictReason').innerText = scores.conflict_resolution_reason || '';
-                document.getElementById('safetyVal').innerText = scores.safety_trust || '--';
-                document.getElementById('safetyReason').innerText = scores.safety_trust_reason || '';
-                document.getElementById('dynamicsVal').innerText = scores.relationship_dynamics || '--';
-                document.getElementById('dynamicsReason').innerText = scores.relationship_dynamics_reason || '';
-                document.getElementById('toxicityVal').innerText = scores.toxicity || '--';
-                document.getElementById('toxicityReason').innerText = scores.toxicity_reason || '';
-                document.getElementById('summaryText').innerText = scores.summary ? `"${scores.summary}"` : '';
+                document.getElementById('conflictVal').innerText     = scores.conflict_resolution || '--';
+                document.getElementById('conflictReason').innerText  = scores.conflict_resolution_reason || '';
+                document.getElementById('safetyVal').innerText       = scores.safety_trust || '--';
+                document.getElementById('safetyReason').innerText    = scores.safety_trust_reason || '';
+                document.getElementById('dynamicsVal').innerText     = scores.relationship_dynamics || '--';
+                document.getElementById('dynamicsReason').innerText  = scores.relationship_dynamics_reason || '';
+                document.getElementById('toxicityVal').innerText     = scores.toxicity || '--';
+                document.getElementById('toxicityReason').innerText  = scores.toxicity_reason || '';
+                document.getElementById('summaryText').innerText     = scores.summary ? `"${scores.summary}"` : '';
                 
                 setTimeout(() => {
                     document.getElementById('positivityBar').style.width = scores.bond_positivity || '0%';
-                    document.getElementById('conflictBar').style.width = scores.conflict_resolution || '0%';
-                    document.getElementById('safetyBar').style.width = scores.safety_trust || '0%';
-                    document.getElementById('dynamicsBar').style.width = scores.relationship_dynamics || '0%';
-                    document.getElementById('toxicityBar').style.width = scores.toxicity || '0%';
+                    document.getElementById('conflictBar').style.width   = scores.conflict_resolution || '0%';
+                    document.getElementById('safetyBar').style.width     = scores.safety_trust || '0%';
+                    document.getElementById('dynamicsBar').style.width   = scores.relationship_dynamics || '0%';
+                    document.getElementById('toxicityBar').style.width   = scores.toxicity || '0%';
                 }, 100);
 
                 if (scores.profiles && Array.isArray(scores.profiles)) {
@@ -429,7 +530,6 @@
                                     <span class="text-[9px] uppercase font-bold tracking-widest text-stone-400 block">Personal Style</span>
                                     <h5 class="text-base font-normal font-serif text-stone-900 mt-0.5">${user.name}</h5>
                                 </div>
-                                
                                 <div class="space-y-4">
                                     <div class="space-y-1">
                                         <div class="flex justify-between items-center text-xs">
@@ -441,7 +541,6 @@
                                         </div>
                                         <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.attachment_security_reason || ''}</p>
                                     </div>
-
                                     <div class="space-y-1">
                                         <div class="flex justify-between items-center text-xs">
                                             <span class="font-medium text-stone-700 tracking-wide">Managing Frustration</span>
@@ -452,7 +551,6 @@
                                         </div>
                                         <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.emotional_regulation_reason || ''}</p>
                                     </div>
-
                                     <div class="space-y-1">
                                         <div class="flex justify-between items-center text-xs">
                                             <span class="font-medium text-stone-700 tracking-wide">Willingness to Listen</span>
@@ -463,7 +561,6 @@
                                         </div>
                                         <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.receptivity_reason || ''}</p>
                                     </div>
-
                                     <div class="space-y-1">
                                         <div class="flex justify-between items-center text-xs">
                                             <span class="font-medium text-stone-700 tracking-wide">Owning Personal Errors</span>
@@ -476,7 +573,6 @@
                                     </div>
                                 </div>
                             </div>
-
                             <div class="space-y-2 pt-3 border-t border-stone-200/40">
                                 <span class="text-[10px] uppercase font-bold tracking-wider text-stone-400 block">Easy Next Steps</span>
                                 <ul class="space-y-1.5">${actionsHtml}</ul>
@@ -485,10 +581,10 @@
                         profileContainer.appendChild(profileCard);
 
                         setTimeout(() => {
-                            if(document.getElementById(`p${idx}-attachBar`)) document.getElementById(`p${idx}-attachBar`).style.width = user.attachment_security || '0%';
-                            if(document.getElementById(`p${idx}-regBar`)) document.getElementById(`p${idx}-regBar`).style.width = user.emotional_regulation || '0%';
-                            if(document.getElementById(`p${idx}-recepBar`)) document.getElementById(`p${idx}-recepBar`).style.width = user.receptivity || '0%';
-                            if(document.getElementById(`p${idx}-accBar`)) document.getElementById(`p${idx}-accBar`).style.width = user.accountability || '0%';
+                            if (document.getElementById(`p${idx}-attachBar`)) document.getElementById(`p${idx}-attachBar`).style.width = user.attachment_security || '0%';
+                            if (document.getElementById(`p${idx}-regBar`))    document.getElementById(`p${idx}-regBar`).style.width    = user.emotional_regulation || '0%';
+                            if (document.getElementById(`p${idx}-recepBar`))  document.getElementById(`p${idx}-recepBar`).style.width  = user.receptivity || '0%';
+                            if (document.getElementById(`p${idx}-accBar`))    document.getElementById(`p${idx}-accBar`).style.width    = user.accountability || '0%';
                         }, 150);
                     });
                 }
@@ -497,10 +593,13 @@
                 resultSection.classList.remove('hidden');
                 resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
+                /* Arm the scroll observer for the email panel */
+                setupEmailPanelObserver();
+
             } catch (err) {
                 alert(`Could not complete analysis right now: ${err.message}`);
             } finally {
-                analyzeBtn.disabled = false;
+                analyzeBtn.disabled  = false;
                 analyzeBtn.innerText = 'Analyze Conversation';
             }
         }
