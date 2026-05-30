@@ -34,6 +34,13 @@
             100% { opacity: 1; transform: translateY(0);    max-height: 120px; }
         }
         .input-reveal { animation: inputSlideDown 0.35s cubic-bezier(0.16,1,0.3,1) forwards; overflow: hidden; }
+
+        /* Invite section reveal */
+        @keyframes inviteReveal {
+            0%   { opacity: 0; transform: translateY(12px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .invite-reveal { animation: inviteReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     </style>
 </head>
 <body class="bg-[#FAF9F5] text-stone-800 min-h-screen flex flex-col justify-between selection:bg-stone-200 antialiased">
@@ -241,8 +248,8 @@
 
     <footer class="border-t border-stone-200/40 bg-white/30">
 
-        <!-- Invite CTA — full width, visually distinct -->
-        <div class="max-w-7xl mx-auto px-6 md:px-12 py-10 md:py-14">
+        <!-- Invite CTA — revealed after first analysis -->
+        <div id="inviteSection" class="hidden max-w-7xl mx-auto px-6 md:px-12 py-10 md:py-14">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 md:gap-12">
 
                 <!-- Left: copy -->
@@ -626,6 +633,11 @@
                 emptyState.classList.add('hidden');
                 resultSection.classList.remove('hidden');
                 resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                /* Reveal invite section on first analysis */
+                const inviteSection = document.getElementById('inviteSection');
+                inviteSection.classList.remove('hidden');
+                inviteSection.classList.add('invite-reveal');
 
             } catch (err) {
                 alert(`Could not complete analysis right now: ${err.message}`);
