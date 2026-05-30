@@ -156,10 +156,42 @@
                     <p id="summaryText" class="text-sm font-serif font-light leading-relaxed italic text-stone-200 relative z-10"></p>
                 </div>
 
-                <div class="flex justify-center pt-2">
-                    <button id="emailReportBtn" onclick="emailReport()" class="px-8 py-3 bg-white border border-stone-200/80 text-stone-700 hover:bg-stone-50 hover:border-stone-300 font-medium text-xs tracking-[0.12em] uppercase rounded-xl transition-all duration-200 shadow-xs flex items-center gap-2.5 cursor-pointer">
-                        <span>✉</span> Email This Report
+                <!-- Email CTA Panel -->
+                <div id="emailPanel" class="border border-indigo-100 bg-gradient-to-br from-indigo-50/60 to-stone-50 rounded-2xl p-6 space-y-4">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="text-base">✉</span>
+                            <h4 class="text-sm font-semibold text-stone-800 tracking-tight">Send this report via email</h4>
+                        </div>
+                        <p class="text-xs text-stone-500 font-light leading-relaxed">Share the full analysis with yourself, your partner, or both — so you can revisit it together at your own pace.</p>
+                    </div>
+
+                    <div class="space-y-2.5">
+                        <div class="relative">
+                            <label class="text-[10px] uppercase tracking-widest font-bold text-stone-400 block mb-1.5">Your email</label>
+                            <input id="emailSelf" type="email" placeholder="you@example.com"
+                                class="w-full px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300 placeholder-stone-300 text-stone-700 transition-all" />
+                        </div>
+                        <div class="relative">
+                            <label class="text-[10px] uppercase tracking-widest font-bold text-stone-400 block mb-1.5">Partner's email <span class="normal-case font-normal text-stone-300">(optional)</span></label>
+                            <input id="emailPartner" type="email" placeholder="partner@example.com"
+                                class="w-full px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300 placeholder-stone-300 text-stone-700 transition-all" />
+                        </div>
+                    </div>
+
+                    <button id="emailReportBtn" onclick="emailReport()"
+                        class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2.5 text-xs tracking-[0.12em] uppercase shadow-xs">
+                        <span>✉</span> Send Report
                     </button>
+
+                    <div id="emailSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/60 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                        <span class="text-emerald-600 font-bold">✓</span>
+                        <span id="emailSuccessText">Report sent successfully!</span>
+                    </div>
+                    <div id="emailErrorBanner" class="hidden bg-red-50/60 border border-red-200/50 text-red-700 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                        <span class="font-bold">✕</span>
+                        <span id="emailErrorText">Something went wrong. Please try again.</span>
+                    </div>
                 </div>
             </div>
         </section>
@@ -173,14 +205,34 @@
         let latestAnalytics = null;
 
         async function emailReport() {
-            if (!latestAnalytics) return alert("Please run an analysis first.");
+            if (!latestAnalytics) return;
 
-            const email = prompt("Enter your email address to receive this report:");
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!email || !emailRegex.test(email)) {
-                alert("Please enter a valid email address.");
+            const selfEmail    = document.getElementById('emailSelf').value.trim();
+            const partnerEmail = document.getElementById('emailPartner').value.trim();
+
+            const successBanner = document.getElementById('emailSuccessBanner');
+            const errorBanner   = document.getElementById('emailErrorBanner');
+            successBanner.classList.add('hidden');
+            errorBanner.classList.add('hidden');
+
+            if (!selfEmail && !partnerEmail) {
+                document.getElementById('emailErrorText').innerText = 'Please enter at least one email address.';
+                errorBanner.classList.remove('hidden');
                 return;
             }
+            if (selfEmail && !emailRegex.test(selfEmail)) {
+                document.getElementById('emailErrorText').innerText = 'Your email address looks invalid.';
+                errorBanner.classList.remove('hidden');
+                return;
+            }
+            if (partnerEmail && !emailRegex.test(partnerEmail)) {
+                document.getElementById('emailErrorText').innerText = "Your partner's email address looks invalid.";
+                errorBanner.classList.remove('hidden');
+                return;
+            }
+
+            const recipients = [selfEmail, partnerEmail].filter(Boolean);
 
             const btn = document.getElementById('emailReportBtn');
             btn.disabled = true;
@@ -190,16 +242,22 @@
                 const response = await fetch('/api/send-email', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ recipientEmail: email, analytics: latestAnalytics })
+                    body: JSON.stringify({ recipients, analytics: latestAnalytics })
                 });
                 const result = await response.json();
-                if (!response.ok) throw new Error(result.error || "Email sending failed");
-                btn.innerText = '✓ Report Sent!';
-                btn.classList.add('text-emerald-700', 'border-emerald-300', 'bg-emerald-50');
+                if (!response.ok) throw new Error(result.error || 'Email sending failed');
+
+                const sentTo = recipients.length === 2 ? 'Sent to you and your partner!' : 'Report sent to your inbox!';
+                document.getElementById('emailSuccessText').innerText = sentTo;
+                successBanner.classList.remove('hidden');
+                btn.innerText = '✓ Sent!';
+                btn.classList.add('bg-emerald-700', 'hover:bg-emerald-800');
+                btn.classList.remove('bg-stone-950', 'hover:bg-stone-800');
             } catch (err) {
-                alert("Could not send email: " + err.message);
+                document.getElementById('emailErrorText').innerText = 'Could not send: ' + err.message;
+                errorBanner.classList.remove('hidden');
                 btn.disabled = false;
-                btn.innerText = '✉ Email This Report';
+                btn.innerText = '✉ Send Report';
             }
         }
 
@@ -251,13 +309,18 @@
                 const scores = data.analytics;
                 latestAnalytics = scores;
 
-                // Reset email button for new report
+                // Reset email panel for new report
                 const emailBtn = document.getElementById('emailReportBtn');
                 if (emailBtn) {
                     emailBtn.disabled = false;
-                    emailBtn.innerText = '✉ Email This Report';
-                    emailBtn.classList.remove('text-emerald-700', 'border-emerald-300', 'bg-emerald-50');
+                    emailBtn.innerText = '✉ Send Report';
+                    emailBtn.classList.remove('bg-emerald-700', 'hover:bg-emerald-800');
+                    emailBtn.classList.add('bg-stone-950', 'hover:bg-stone-800');
                 }
+                document.getElementById('emailSelf').value = '';
+                document.getElementById('emailPartner').value = '';
+                document.getElementById('emailSuccessBanner').classList.add('hidden');
+                document.getElementById('emailErrorBanner').classList.add('hidden');
                 
                 document.getElementById('bondStrengthMeter').innerText = scores.bond_strength || '0%';
                 document.getElementById('bondStrengthReason').innerText = scores.bond_strength_reason ? `"${scores.bond_strength_reason}"` : '';
