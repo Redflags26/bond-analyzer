@@ -145,7 +145,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        from: "Truvah <onboarding@resend.dev>",
+        from: 'Info <info@asktruvah.com>',
         to: inviteeEmail,
         subject: "You've been invited to Truvah",
         html: emailHtml
