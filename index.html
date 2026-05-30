@@ -28,43 +28,56 @@
             animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* Scroll-triggered attention pulse for email panel */
-        @keyframes panelPulse {
-            0%   { box-shadow: 0 0 0 0 rgba(28,25,23,0.0), 0 0 0 0 rgba(28,25,23,0.0); }
-            20%  { box-shadow: 0 0 0 4px rgba(28,25,23,0.08), 0 0 0 8px rgba(28,25,23,0.04); }
-            60%  { box-shadow: 0 0 0 6px rgba(28,25,23,0.05), 0 0 0 14px rgba(28,25,23,0.02); }
-            100% { box-shadow: 0 0 0 0 rgba(28,25,23,0.0), 0 0 0 0 rgba(28,25,23,0.0); }
+        /* Breathing dark/light animation for email panel */
+        @keyframes breatheDark {
+            0%   { background: #ffffff; border-color: rgba(214,211,209,0.6); }
+            30%  { background: #1c1917; border-color: #1c1917; }
+            55%  { background: #1c1917; border-color: #1c1917; }
+            100% { background: #ffffff; border-color: rgba(214,211,209,0.6); }
         }
-        @keyframes emailBorderFade {
-            0%   { border-color: rgba(214,211,209,0.6); }
-            30%  { border-color: rgba(28,25,23,0.4); }
-            70%  { border-color: rgba(28,25,23,0.4); }
-            100% { border-color: rgba(214,211,209,0.6); }
+        @keyframes breatheText {
+            0%   { color: #44403c; }
+            30%  { color: #fafaf9; }
+            55%  { color: #fafaf9; }
+            100% { color: #44403c; }
         }
-        .panel-pulse {
-            animation: panelPulse 1.4s ease-out forwards, emailBorderFade 1.4s ease-out forwards;
-            border-radius: 0.75rem;
+        @keyframes breatheSubtext {
+            0%   { color: #a8a29e; }
+            30%  { color: #a8a29e; }
+            55%  { color: #a8a29e; }
+            100% { color: #a8a29e; }
         }
+        @keyframes breatheIcon {
+            0%   { background: #f5f5f4; }
+            30%  { background: rgba(255,255,255,0.12); }
+            55%  { background: rgba(255,255,255,0.12); }
+            100% { background: #f5f5f4; }
+        }
+        @keyframes breatheIconStroke {
+            0%   { color: #78716c; }
+            30%  { color: #e7e5e4; }
+            55%  { color: #e7e5e4; }
+            100% { color: #78716c; }
+        }
+        @keyframes breatheChevron {
+            0%   { color: #d6d3d1; }
+            30%  { color: rgba(255,255,255,0.3); }
+            55%  { color: rgba(255,255,255,0.3); }
+            100% { color: #d6d3d1; }
+        }
+        .breathing #emailCollapsed        { animation: breatheDark    2.4s cubic-bezier(0.4,0,0.2,1) forwards; }
+        .breathing #emailMainText         { animation: breatheText    2.4s cubic-bezier(0.4,0,0.2,1) forwards; }
+        .breathing #emailSubText          { animation: breatheSubtext 2.4s cubic-bezier(0.4,0,0.2,1) forwards; }
+        .breathing #emailIconWrap         { animation: breatheIcon    2.4s cubic-bezier(0.4,0,0.2,1) forwards; }
+        .breathing #emailIconSvg          { animation: breatheIconStroke 2.4s cubic-bezier(0.4,0,0.2,1) forwards; }
+        .breathing #emailChevron          { animation: breatheChevron 2.4s cubic-bezier(0.4,0,0.2,1) forwards; }
 
-        /* Subtle floating arrow animation */
-        @keyframes floatArrow {
-            0%, 100% { transform: translateY(0); opacity: 0.5; }
-            50%       { transform: translateY(4px); opacity: 1; }
+        /* Smooth input row reveal */
+        @keyframes inputSlideDown {
+            0%   { opacity: 0; transform: translateY(-6px); max-height: 0; }
+            100% { opacity: 1; transform: translateY(0);    max-height: 120px; }
         }
-        .float-arrow {
-            animation: floatArrow 1.6s ease-in-out infinite;
-        }
-
-        /* Email icon attention shimmer */
-        @keyframes iconPop {
-            0%   { transform: scale(1); }
-            40%  { transform: scale(1.18); }
-            70%  { transform: scale(0.95); }
-            100% { transform: scale(1); }
-        }
-        .icon-pop {
-            animation: iconPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        }
+        .input-reveal { animation: inputSlideDown 0.35s cubic-bezier(0.16,1,0.3,1) forwards; overflow: hidden; }
     </style>
 </head>
 <body class="bg-[#FAF9F5] text-stone-800 min-h-screen flex flex-col justify-between selection:bg-stone-200 antialiased">
@@ -195,60 +208,56 @@
                 <!-- Email CTA -->
                 <div id="emailPanel">
 
-                    <!-- Scroll-triggered nudge label — visible briefly before user acts -->
-                    <div id="emailNudge" class="hidden flex items-center justify-center gap-1.5 pb-1">
-                        <svg class="float-arrow w-3 h-3 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                        <span class="text-[10px] text-stone-400 tracking-widest uppercase font-medium">Save or share this report</span>
-                        <svg class="float-arrow w-3 h-3 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                    </div>
-
-                    <!-- Collapsed state -->
+                    <!-- Collapsed / breathing card -->
                     <div id="emailCollapsed" onclick="expandEmailPanel()"
-                        class="group flex items-center justify-between px-5 py-4 bg-white border border-stone-200/60 rounded-xl shadow-xs cursor-pointer hover:border-stone-300 hover:shadow-sm transition-all duration-200">
+                        class="group flex items-center justify-between px-5 py-4 bg-white border border-stone-200/60 rounded-xl shadow-xs cursor-pointer transition-colors duration-300 hover:border-stone-300">
                         <div class="flex items-center gap-3">
-                            <div id="emailIconWrap" class="w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center shrink-0 group-hover:bg-stone-200 transition-colors">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-stone-500">
+                            <div id="emailIconWrap" class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 transition-colors duration-300">
+                                <svg id="emailIconSvg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-stone-500 transition-colors duration-300">
                                     <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
                                 </svg>
                             </div>
                             <div>
-                                <p class="text-xs font-medium text-stone-700">Save this report</p>
-                                <p class="text-[11px] text-stone-400 font-light">Email it to yourself or your partner — it disappears when you close this tab</p>
+                                <p id="emailMainText" class="text-xs font-semibold text-stone-700 tracking-wide transition-colors duration-300">Don't lose this insight</p>
+                                <p id="emailSubText" class="text-[11px] text-stone-400 font-light transition-colors duration-300">Share it with yourself or your partner now</p>
                             </div>
                         </div>
-                        <svg id="emailChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-stone-300 transition-transform duration-300 shrink-0 ml-3">
+                        <svg id="emailChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-stone-300 transition-all duration-300 shrink-0 ml-3">
                             <path d="m6 9 6 6 6-6"/>
                         </svg>
                     </div>
 
                     <!-- Expanded state -->
                     <div id="emailExpanded" class="hidden">
-                        <div class="bg-white border border-stone-200/60 border-t-0 rounded-b-xl px-5 py-5 space-y-4 shadow-xs">
+                        <div class="bg-white border border-stone-200/60 border-t-0 rounded-b-xl px-5 pb-5 pt-4 space-y-4 shadow-xs">
 
-                            <div class="flex gap-2">
-                                <button type="button" id="optMe" onclick="selectOpt('me')"
-                                    class="flex-1 py-2 text-[11px] font-medium rounded-lg border border-stone-200 text-stone-500 bg-stone-50 hover:border-stone-400 hover:text-stone-700 transition-all cursor-pointer">
-                                    Just me
-                                </button>
-                                <button type="button" id="optPartner" onclick="selectOpt('partner')"
-                                    class="flex-1 py-2 text-[11px] font-medium rounded-lg border border-stone-200 text-stone-500 bg-stone-50 hover:border-stone-400 hover:text-stone-700 transition-all cursor-pointer">
-                                    My partner
-                                </button>
-                                <button type="button" id="optBoth" onclick="selectOpt('both')"
-                                    class="flex-1 py-2 text-[11px] font-medium rounded-lg border border-stone-200 text-stone-500 bg-stone-50 hover:border-stone-400 hover:text-stone-700 transition-all cursor-pointer">
-                                    Both of us
-                                </button>
+                            <!-- Compact inline recipient toggle -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] text-stone-400 uppercase tracking-widest font-medium shrink-0">Send to</span>
+                                <div class="flex gap-1">
+                                    <button type="button" id="optMe" onclick="selectOpt('me')"
+                                        class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-200 text-stone-500 bg-transparent hover:border-stone-400 transition-all cursor-pointer">
+                                        me
+                                    </button>
+                                    <button type="button" id="optPartner" onclick="selectOpt('partner')"
+                                        class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-200 text-stone-500 bg-transparent hover:border-stone-400 transition-all cursor-pointer">
+                                        partner
+                                    </button>
+                                    <button type="button" id="optBoth" onclick="selectOpt('both')"
+                                        class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-200 text-stone-500 bg-transparent hover:border-stone-400 transition-all cursor-pointer">
+                                        both
+                                    </button>
+                                </div>
                             </div>
 
-                            <div id="emailInputs" class="hidden space-y-2.5">
-                                <div id="selfInputWrap" class="hidden">
-                                    <label class="text-[10px] uppercase tracking-widest font-bold text-stone-400 block mb-1.5">Your email</label>
-                                    <input id="emailSelf" type="email" placeholder="you@example.com"
+                            <!-- Inline input(s) — compact, no labels needed -->
+                            <div id="emailInputs" class="hidden space-y-2">
+                                <div id="selfInputWrap" class="hidden input-reveal">
+                                    <input id="emailSelf" type="email" placeholder="your@email.com"
                                         class="w-full px-4 py-2.5 text-sm bg-[#FAF9F5] border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
                                 </div>
-                                <div id="partnerInputWrap" class="hidden">
-                                    <label class="text-[10px] uppercase tracking-widest font-bold text-stone-400 block mb-1.5">Partner's email</label>
-                                    <input id="emailPartner" type="email" placeholder="partner@example.com"
+                                <div id="partnerInputWrap" class="hidden input-reveal">
+                                    <input id="emailPartner" type="email" placeholder="partner@email.com"
                                         class="w-full px-4 py-2.5 text-sm bg-[#FAF9F5] border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
                                 </div>
 
@@ -283,78 +292,79 @@
         let activeRecipientOption = null;
         let emailPanelObserver = null;
 
-        /* ── Intersection Observer: pulse email panel when scrolled into view ── */
+        /* ── Intersection Observer: breathing dark→light animation ── */
         function setupEmailPanelObserver() {
             if (emailPanelObserver) emailPanelObserver.disconnect();
 
             emailPanelObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
-                        const panel = document.getElementById('emailCollapsed');
-                        const nudge = document.getElementById('emailNudge');
-                        const iconWrap = document.getElementById('emailIconWrap');
+                        const panel = document.getElementById('emailPanel');
+                        // Only breathe if not yet expanded
+                        if (!document.getElementById('emailExpanded').classList.contains('hidden')) return;
 
-                        // Show nudge label
-                        nudge.classList.remove('hidden');
-
-                        // Pulse the panel border + shadow
-                        panel.classList.add('panel-pulse');
-                        panel.addEventListener('animationend', () => {
-                            panel.classList.remove('panel-pulse');
-                        }, { once: true });
-
-                        // Pop the icon
-                        iconWrap.classList.add('icon-pop');
-                        iconWrap.addEventListener('animationend', () => {
-                            iconWrap.classList.remove('icon-pop');
-                        }, { once: true });
-
-                        // Hide nudge after 3s
+                        panel.classList.add('breathing');
                         setTimeout(() => {
-                            nudge.classList.add('hidden');
-                        }, 3000);
+                            panel.classList.remove('breathing');
+                        }, 2500);
 
                         emailPanelObserver.unobserve(entry.target);
                     }
                 });
-            }, { threshold: 0.9 });
+            }, { threshold: 0.85 });
 
             emailPanelObserver.observe(document.getElementById('emailPanel'));
         }
 
         /* ── Email panel expand/collapse ── */
         function expandEmailPanel() {
+            const panel     = document.getElementById('emailPanel');
             const collapsed = document.getElementById('emailCollapsed');
             const expanded  = document.getElementById('emailExpanded');
             const chevron   = document.getElementById('emailChevron');
-            const nudge     = document.getElementById('emailNudge');
 
-            nudge.classList.add('hidden');
+            panel.classList.remove('breathing');
             collapsed.classList.add('rounded-b-none');
             collapsed.onclick = null;
             expanded.classList.remove('hidden');
             chevron.style.transform = 'rotate(180deg)';
         }
 
-        /* ── Recipient selector ── */
+        /* ── Recipient selector — compact pill style ── */
         function selectOpt(option) {
             activeRecipientOption = option;
             ['me', 'partner', 'both'].forEach(o => {
                 const el = document.getElementById('opt' + o.charAt(0).toUpperCase() + o.slice(1));
                 el.style.cssText = '';
                 if (o === option) {
-                    el.style.borderColor = '#1c1917';
-                    el.style.background  = '#f5f4f0';
-                    el.style.color       = '#1c1917';
-                    el.style.fontWeight  = '600';
+                    el.style.borderColor  = '#1c1917';
+                    el.style.background   = '#1c1917';
+                    el.style.color        = '#fafaf9';
+                    el.style.fontWeight   = '600';
                 }
             });
 
-            document.getElementById('emailInputs').classList.remove('hidden');
-            document.getElementById('selfInputWrap').classList.toggle('hidden',    option === 'partner');
-            document.getElementById('partnerInputWrap').classList.toggle('hidden', option === 'me');
-            if (option !== 'me'      && option !== 'both') document.getElementById('emailSelf').value    = '';
-            if (option !== 'partner' && option !== 'both') document.getElementById('emailPartner').value = '';
+            const inputsWrap   = document.getElementById('emailInputs');
+            const selfWrap     = document.getElementById('selfInputWrap');
+            const partnerWrap  = document.getElementById('partnerInputWrap');
+
+            inputsWrap.classList.remove('hidden');
+
+            // Animate reveal for the right inputs
+            if (option === 'me' || option === 'both') {
+                selfWrap.classList.remove('hidden');
+                selfWrap.classList.add('input-reveal');
+            } else {
+                selfWrap.classList.add('hidden');
+                document.getElementById('emailSelf').value = '';
+            }
+            if (option === 'partner' || option === 'both') {
+                partnerWrap.classList.remove('hidden');
+                partnerWrap.classList.add('input-reveal');
+            } else {
+                partnerWrap.classList.add('hidden');
+                document.getElementById('emailPartner').value = '';
+            }
         }
 
         /* ── Send email ── */
@@ -461,6 +471,7 @@
 
                 /* Reset email panel for new report */
                 activeRecipientOption = null;
+                document.getElementById('emailPanel').classList.remove('breathing');
                 ['Me', 'Partner', 'Both'].forEach(o => {
                     const el = document.getElementById('opt' + o);
                     if (el) { el.style.cssText = ''; }
