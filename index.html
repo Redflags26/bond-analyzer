@@ -157,40 +157,89 @@
                 </div>
 
                 <!-- Email CTA Panel -->
-                <div id="emailPanel" class="border border-indigo-100 bg-gradient-to-br from-indigo-50/60 to-stone-50 rounded-2xl p-6 space-y-4">
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2">
-                            <span class="text-base">✉</span>
-                            <h4 class="text-sm font-semibold text-stone-800 tracking-tight">Send this report via email</h4>
-                        </div>
-                        <p class="text-xs text-stone-500 font-light leading-relaxed">Share the full analysis with yourself, your partner, or both — so you can revisit it together at your own pace.</p>
-                    </div>
+                <div id="emailPanel" class="relative rounded-2xl overflow-hidden" style="background: linear-gradient(135deg, #fdf6f0 0%, #faf5f0 40%, #f5f0f8 100%); border: 1px solid #e8ddd5;">
 
-                    <div class="space-y-2.5">
-                        <div class="relative">
-                            <label class="text-[10px] uppercase tracking-widest font-bold text-stone-400 block mb-1.5">Your email</label>
-                            <input id="emailSelf" type="email" placeholder="you@example.com"
-                                class="w-full px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300 placeholder-stone-300 text-stone-700 transition-all" />
-                        </div>
-                        <div class="relative">
-                            <label class="text-[10px] uppercase tracking-widest font-bold text-stone-400 block mb-1.5">Partner's email <span class="normal-case font-normal text-stone-300">(optional)</span></label>
-                            <input id="emailPartner" type="email" placeholder="partner@example.com"
-                                class="w-full px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300 placeholder-stone-300 text-stone-700 transition-all" />
-                        </div>
-                    </div>
+                    <!-- Top accent line -->
+                    <div style="height: 3px; background: linear-gradient(90deg, #c4a882, #d4b896, #c9a8c4, #a882b4);"></div>
 
-                    <button id="emailReportBtn" onclick="emailReport()"
-                        class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2.5 text-xs tracking-[0.12em] uppercase shadow-xs">
-                        <span>✉</span> Send Report
-                    </button>
+                    <div class="px-6 pt-6 pb-5 space-y-5">
 
-                    <div id="emailSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/60 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
-                        <span class="text-emerald-600 font-bold">✓</span>
-                        <span id="emailSuccessText">Report sent successfully!</span>
-                    </div>
-                    <div id="emailErrorBanner" class="hidden bg-red-50/60 border border-red-200/50 text-red-700 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
-                        <span class="font-bold">✕</span>
-                        <span id="emailErrorText">Something went wrong. Please try again.</span>
+                        <!-- Header -->
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5" style="background: linear-gradient(135deg, #e8d5c4, #d4c4e8);">
+                                <span class="text-base">💌</span>
+                            </div>
+                            <div class="space-y-1">
+                                <p class="text-[9px] uppercase tracking-[0.2em] font-bold" style="color: #9d8070;">Don't lose these insights</p>
+                                <h4 class="serif-font italic font-normal leading-snug" style="font-size: 17px; color: #2c1f18;">Send this report somewhere safe.</h4>
+                                <p class="text-xs font-light leading-relaxed" style="color: #9d8878;">Email it to yourself to revisit, or share it with your partner as a gentle conversation starter.</p>
+                            </div>
+                        </div>
+
+                        <!-- Who to send to — soft option cards -->
+                        <div class="space-y-2">
+                            <p class="text-[9px] uppercase tracking-[0.18em] font-bold" style="color: #b09080;">Who should receive it?</p>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button type="button" id="optMe" onclick="selectRecipientOption('me')"
+                                    class="recipient-opt group flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border transition-all duration-200 cursor-pointer text-center"
+                                    style="border-color: #e0d0c8; background: white;">
+                                    <span class="text-lg">🙋</span>
+                                    <span class="text-[10px] font-semibold tracking-wide" style="color: #5c4030;">Just me</span>
+                                </button>
+                                <button type="button" id="optPartner" onclick="selectRecipientOption('partner')"
+                                    class="recipient-opt group flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border transition-all duration-200 cursor-pointer text-center"
+                                    style="border-color: #e0d0c8; background: white;">
+                                    <span class="text-lg">💑</span>
+                                    <span class="text-[10px] font-semibold tracking-wide" style="color: #5c4030;">Partner</span>
+                                </button>
+                                <button type="button" id="optBoth" onclick="selectRecipientOption('both')"
+                                    class="recipient-opt group flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border transition-all duration-200 cursor-pointer text-center"
+                                    style="border-color: #e0d0c8; background: white;">
+                                    <span class="text-lg">✨</span>
+                                    <span class="text-[10px] font-semibold tracking-wide" style="color: #5c4030;">Both of us</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Input fields -->
+                        <div id="emailInputs" class="hidden space-y-3">
+                            <div id="selfInputWrap" class="hidden">
+                                <label class="text-[10px] uppercase tracking-widest font-bold block mb-1.5" style="color: #b09080;">Your email</label>
+                                <input id="emailSelf" type="email" placeholder="you@example.com"
+                                    class="w-full px-4 py-2.5 text-sm border rounded-xl focus:outline-none transition-all placeholder-stone-300"
+                                    style="background: white; border-color: #ddd0c8; color: #3c2c20;"
+                                    onfocus="this.style.borderColor='#c4a882'; this.style.boxShadow='0 0 0 3px rgba(196,168,130,0.15)'"
+                                    onblur="this.style.borderColor='#ddd0c8'; this.style.boxShadow='none'" />
+                            </div>
+                            <div id="partnerInputWrap" class="hidden">
+                                <label class="text-[10px] uppercase tracking-widest font-bold block mb-1.5" style="color: #b09080;">Partner's email</label>
+                                <input id="emailPartner" type="email" placeholder="partner@example.com"
+                                    class="w-full px-4 py-2.5 text-sm border rounded-xl focus:outline-none transition-all placeholder-stone-300"
+                                    style="background: white; border-color: #ddd0c8; color: #3c2c20;"
+                                    onfocus="this.style.borderColor='#c4a882'; this.style.boxShadow='0 0 0 3px rgba(196,168,130,0.15)'"
+                                    onblur="this.style.borderColor='#ddd0c8'; this.style.boxShadow='none'" />
+                            </div>
+
+                            <button id="emailReportBtn" onclick="emailReport()"
+                                class="w-full font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.1em] uppercase shadow-sm"
+                                style="background: linear-gradient(135deg, #4a3728, #6b4c38); color: #fdf6f0;">
+                                <span>💌</span> Send this report
+                            </button>
+                        </div>
+
+                        <!-- Success / Error states -->
+                        <div id="emailSuccessBanner" class="hidden animate-banner-slide rounded-xl p-4 flex items-start gap-3" style="background: #f0faf4; border: 1px solid #b8e8cc;">
+                            <span style="color: #3a9e6a; font-size: 16px; margin-top: 1px;">✓</span>
+                            <div>
+                                <p class="text-xs font-semibold" style="color: #2a7a50;" id="emailSuccessText">Report sent!</p>
+                                <p class="text-xs font-light mt-0.5" style="color: #4a9a70;">Check your inbox — it might take a minute to arrive.</p>
+                            </div>
+                        </div>
+                        <div id="emailErrorBanner" class="hidden rounded-xl p-3.5 flex items-center gap-2" style="background: #fff5f5; border: 1px solid #fcc;">
+                            <span style="color: #d04040;">✕</span>
+                            <span class="text-xs font-light" style="color: #b03030;" id="emailErrorText">Something went wrong. Please try again.</span>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -203,19 +252,56 @@
 
     <script>
         let latestAnalytics = null;
+        let activeRecipientOption = null;
+
+        function selectRecipientOption(option) {
+            activeRecipientOption = option;
+
+            // Style all option cards
+            ['me', 'partner', 'both'].forEach(o => {
+                const el = document.getElementById('opt' + o.charAt(0).toUpperCase() + o.slice(1));
+                if (o === option) {
+                    el.style.borderColor = '#c4a882';
+                    el.style.background = '#fdf6f0';
+                    el.style.boxShadow = '0 0 0 3px rgba(196,168,130,0.2)';
+                } else {
+                    el.style.borderColor = '#e0d0c8';
+                    el.style.background = 'white';
+                    el.style.boxShadow = 'none';
+                }
+            });
+
+            // Show/hide inputs
+            const inputsWrap   = document.getElementById('emailInputs');
+            const selfWrap     = document.getElementById('selfInputWrap');
+            const partnerWrap  = document.getElementById('partnerInputWrap');
+
+            inputsWrap.classList.remove('hidden');
+            selfWrap.classList.toggle('hidden',    option === 'partner');
+            partnerWrap.classList.toggle('hidden', option === 'me');
+
+            // Clear fields when switching
+            if (option !== 'me' && option !== 'both')     document.getElementById('emailSelf').value = '';
+            if (option !== 'partner' && option !== 'both') document.getElementById('emailPartner').value = '';
+        }
 
         async function emailReport() {
             if (!latestAnalytics) return;
 
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const emailRegex   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             const selfEmail    = document.getElementById('emailSelf').value.trim();
             const partnerEmail = document.getElementById('emailPartner').value.trim();
-
             const successBanner = document.getElementById('emailSuccessBanner');
             const errorBanner   = document.getElementById('emailErrorBanner');
+
             successBanner.classList.add('hidden');
             errorBanner.classList.add('hidden');
 
+            if (!activeRecipientOption) {
+                document.getElementById('emailErrorText').innerText = 'Please select who to send the report to.';
+                errorBanner.classList.remove('hidden');
+                return;
+            }
             if (!selfEmail && !partnerEmail) {
                 document.getElementById('emailErrorText').innerText = 'Please enter at least one email address.';
                 errorBanner.classList.remove('hidden');
@@ -233,10 +319,9 @@
             }
 
             const recipients = [selfEmail, partnerEmail].filter(Boolean);
-
             const btn = document.getElementById('emailReportBtn');
             btn.disabled = true;
-            btn.innerText = 'Sending...';
+            btn.innerHTML = '<span>⏳</span> Sending...';
 
             try {
                 const response = await fetch('/api/send-email', {
@@ -247,17 +332,17 @@
                 const result = await response.json();
                 if (!response.ok) throw new Error(result.error || 'Email sending failed');
 
-                const sentTo = recipients.length === 2 ? 'Sent to you and your partner!' : 'Report sent to your inbox!';
-                document.getElementById('emailSuccessText').innerText = sentTo;
+                const msg = recipients.length === 2 ? 'Sent to both of you 💛' : 'Landed in your inbox 💛';
+                document.getElementById('emailSuccessText').innerText = msg;
                 successBanner.classList.remove('hidden');
-                btn.innerText = '✓ Sent!';
-                btn.classList.add('bg-emerald-700', 'hover:bg-emerald-800');
-                btn.classList.remove('bg-stone-950', 'hover:bg-stone-800');
+                btn.innerHTML = '✓ Sent!';
+                btn.style.background = 'linear-gradient(135deg, #2a7a50, #3a9e6a)';
             } catch (err) {
                 document.getElementById('emailErrorText').innerText = 'Could not send: ' + err.message;
                 errorBanner.classList.remove('hidden');
                 btn.disabled = false;
-                btn.innerText = '✉ Send Report';
+                btn.innerHTML = '<span>💌</span> Send this report';
+                btn.style.background = 'linear-gradient(135deg, #4a3728, #6b4c38)';
             }
         }
 
@@ -310,17 +395,24 @@
                 latestAnalytics = scores;
 
                 // Reset email panel for new report
-                const emailBtn = document.getElementById('emailReportBtn');
-                if (emailBtn) {
-                    emailBtn.disabled = false;
-                    emailBtn.innerText = '✉ Send Report';
-                    emailBtn.classList.remove('bg-emerald-700', 'hover:bg-emerald-800');
-                    emailBtn.classList.add('bg-stone-950', 'hover:bg-stone-800');
-                }
+                activeRecipientOption = null;
+                ['Me', 'Partner', 'Both'].forEach(o => {
+                    const el = document.getElementById('opt' + o);
+                    if (el) { el.style.borderColor = '#e0d0c8'; el.style.background = 'white'; el.style.boxShadow = 'none'; }
+                });
+                document.getElementById('emailInputs').classList.add('hidden');
+                document.getElementById('selfInputWrap').classList.add('hidden');
+                document.getElementById('partnerInputWrap').classList.add('hidden');
                 document.getElementById('emailSelf').value = '';
                 document.getElementById('emailPartner').value = '';
                 document.getElementById('emailSuccessBanner').classList.add('hidden');
                 document.getElementById('emailErrorBanner').classList.add('hidden');
+                const emailBtn = document.getElementById('emailReportBtn');
+                if (emailBtn) {
+                    emailBtn.disabled = false;
+                    emailBtn.innerHTML = '<span>💌</span> Send this report';
+                    emailBtn.style.background = 'linear-gradient(135deg, #4a3728, #6b4c38)';
+                }
                 
                 document.getElementById('bondStrengthMeter').innerText = scores.bond_strength || '0%';
                 document.getElementById('bondStrengthReason').innerText = scores.bond_strength_reason ? `"${scores.bond_strength_reason}"` : '';
