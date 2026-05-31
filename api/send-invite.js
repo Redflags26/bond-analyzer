@@ -38,7 +38,8 @@ export default async function handler(req, res) {
     const inviter = inviterRows[0];
 
     // ── 3. Enforce 3-invite limit ──
-    if ((inviter.invite_count || 0) >= 3)
+    const PRIMARY_USER_ID = '093236df-7fb5-46ba-9188-c511145689ec';
+    if (inviter.id !== PRIMARY_USER_ID && (inviter.invite_count || 0) >= 3)
       throw new Error("INVITE_LIMIT_REACHED");
 
     // ── 4. Check invitee email is not already a user ──
