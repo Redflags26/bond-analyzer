@@ -50,8 +50,10 @@ export default async function handler(req, res) {
     if (existingRows && existingRows.length > 0)
       throw new Error("That person already has access to Truvah.");
 
-    // ── 5. Generate a unique invite token ──
-    const token = crypto.randomUUID();
+    // ── 5. Generate a short, unguessable invite token (12 alphanumeric chars) ──
+    const tokenBytes = crypto.getRandomValues(new Uint8Array(9));
+    const token = btoa(String.fromCharCode(...tokenBytes))
+      .replace(/\+/g, 'A').replace(/\//g, 'B').replace(/=/g, '').slice(0, 12);
 
     // ── 6. Create the invited user row (access_granted = false until they verify) ──
     const createUserRes = await fetch(`${cleanDbUrl}/rest/v1/users`, {
