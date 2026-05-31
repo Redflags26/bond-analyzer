@@ -38,17 +38,18 @@ export default async function handler(req, res) {
     const inviter = inviterRows[0];
 
     // ── 3. Enforce 3-invite limit ──
-    const PRIMARY_USER_ID = '093236df-7fb5-46ba-9188-c511145689ec';
-    if (inviter.id !== PRIMARY_USER_ID && (inviter.invite_count || 0) >= 3)
+    if ((inviter.invite_count || 0) >= 3)
       throw new Error("INVITE_LIMIT_REACHED");
 
-    // ── 4. Check invitee email is not already a user ──
+    // ── 4. Check invitee email is not already an active user ──
     const existingRes = await fetch(
-      `${cleanDbUrl}/rest/v1/users?email=eq.${encodeURIComponent(inviteeEmail)}&select=id`,
+      `${cleanDbUrl}/rest/v1/users?email=eq.${encodeURIComponent(inviteeEmail)}&select=id,access_granted`,
       { headers: { ...dbHeaders, "Accept": "application/json" } }
     );
     const existingRows = await existingRes.json();
-    if (existingRows && existingRows.length > 0)
+    const existingUser = existingRows && existingRows.length > 0 ? existingRows[0] : null;
+
+    if (existingUser && existingUser.access_granted)
       throw new Error("That person already has access to Truvah.");
 
     // ── 5. Generate a short, unguessable invite token (12 alphanumeric chars) ──
@@ -56,21 +57,39 @@ export default async function handler(req, res) {
     const token = btoa(String.fromCharCode(...tokenBytes))
       .replace(/\+/g, 'A').replace(/\//g, 'B').replace(/=/g, '').slice(0, 12);
 
-    // ── 6. Create the invited user row (access_granted = false until they verify) ──
-    const createUserRes = await fetch(`${cleanDbUrl}/rest/v1/users`, {
-      method: "POST",
-      headers: { ...dbHeaders, "Prefer": "return=representation" },
-      body: JSON.stringify({
-        email:          inviteeEmail,
-        invited_by:     inviterUserId,
-        invite_token:   token,
-        access_granted: false,
-        invite_count:   0,
-      })
-    });
-    if (!createUserRes.ok) {
-      const err = await createUserRes.json().catch(() => ({}));
-      throw new Error(err.message || "Failed to create invited user.");
+    // ── 6. If they requested access, update their row; otherwise create new ──
+    if (existingUser) {
+      // Update the existing waitlist row with the invite token
+      const updateRes = await fetch(`${cleanDbUrl}/rest/v1/users?id=eq.${existingUser.id}`, {
+        method:  "PATCH",
+        headers: { ...dbHeaders, "Prefer": "return=minimal" },
+        body:    JSON.stringify({
+          invited_by:   inviterUserId,
+          invite_token: token,
+          requested:    false,
+        })
+      });
+      if (!updateRes.ok) {
+        const err = await updateRes.json().catch(() => ({}));
+        throw new Error(err.message || "Failed to update user record.");
+      }
+    } else {
+      // Create a fresh invited user row
+      const createUserRes = await fetch(`${cleanDbUrl}/rest/v1/users`, {
+        method:  "POST",
+        headers: { ...dbHeaders, "Prefer": "return=representation" },
+        body:    JSON.stringify({
+          email:          inviteeEmail,
+          invited_by:     inviterUserId,
+          invite_token:   token,
+          access_granted: false,
+          invite_count:   0,
+        })
+      });
+      if (!createUserRes.ok) {
+        const err = await createUserRes.json().catch(() => ({}));
+        throw new Error(err.message || "Failed to create invited user.");
+      }
     }
 
     // ── 7. Increment inviter's invite_count ──
