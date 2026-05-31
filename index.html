@@ -452,11 +452,19 @@
         }
 
         function updateInviteCountUI() {
+            const PRIMARY_USER_ID = '093236df-7fb5-46ba-9188-c511145689ec';
             const remaining = 3 - currentInviteCount;
             const countText = document.getElementById('inviteCountText');
             const limitMsg  = document.getElementById('inviteLimitMsg');
             const form      = document.getElementById('inviteForm');
             if (!countText) return;
+            // Primary user never sees the limit
+            if (currentUserId === PRIMARY_USER_ID) {
+                limitMsg && limitMsg.classList.add('hidden');
+                form     && form.classList.remove('hidden');
+                countText.innerText = '';
+                return;
+            }
             if (remaining <= 0) {
                 limitMsg && limitMsg.classList.remove('hidden');
                 form     && form.classList.add('hidden');
@@ -528,8 +536,9 @@
             btn.disabled  = true;
             btn.innerText = 'Sending...';
 
-            // Pre-check invite limit before hitting API
-            if (currentInviteCount >= 3) {
+            // Pre-check invite limit before hitting API (primary user exempt)
+            const PRIMARY_USER_ID = '093236df-7fb5-46ba-9188-c511145689ec';
+            if (currentUserId !== PRIMARY_USER_ID && currentInviteCount >= 3) {
                 document.getElementById('inviteErrorText').innerText = "You've used all 3 of your invites.";
                 errorBanner.classList.remove('hidden');
                 return;
