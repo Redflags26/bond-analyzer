@@ -96,7 +96,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { chatLog } = req.body;
+  const { chatLog, userId } = req.body;
   const apiKey = process.env.OPENROUTER_API_KEY;
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -273,7 +273,8 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           bond_strength: finalAnalyticsResult.bond_strength,
           summary: finalAnalyticsResult.summary,
-          full_analytics: finalAnalyticsResult
+          full_analytics: finalAnalyticsResult,
+          ...(userId ? { user_id: userId } : {})
         })
       });
     } catch (dbError) {
