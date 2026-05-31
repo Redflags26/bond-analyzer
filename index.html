@@ -79,8 +79,28 @@
                     Invite only
                 </div>
                 <h2 class="text-2xl font-normal text-stone-900 serif-font italic leading-snug">This is a private space.</h2>
-                <p class="text-sm text-stone-500 font-light leading-relaxed">Truvah is available by invitation only. Ask someone who's already using it to send you a link.</p>
+                <p class="text-sm text-stone-500 font-light leading-relaxed">Truvah is available by invitation only. Leave your email and we'll reach out when a spot opens up.</p>
                 <p id="gateError" class="text-xs text-red-500 font-light hidden"></p>
+
+                <!-- Interest capture form -->
+                <div id="interestForm" class="space-y-2 pt-1">
+                    <div class="flex gap-2">
+                        <input id="interestEmail" type="email" placeholder="your@email.com"
+                            class="flex-1 px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
+                        <button onclick="submitInterest()"
+                            class="bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium px-4 py-2.5 rounded-xl text-xs tracking-[0.12em] uppercase transition-all duration-200 cursor-pointer whitespace-nowrap">
+                            Notify me
+                        </button>
+                    </div>
+                    <div id="interestSuccess" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3 rounded-xl text-xs font-light flex items-center gap-2">
+                        <span class="text-emerald-500 font-bold">✓</span>
+                        <span>You're on the list. We'll send you an invite when a spot opens.</span>
+                    </div>
+                    <div id="interestError" class="hidden bg-red-50/50 border border-red-200/50 text-red-700 p-3 rounded-xl text-xs font-light flex items-center gap-2">
+                        <span>✕</span>
+                        <span id="interestErrorText">Something went wrong.</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -446,6 +466,39 @@
                 countText.innerText = remaining === 1
                     ? '1 invite remaining.'
                     : `${remaining} invites remaining.`;
+            }
+        }
+
+        /* ── Submit interest (blocked users) ── */
+        async function submitInterest() {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const email      = document.getElementById('interestEmail').value.trim();
+            const successEl  = document.getElementById('interestSuccess');
+            const errorEl    = document.getElementById('interestError');
+
+            successEl.classList.add('hidden');
+            errorEl.classList.add('hidden');
+
+            if (!email || !emailRegex.test(email)) {
+                document.getElementById('interestErrorText').innerText = 'Please enter a valid email address.';
+                errorEl.classList.remove('hidden'); return;
+            }
+
+            try {
+                const res  = await fetch('/api/request-access', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ email })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+
+                successEl.classList.remove('hidden');
+                document.getElementById('interestForm').querySelector('input').value = '';
+                document.getElementById('interestForm').querySelector('button').disabled = true;
+            } catch (err) {
+                document.getElementById('interestErrorText').innerText = err.message;
+                errorEl.classList.remove('hidden');
             }
         }
 
