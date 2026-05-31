@@ -41,9 +41,50 @@
             100% { opacity: 1; transform: translateY(0); }
         }
         .invite-reveal { animation: inviteReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        /* Access gate wall — app hidden by default until access confirmed */
+        #gateWall { display:none; }
+        body.gated #gateWall { display:flex; }
+        body.gated main, body.gated footer { display:none; }
+        /* Before JS runs, keep content invisible but avoid layout shift */
+        main, footer { opacity: 0; }
+        body.ready main, body.ready footer { opacity: 1; transition: opacity 0.3s ease; }
+
     </style>
 </head>
-<body class="bg-[#FAF9F5] text-stone-800 gated min-h-screen flex flex-col justify-between selection:bg-stone-200 antialiased">
+<body class="bg-[#FAF9F5] text-stone-800 min-h-screen flex flex-col justify-between selection:bg-stone-200 antialiased gated">
+
+    <!-- ── Access Gate Wall ─────────────────────────────────────────────── -->
+    <div id="gateWall" class="min-h-screen bg-[#FAF9F5] flex flex-col items-center justify-center px-6 text-center">
+        <div class="space-y-6 max-w-sm">
+            <div class="flex items-center justify-center gap-2.5 mb-2">
+                <span class="text-[10px] tracking-[0.2em] font-medium text-stone-400 uppercase">Ask</span>
+                <span class="text-2xl font-bold tracking-tight text-stone-900 serif-font italic">Truvah</span>
+            </div>
+
+            <!-- Checking state — shown while JS validates the token -->
+            <div id="gateChecking" class="space-y-3">
+                <div class="flex items-center justify-center gap-2 text-stone-400">
+                    <div class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-stone-300 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-stone-400"></span>
+                    </div>
+                    <span class="text-xs font-light tracking-wide">Verifying your access…</span>
+                </div>
+            </div>
+
+            <!-- Blocked state — shown only if token is missing or invalid -->
+            <div id="gateBlocked" class="hidden space-y-4">
+                <div class="inline-flex items-center gap-1.5 bg-stone-950 text-[#FAF9F5] px-3 py-1 rounded-full text-[9px] tracking-[0.2em] font-medium uppercase">
+                    <span class="w-1 h-1 rounded-full bg-stone-500 inline-block"></span>
+                    Invite only
+                </div>
+                <h2 class="text-2xl font-normal text-stone-900 serif-font italic leading-snug">This is a private space.</h2>
+                <p class="text-sm text-stone-500 font-light leading-relaxed">Truvah is available by invitation only. Ask someone who's already using it to send you a link.</p>
+                <p id="gateError" class="text-xs text-red-500 font-light hidden"></p>
+            </div>
+        </div>
+    </div>
+    <!-- ── End Gate Wall ─────────────────────────────────────────────────── -->
 
     <header class="bg-[#FAF9F5]/80 backdrop-blur-md sticky top-0 z-50 border-b border-stone-200/40 py-4 px-6 md:px-12">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
@@ -268,13 +309,22 @@
 
                 <!-- Right: invite form -->
                 <div class="w-full md:w-auto md:min-w-[340px] space-y-3">
-                    <div class="flex gap-2">
-                        <input id="inviteEmail" type="email" placeholder="friend@example.com"
-                            class="flex-1 px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all shadow-xs" />
-                        <button id="inviteBtn" onclick="sendInvite()"
-                            class="bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium px-5 py-2.5 rounded-xl transition-all duration-200 cursor-pointer text-xs tracking-[0.12em] uppercase shadow-xs whitespace-nowrap">
-                            Send Invite
-                        </button>
+                    <!-- Invite limit exhausted state -->
+                    <div id="inviteLimitMsg" class="hidden bg-stone-100 border border-stone-200/60 rounded-xl px-5 py-4 space-y-1">
+                        <p class="text-xs font-semibold text-stone-700">You've used all 3 invites.</p>
+                        <p class="text-[11px] text-stone-500 font-light leading-relaxed">Each member gets 3 invitations. You've sent yours — thank you for growing the community.</p>
+                    </div>
+                    <!-- Active invite form -->
+                    <div id="inviteForm">
+                        <div class="flex gap-2">
+                            <input id="inviteEmail" type="email" placeholder="friend@example.com"
+                                class="flex-1 px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all shadow-xs" />
+                            <button id="inviteBtn" onclick="sendInvite()"
+                                class="bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium px-5 py-2.5 rounded-xl transition-all duration-200 cursor-pointer text-xs tracking-[0.12em] uppercase shadow-xs whitespace-nowrap">
+                                Send Invite
+                            </button>
+                        </div>
+                        <p id="inviteCountNote" class="text-[10px] text-stone-400 font-light mt-2">They'll receive a personal invitation. <span id="inviteCountText" class="font-medium text-stone-500"></span></p>
                     </div>
                     <div id="inviteSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3 rounded-xl text-xs font-light flex items-center gap-2">
                         <span class="text-emerald-500 font-bold">✓</span>
@@ -284,7 +334,6 @@
                         <span>✕</span>
                         <span id="inviteErrorText">Something went wrong. Try again.</span>
                     </div>
-                    <p class="text-[10px] text-stone-400 font-light">They'll receive a personal invitation explaining what Truvah is and how to get started.</p>
                 </div>
 
             </div>
@@ -296,8 +345,112 @@
     </footer>
 
     <script>
-        let latestAnalytics = null;
+        let latestAnalytics    = null;
         let activeRecipientOption = null;
+        let currentUserId      = null;   // set after token verification
+        let currentInviteCount = 0;      // how many invites this user has sent
+
+        /* ══════════════════════════════════════════════════════════════════
+           ACCESS GATE — token verification on page load
+        ══════════════════════════════════════════════════════════════════ */
+
+        // Extract token from URL query string
+        function getTokenFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('token') || null;
+        }
+
+        async function verifyAccess(token) {
+            try {
+                const res  = await fetch('/api/verify-token', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ token })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.valid) return null;
+                return data; // { userId, email, inviteCount }
+            } catch { return null; }
+        }
+
+        async function initAccess() {
+            // 1. Check sessionStorage for an already-verified session
+            const storedSession = sessionStorage.getItem('truvah_session');
+            if (storedSession) {
+                try {
+                    const session = JSON.parse(storedSession);
+                    if (session.userId) {
+                        currentUserId      = session.userId;
+                        currentInviteCount = session.inviteCount || 0;
+                        grantAccess();
+                        return;
+                    }
+                } catch { /* corrupt storage, fall through */ }
+            }
+
+            // 2. Try URL token (first-time visitor arriving from invite link)
+            const urlToken = getTokenFromUrl();
+            if (urlToken) {
+                const result = await verifyAccess(urlToken);
+                if (result) {
+                    currentUserId      = result.userId;
+                    currentInviteCount = result.inviteCount || 0;
+                    sessionStorage.setItem('truvah_session', JSON.stringify({
+                        userId:      result.userId,
+                        inviteCount: result.inviteCount || 0
+                    }));
+                    // Clean token from URL — they're now session-verified
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    grantAccess();
+                    return;
+                } else {
+                    // Token present but invalid/used
+                    showGateBlocked('This invite link is no longer valid. Ask someone to send you a new one.');
+                    return;
+                }
+            }
+
+            // 3. No session, no token — show blocked wall
+            showGateBlocked();
+        }
+
+        function showGateBlocked(errorMsg) {
+            document.getElementById('gateChecking').classList.add('hidden');
+            document.getElementById('gateBlocked').classList.remove('hidden');
+            document.body.classList.add('ready'); // make gate wall itself visible
+            if (errorMsg) {
+                const errEl = document.getElementById('gateError');
+                errEl.innerText = errorMsg;
+                errEl.classList.remove('hidden');
+            }
+        }
+
+        function grantAccess() {
+            document.body.classList.remove('gated');
+            document.body.classList.add('ready');
+            updateInviteCountUI();
+        }
+
+        function updateInviteCountUI() {
+            const remaining = 3 - currentInviteCount;
+            const countText = document.getElementById('inviteCountText');
+            const limitMsg  = document.getElementById('inviteLimitMsg');
+            const form      = document.getElementById('inviteForm');
+            if (!countText) return;
+            if (remaining <= 0) {
+                limitMsg && limitMsg.classList.remove('hidden');
+                form     && form.classList.add('hidden');
+            } else {
+                limitMsg && limitMsg.classList.add('hidden');
+                form     && form.classList.remove('hidden');
+                countText.innerText = remaining === 1
+                    ? '1 invite remaining.'
+                    : \`\${remaining} invites remaining.\`;
+            }
+        }
+
+        // Run on page load
+        initAccess();
 
         /* ── Send invite ── */
         async function sendInvite() {
@@ -322,25 +475,46 @@
             btn.disabled  = true;
             btn.innerText = 'Sending...';
 
+            // Pre-check invite limit before hitting API
+            if (currentInviteCount >= 3) {
+                document.getElementById('inviteErrorText').innerText = "You've used all 3 of your invites.";
+                errorBanner.classList.remove('hidden');
+                return;
+            }
+
             try {
                 const response = await fetch('/api/send-invite', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ inviteeEmail: inviteEmail })
+                    body: JSON.stringify({ inviteeEmail: inviteEmail, inviterUserId: currentUserId })
                 });
                 const result = await response.json();
-                if (!response.ok) throw new Error(result.error || 'Invite could not be sent');
+                if (!response.ok) {
+                    if (result.error === 'INVITE_LIMIT_REACHED') {
+                        currentInviteCount = 3;
+                        updateInviteCountUI();
+                        throw new Error("You've used all 3 of your invites.");
+                    }
+                    throw new Error(result.error || 'Invite could not be sent');
+                }
+
+                // Update local count from server response
+                currentInviteCount = 3 - (result.remainingInvites || 0);
+                const stored = JSON.parse(sessionStorage.getItem('truvah_session') || '{}');
+                stored.inviteCount = currentInviteCount;
+                sessionStorage.setItem('truvah_session', JSON.stringify(stored));
 
                 document.getElementById('inviteSuccessText').innerText = `Invite sent to ${inviteEmail}. They'll hear from us shortly.`;
                 successBanner.classList.remove('hidden');
                 document.getElementById('inviteEmail').value = '';
-                btn.innerText = '✓ Sent';
+                btn.innerText = '\u2713 Sent';
                 btn.classList.replace('bg-stone-950', 'bg-emerald-700');
                 setTimeout(() => {
                     btn.disabled  = false;
                     btn.innerText = 'Send Invite';
                     btn.classList.replace('bg-emerald-700', 'bg-stone-950');
-                }, 4000);
+                    updateInviteCountUI();
+                }, 3000);
             } catch (err) {
                 document.getElementById('inviteErrorText').innerText = 'Could not send invite: ' + err.message;
                 errorBanner.classList.remove('hidden');
@@ -478,7 +652,7 @@
                 const response = await fetch("/api/analyze", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ chatLog })
+                    body: JSON.stringify({ chatLog, userId: currentUserId })
                 });
 
                 const data = await response.json();
