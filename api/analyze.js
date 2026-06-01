@@ -1,7 +1,7 @@
 /**
  * EXTERNAL DETERMINISTIC METRIC ENGINE
  * Computes precise mathematical pacing weights outside the LLM layer.
- * 1. enrichedText - Chat log with explicit hour-delay markers.
+ * 1. enrichedText - Chat log with explicit hour-delay markers (excluding sleep/routine).
  * 2. metrics - Raw numerical constraints to lock down the LLM parameters.
  * 3. names - Dynamically resolved names from the parsed chat log.
  */
@@ -15,80 +15,172 @@ function calculateTimelineMetrics(text) {
   }
 
   const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
-  const processedLines = [];
-  let lastTimestamp = null;
-  
-  // Track metrics for dynamic structural anchors
+  const parsedMessages = [];
   const speakers = new Set();
-  const speakerDelayCount = {};
-  const speakerChillingCount = {};
-  
-  let totalDelays = 0;
-  let delaysWithApologiesOrWarmth = 0;
+  const pauseStartHours = [];
 
-  // Raised delay threshold to 12 hours to ignore regular sleep cycles and standard work schedules
-  const DELAY_THRESHOLD_HOURS = 12; 
-  const linePattern = /^\[(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4}),\s*([^\]]+)\]\s*([^:]+):\s*(.*)$/;
+  // Robust line pattern matching iOS, Android, and Web standard date/time formats
+  const linePattern = /^\[?(\d{1,4})[\/\-.](\d{1,4})[\/\-.](\d{2,4}),\s*([^\]\-]+)\]?\s*(?:-\s*)?([^:]+):\s*(.*)$/i;
 
+  // PASS 1: Parse raw records, build timezone-safe Dates, and collect pause start-hour clusters
+  let preLastTimestamp = null;
   for (let line of lines) {
     const match = linePattern.exec(line);
     
     if (match) {
       try {
-        const day = parseInt(match[1], 10);
-        const month = parseInt(match[2], 10) - 1; 
-        const year = parseInt(match[3], 10);
+        let day = parseInt(match[1], 10);
+        let month = parseInt(match[2], 10) - 1; 
+        let year = parseInt(match[3], 10);
         const timePart = match[4].trim();
         const speaker = match[5].trim();
         const content = match[6].trim();
 
-        // Dynamically register speakers
-        speakers.add(speaker);
-        if (!speakerDelayCount[speaker]) {
-          speakerDelayCount[speaker] = 0;
+        // Safe swap if YYYY-MM-DD format is detected
+        if (day > 1000) {
+          const tempYear = day;
+          day = year;
+          year = tempYear;
         }
 
-        const standardizedTimeStr = `${year}/${month + 1}/${day} ${timePart.replace(/([ap]m)/i, ' $1')}`;
-        const currentTimestamp = new Date(standardizedTimeStr).getTime();
+        // Normalize 2-digit years
+        if (year < 100) {
+          year = 2000 + year;
+        }
 
-        if (currentTimestamp && lastTimestamp) {
-          const deltaHours = (currentTimestamp - lastTimestamp) / (1000 * 60 * 60);
+        // Reliable Time Extraction (12h/24h safe)
+        const timeRegex = /(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([ap]m)?/i;
+        const timeMatch = timeRegex.exec(timePart);
+        let hours = 0;
+        let minutes = 0;
+        let seconds = 0;
 
-          if (deltaHours >= DELAY_THRESHOLD_HOURS && deltaHours < 2000) { 
-            totalDelays++;
-            speakerDelayCount[speaker] = (speakerDelayCount[speaker] || 0) + 1;
-
-            const roundedHours = Math.round(deltaHours);
-            // Replaced aggressive warning with a neutral description
-            let delayTag = ` [Asynchronous pause of ${roundedHours} hours]`;
-
-            // Look for conversational repairs with an expanded set of casual warm triggers
-            const lowerContent = content.toLowerCase();
-            const warmKeywords = ['sorry', 'guilty', 'babe', 'love', '💕', '❤️', 'haha', 'hey', 'sweet', 'dear', 'thanks', 'hug', 'miss', '🥰', '😘', '😊', 'lol'];
-            const hasApology = warmKeywords.some(kw => lowerContent.includes(kw));
-            const isChilling = lowerContent.includes('chilling') || lowerContent.includes('relaxing') || lowerContent.includes('scrolling');
-
-            if (hasApology) delaysWithApologiesOrWarmth++;
-            if (isChilling) {
-              speakerChillingCount[speaker] = (speakerChillingCount[speaker] || 0) + 1;
-            }
-
-            const enhancedLine = `[${match[1]}/${match[2]}/${match[3]}, ${match[4]}]${delayTag} ${speaker}: ${content}`;
-            processedLines.push(enhancedLine);
-            lastTimestamp = currentTimestamp;
-            continue;
+        if (timeMatch) {
+          hours = parseInt(timeMatch[1], 10);
+          minutes = parseInt(timeMatch[2], 10);
+          if (timeMatch[3]) seconds = parseInt(timeMatch[3], 10);
+          const ampm = timeMatch[4];
+          if (ampm) {
+            if (ampm.toLowerCase() === 'pm' && hours < 12) hours += 12;
+            if (ampm.toLowerCase() === 'am' && hours === 12) hours = 0;
           }
         }
 
-        if (currentTimestamp) lastTimestamp = currentTimestamp;
+        // Platform-independent timezone-stable Date construction
+        const currentTimestamp = new Date(year, month, day, hours, minutes, seconds).getTime();
+
+        if (currentTimestamp) {
+          speakers.add(speaker);
+          
+          if (preLastTimestamp) {
+            const deltaHours = (currentTimestamp - preLastTimestamp) / (1000 * 60 * 60);
+            if (deltaHours >= 5 && deltaHours < 2000) {
+              const startHour = new Date(preLastTimestamp).getHours();
+              pauseStartHours.push(startHour);
+            }
+          }
+          
+          parsedMessages.push({ 
+            isSystemOrMedia: false, 
+            timestamp: currentTimestamp, 
+            speaker, 
+            content, 
+            match, 
+            line 
+          });
+          preLastTimestamp = currentTimestamp;
+        } else {
+          parsedMessages.push({ isSystemOrMedia: true, line });
+        }
       } catch (e) {
-        // Safe bypass trace
+        parsedMessages.push({ isSystemOrMedia: true, line });
       }
+    } else {
+      parsedMessages.push({ isSystemOrMedia: true, line });
     }
-    processedLines.push(line);
   }
 
-  // Resolve parsed names dynamically with dynamic placeholder fallbacks
+  // Analyze starting hour clusters to identify recurring routine pause windows (e.g., daily sleep or work)
+  const routineHourCounts = Array(24).fill(0);
+  for (const h of pauseStartHours) {
+    routineHourCounts[h]++;
+    routineHourCounts[(h - 1 + 24) % 24]++; // Smooth window bounds
+    routineHourCounts[(h + 1) % 24];
+  }
+
+  // PASS 2: Exclude sleep/routine blocks from active delay calculations
+  const processedLines = [];
+  let lastTimestamp = null;
+  let totalDelays = 0;
+  let delaysWithApologiesOrWarmth = 0;
+  const speakerDelayCount = {};
+  const speakerChillingCount = {};
+
+  for (let msg of parsedMessages) {
+    if (msg.isSystemOrMedia) {
+      processedLines.push(msg.line);
+      continue;
+    }
+
+    const currentTimestamp = msg.timestamp;
+    const speaker = msg.speaker;
+    const content = msg.content;
+    const match = msg.match;
+
+    if (currentTimestamp && lastTimestamp) {
+      const deltaHours = (currentTimestamp - lastTimestamp) / (1000 * 60 * 60);
+
+      if (deltaHours >= 5 && deltaHours < 2000) {
+        const lastDate = new Date(lastTimestamp);
+        const lastHour = lastDate.getHours();
+        const currentDate = new Date(currentTimestamp);
+        const currentHour = currentDate.getHours();
+
+        // 1. Explicit Night Sleep Window Check
+        let isSleepGap = false;
+        if (deltaHours <= 14) {
+          const startsLate = (lastHour >= 21 || lastHour <= 4); // Sent 9pm - 4am
+          const endsNextMorning = (currentHour >= 5 && currentHour <= 11); // Replied 5am - 11am
+          const differentDay = lastDate.getDate() !== currentDate.getDate();
+          if (startsLate && endsNextMorning && differentDay) {
+            isSleepGap = true;
+          }
+        }
+
+        // 2. Daily Routine Pause Check (started at the same recurring hours across days)
+        const isRoutineGap = (routineHourCounts[lastHour] >= 2) && (deltaHours <= 16);
+
+        // Process as an active pacing delay ONLY if it's not normal sleep or routine rest
+        if (!isSleepGap && !isRoutineGap) {
+          totalDelays++;
+          speakerDelayCount[speaker] = (speakerDelayCount[speaker] || 0) + 1;
+
+          const roundedHours = Math.round(deltaHours);
+          let delayTag = ` [Asynchronous pause of ${roundedHours} hours]`;
+
+          const lowerContent = content.toLowerCase();
+          const warmKeywords = ['sorry', 'guilty', 'babe', 'love', '💕', '❤️', 'haha', 'hey', 'sweet', 'dear', 'thanks', 'hug', 'miss', '🥰', '😘', '😊', 'lol'];
+          const hasApology = warmKeywords.some(kw => lowerContent.includes(kw));
+          const isChilling = lowerContent.includes('chilling') || lowerContent.includes('relaxing') || lowerContent.includes('scrolling');
+
+          if (hasApology) delaysWithApologiesOrWarmth++;
+          if (isChilling) {
+            speakerChillingCount[speaker] = (speakerChillingCount[speaker] || 0) + 1;
+          }
+
+          const enhancedLine = `[${match[1]}/${match[2]}/${match[3]}, ${match[4]}]${delayTag} ${speaker}: ${content}`;
+          processedLines.push(enhancedLine);
+          lastTimestamp = currentTimestamp;
+          continue;
+        }
+      }
+    }
+
+    if (currentTimestamp) lastTimestamp = currentTimestamp;
+    processedLines.push(msg.line);
+  }
+
+  // Extract dynamically parsed names with robust fallbacks
   const detectedSpeakers = Array.from(speakers);
   let person1 = detectedSpeakers[0] || 'Person 1';
   let person2 = detectedSpeakers[1] || 'Person 2';
@@ -96,7 +188,7 @@ function calculateTimelineMetrics(text) {
   const delay1 = speakerDelayCount[person1] || 0;
   const delay2 = speakerDelayCount[person2] || 0;
 
-  // Swap so that person2 (asyncPartner) is always the partner with more pacing delays
+  // Swap roles so person2 (asyncPartner) represents the relative asynchronous pattern
   if (delay1 > delay2) {
     const temp = person1;
     person1 = person2;
@@ -105,11 +197,10 @@ function calculateTimelineMetrics(text) {
 
   const activeChillingDelays = speakerChillingCount[person2] || 0;
 
-  // Softened scaling multipliers to prevent extreme baseline dips
+  // Scale baselines moderately using only true, verified pacing delays
   const structuralAsymmetry = totalDelays > 0 ? Math.min(totalDelays * 1.5, 12) : 0; 
   const repairFactor = totalDelays > 0 ? Math.round((delaysWithApologiesOrWarmth / totalDelays) * 100) : 100;
   
-  // Adjusted baseline values to keep standard connection dynamics healthy
   const calculatedToxicity = Math.max(2, Math.min(3 + (activeChillingDelays * 1.5), 10)); 
   const calculatedConflictResolution = Math.max(70, Math.min(70 + (repairFactor * 0.25), 95));
   const calculatedTeamwork = Math.max(75, 95 - structuralAsymmetry);
@@ -146,21 +237,21 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Configuration Error: Operational keys are missing from your system panel.' });
   }
 
-  // Calculate the time-impact data completely outside the LLM request
+  // Calculate the parameters outside the LLM request
   const { enrichedText, metrics, names } = calculateTimelineMetrics(chatLog);
 
-  // Dynamically calculate dynamic ranges based on calculated metrics to avoid static scoring boundaries
+  // Dynamic ranges based on calculated metrics to protect parameters from extreme drops
   const minAccountability = Math.max(75, Math.min(75 + Math.round(metrics.repairPercentage * 0.15), 90));
   const maxAccountability = Math.max(80, Math.min(80 + Math.round(metrics.repairPercentage * 0.15), 95));
 
   // ==========================================
-  // AGENT 1: PERSONA SPECIALIST (Hard Constraints Fed via Context)
-  // Evaluates owning_personal_errors explicitly for both individuals to prevent N/A output.
+  // AGENT 1: PERSONA SPECIALIST (Constraints fed via Context)
   // ==========================================
   const personaPrompt = `You are a behavioral psychologist profiling conversational patterns.
   Analyze the text, noting the pre-calculated pacing constraints provided below.
   
   PRE-CALCULATED STRUCTURAL CONTEXT:
+  - Sleep lags and recurring routine daily pause windows have been computationally filtered and ignored. Metrics reflect only real conversational delays.
   - ${names.asyncPartner} has a text repair recovery factor of ${metrics.repairPercentage}%. This means when they delay, they make up for it with high verbal affection, love notes, or validation ${metrics.repairPercentage}% of the time.
   
   SCORING MANDATE:
@@ -208,6 +299,7 @@ export default async function handler(req, res) {
   You must apply the exact mathematical scores computed by our timeline parsing engine below. Do not deviate from these numbers.
 
   DETERMINISTIC METRIC CONSTRAINTS:
+  - Sleep lags and standard routine breaks have been computationally removed.
   - Toxicity Level: Must be exactly "${metrics.toxicity}%". (Reason: There is zero active conflict or hostility, but a mild ${metrics.toxicity}% asymmetry exists because one partner responds slowly while chilling).
   - Conflict Resolution: Must be exactly "${metrics.conflictResolution}%". (Reason: While direct plans are occasionally deflected, conversational gaps are handled with high emotional reassurance and mutual validation).
   - Relationship Dynamics: Must be exactly "${metrics.teamwork}%". (Reason: Reflects an unequal real-time interactive flow where one partner routinely waits for answers).
@@ -260,7 +352,7 @@ export default async function handler(req, res) {
           { role: "user", content: userContent }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.1 // Kept ultra-low to lock in structural calculations safely
+        temperature: 0.1 
       })
     });
     
