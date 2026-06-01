@@ -1,24 +1,33 @@
 /**
  * EXTERNAL DETERMINISTIC METRIC ENGINE
  * Computes precise mathematical pacing weights outside the LLM layer.
- * * Returns:
  * 1. enrichedText - Chat log with explicit hour-delay markers.
  * 2. metrics - Raw numerical constraints to lock down the LLM parameters.
+ * 3. names - Dynamically resolved names from the parsed chat log.
  */
 function calculateTimelineMetrics(text) {
   if (!text || typeof text !== 'string') {
-    return { enrichedText: '', metrics: { structuralAsymmetry: 0, rohanDelayCount: 0, repairFactor: 100 } };
+    return { 
+      enrichedText: '', 
+      metrics: { toxicity: 2, conflictResolution: 70, teamwork: 95, repairPercentage: 100 },
+      names: { consistentPartner: 'Person 1', asyncPartner: 'Person 2' }
+    };
   }
 
   const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
   const processedLines = [];
   let lastTimestamp = null;
   
-  // Track metrics for hard code anchoring
-  let totalDelaysOver5Hours = 0;
+  // Track metrics for dynamic structural anchors
+  const speakers = new Set();
+  const speakerDelayCount = {};
+  const speakerChillingCount = {};
+  
+  let totalDelays = 0;
   let delaysWithApologiesOrWarmth = 0;
-  let activeChillingDelays = 0;
 
+  // Raised delay threshold to 12 hours to ignore regular sleep cycles and standard work schedules
+  const DELAY_THRESHOLD_HOURS = 12; 
   const linePattern = /^\[(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4}),\s*([^\]]+)\]\s*([^:]+):\s*(.*)$/;
 
   for (let line of lines) {
@@ -33,24 +42,36 @@ function calculateTimelineMetrics(text) {
         const speaker = match[5].trim();
         const content = match[6].trim();
 
+        // Dynamically register speakers
+        speakers.add(speaker);
+        if (!speakerDelayCount[speaker]) {
+          speakerDelayCount[speaker] = 0;
+        }
+
         const standardizedTimeStr = `${year}/${month + 1}/${day} ${timePart.replace(/([ap]m)/i, ' $1')}`;
         const currentTimestamp = new Date(standardizedTimeStr).getTime();
 
         if (currentTimestamp && lastTimestamp) {
           const deltaHours = (currentTimestamp - lastTimestamp) / (1000 * 60 * 60);
 
-          if (deltaHours >= 5 && deltaHours < 2000) { 
-            totalDelaysOver5Hours++;
-            const roundedHours = Math.round(deltaHours);
-            let delayTag = ` [Replied after a delay of ${roundedHours} hours]`;
+          if (deltaHours >= DELAY_THRESHOLD_HOURS && deltaHours < 2000) { 
+            totalDelays++;
+            speakerDelayCount[speaker] = (speakerDelayCount[speaker] || 0) + 1;
 
-            // Look for conversational repairs directly in the text
+            const roundedHours = Math.round(deltaHours);
+            // Replaced aggressive warning with a neutral description
+            let delayTag = ` [Asynchronous pause of ${roundedHours} hours]`;
+
+            // Look for conversational repairs with an expanded set of casual warm triggers
             const lowerContent = content.toLowerCase();
-            const hasApology = lowerContent.includes('sorry') || lowerContent.includes('guilty') || lowerContent.includes('babe') || lowerContent.includes('love') || lowerContent.includes('💕') || lowerContent.includes('❤️');
+            const warmKeywords = ['sorry', 'guilty', 'babe', 'love', '💕', '❤️', 'haha', 'hey', 'sweet', 'dear', 'thanks', 'hug', 'miss', '🥰', '😘', '😊', 'lol'];
+            const hasApology = warmKeywords.some(kw => lowerContent.includes(kw));
             const isChilling = lowerContent.includes('chilling') || lowerContent.includes('relaxing') || lowerContent.includes('scrolling');
 
             if (hasApology) delaysWithApologiesOrWarmth++;
-            if (isChilling && speaker.toLowerCase() === 'rohan') activeChillingDelays++;
+            if (isChilling) {
+              speakerChillingCount[speaker] = (speakerChillingCount[speaker] || 0) + 1;
+            }
 
             const enhancedLine = `[${match[1]}/${match[2]}/${match[3]}, ${match[4]}]${delayTag} ${speaker}: ${content}`;
             processedLines.push(enhancedLine);
@@ -67,15 +88,31 @@ function calculateTimelineMetrics(text) {
     processedLines.push(line);
   }
 
-  // Generate deterministic baseline limits based on mathematical behavior
-  // This avoids extreme spikes (caps toxicity, keeps connection stable)
-  const structuralAsymmetry = totalDelaysOver5Hours > 0 ? Math.min(totalDelaysOver5Hours * 4, 25) : 0; 
-  const repairFactor = totalDelaysOver5Hours > 0 ? Math.round((delaysWithApologiesOrWarmth / totalDelaysOver5Hours) * 100) : 100;
+  // Resolve parsed names dynamically with dynamic placeholder fallbacks
+  const detectedSpeakers = Array.from(speakers);
+  let person1 = detectedSpeakers[0] || 'Person 1';
+  let person2 = detectedSpeakers[1] || 'Person 2';
+
+  const delay1 = speakerDelayCount[person1] || 0;
+  const delay2 = speakerDelayCount[person2] || 0;
+
+  // Swap so that person2 (asyncPartner) is always the partner with more pacing delays
+  if (delay1 > delay2) {
+    const temp = person1;
+    person1 = person2;
+    person2 = temp;
+  }
+
+  const activeChillingDelays = speakerChillingCount[person2] || 0;
+
+  // Softened scaling multipliers to prevent extreme baseline dips
+  const structuralAsymmetry = totalDelays > 0 ? Math.min(totalDelays * 1.5, 12) : 0; 
+  const repairFactor = totalDelays > 0 ? Math.round((delaysWithApologiesOrWarmth / totalDelays) * 100) : 100;
   
-  // Calculate dynamic caps outside the LLM request
-  const calculatedToxicity = Math.max(5, Math.min(10 + (activeChillingDelays * 5), 22)); 
-  const calculatedConflictResolution = Math.max(65, Math.min(65 + (repairFactor * 0.25), 90));
-  const calculatedTeamwork = Math.max(60, 90 - structuralAsymmetry);
+  // Adjusted baseline values to keep standard connection dynamics healthy
+  const calculatedToxicity = Math.max(2, Math.min(3 + (activeChillingDelays * 1.5), 10)); 
+  const calculatedConflictResolution = Math.max(70, Math.min(70 + (repairFactor * 0.25), 95));
+  const calculatedTeamwork = Math.max(75, 95 - structuralAsymmetry);
 
   return {
     enrichedText: processedLines.join('\n'),
@@ -84,6 +121,10 @@ function calculateTimelineMetrics(text) {
       conflictResolution: calculatedConflictResolution,
       teamwork: calculatedTeamwork,
       repairPercentage: repairFactor
+    },
+    names: {
+      consistentPartner: person1,
+      asyncPartner: person2
     }
   };
 }
@@ -106,7 +147,11 @@ export default async function handler(req, res) {
   }
 
   // Calculate the time-impact data completely outside the LLM request
-  const { enrichedText, metrics } = calculateTimelineMetrics(chatLog);
+  const { enrichedText, metrics, names } = calculateTimelineMetrics(chatLog);
+
+  // Dynamically calculate dynamic ranges based on calculated metrics to avoid static scoring boundaries
+  const minAccountability = Math.max(75, Math.min(75 + Math.round(metrics.repairPercentage * 0.15), 90));
+  const maxAccountability = Math.max(80, Math.min(80 + Math.round(metrics.repairPercentage * 0.15), 95));
 
   // ==========================================
   // AGENT 1: PERSONA SPECIALIST (Hard Constraints Fed via Context)
@@ -116,19 +161,19 @@ export default async function handler(req, res) {
   Analyze the text, noting the pre-calculated pacing constraints provided below.
   
   PRE-CALCULATED STRUCTURAL CONTEXT:
-  - Rohan has a text repair recovery factor of ${metrics.repairPercentage}%. This means when he delays, he makes up for it with high verbal affection, love notes, or validation ${metrics.repairPercentage}% of the time.
+  - ${names.asyncPartner} has a text repair recovery factor of ${metrics.repairPercentage}%. This means when they delay, they make up for it with high verbal affection, love notes, or validation ${metrics.repairPercentage}% of the time.
   
   SCORING MANDATE:
-  - Aditi: Secure pacing, high availability. Keep her scores (Security, Regulation, Listening, and Owning Personal Errors) high at 85-95%. Since she communicates clearly and doesn't exhibit long delay patterns, score her high (85-95%) for Owning Personal Errors/Accountability as she actively facilitates repair and shows high emotional consistency.
-  - Rohan: 
-    * Accountability / Owning Personal Errors: Set this directly to a balanced range of 70-78% because while he replies late, his repair attempt recovery factor is high at ${metrics.repairPercentage}%.
-    * Emotional Regulation & Receptivity: Anchor these within 70-80%. He displays deep affection and interest when active, but his asynchronous lifestyle slows down the conversational flow. Do not drop below 65% as his text is highly warm and non-defensive.
+  - ${names.consistentPartner}: Secure pacing, high availability. Keep their scores (Security, Regulation, Listening, and Owning Personal Errors) high at 85-95%. Since they communicate clearly and don't exhibit long delay patterns, score them high (85-95%) for Owning Personal Errors/Accountability as they actively facilitate repair and show high emotional consistency.
+  - ${names.asyncPartner}: 
+    * Accountability / Owning Personal Errors: Set this directly to a balanced range of ${minAccountability}-${maxAccountability}% because while they reply late, their repair attempt recovery factor is high at ${metrics.repairPercentage}%.
+    * Emotional Regulation & Receptivity: Anchor these within 80-90%. They display deep affection and interest when active, but their asynchronous lifestyle slows down the conversational flow. Do not drop below 75% as their text is highly warm and non-defensive.
 
   Return ONLY a valid JSON object matching this exact schema:
   {
     "profiles": [
       {
-        "name": "Actual name of Person 1",
+        "name": "${names.consistentPartner}",
         "attachment_security": "XX%",
         "attachment_security_reason": "1 short phrase balancing text lags vs loving reassurance.",
         "emotional_regulation": "XX%",
@@ -141,7 +186,7 @@ export default async function handler(req, res) {
         "accountability_reason": "1 short sentence about how they handle mistakes, delays, or apologizing during the talk."
       },
       {
-        "name": "Actual name of Person 2",
+        "name": "${names.asyncPartner}",
         "attachment_security": "XX%",
         "attachment_security_reason": "1 short phrase balancing text lags vs loving reassurance.",
         "emotional_regulation": "XX%",
