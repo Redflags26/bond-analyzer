@@ -36,6 +36,7 @@ function calculateTimelineMetrics(text) {
   // PASS 1: Clean hidden WhatsApp characters, build Dates, and collect pause start-hours
   let preLastTimestamp = null;
   for (let line of lines) {
+    // Strip invisible Left-to-Right Marks (\u200e) and narrow non-break spaces (\u202f)
     const cleanLine = line.replace(/\u200e/g, '').replace(/\u202f/g, ' ').trim();
     const match = linePattern.exec(cleanLine);
     
@@ -46,6 +47,7 @@ function calculateTimelineMetrics(text) {
         const rawSpeaker = match[3].trim();
         const content = match[4].trim();
 
+        // Clean the speaker name of emojis immediately
         const speaker = stripEmojis(rawSpeaker) || 'Unknown';
 
         // Safely split date components
@@ -53,6 +55,7 @@ function calculateTimelineMetrics(text) {
         if (dateParts.length >= 2) {
           let day = parseInt(dateParts[0], 10);
           let month = parseInt(dateParts[1], 10) - 1; 
+          // Default to current year if missing in the WhatsApp log
           let year = dateParts[2] ? parseInt(dateParts[2], 10) : new Date().getFullYear();
 
           if (dateParts[2] && day > 1000) {
@@ -65,6 +68,7 @@ function calculateTimelineMetrics(text) {
             year = 2000 + year;
           }
 
+          // 12h/24h Time Parser
           const timeRegex = /(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([ap]m)?/i;
           const timeMatch = timeRegex.exec(timePart);
           let hours = 0;
@@ -152,6 +156,7 @@ function calculateTimelineMetrics(text) {
         const currentDate = new Date(currentTimestamp);
         const currentHour = currentDate.getHours();
 
+        // 1. Explicit Night Sleep Window Check
         let isSleepGap = false;
         if (deltaHours <= 14) {
           const startsLate = (lastHour >= 21 || lastHour <= 4); 
@@ -184,6 +189,7 @@ function calculateTimelineMetrics(text) {
       }
     }
 
+    // Reconstruct the chat line with a fully emoji-cleaned speaker name
     const DateComponents = match[1].split(/[:\/\-.]/);
     const dateStr = DateComponents[2] ? `${DateComponents[0]}/${DateComponents[1]}/${DateComponents[2]}` : `${DateComponents[0]}/${DateComponents[1]}`;
     const enhancedLine = `[${dateStr}, ${match[2].trim()}]${delayTag} ${speaker}: ${content}`;
@@ -259,6 +265,16 @@ function safeJsonParse(str) {
   return JSON.parse(cleanStr.trim());
 }
 
+// Helper to parse percentage strings from LLM outputs
+function parsePercent(val, fallback = 90) {
+  if (typeof val === 'number') return val;
+  if (typeof val === 'string') {
+    const parsed = parseInt(val.replace(/%/g, ''), 10);
+    return isNaN(parsed) ? fallback : parsed;
+  }
+  return fallback;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -277,7 +293,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Moved evaluation function inside try-catch to avoid uncaught engine crashes
     const { enrichedText, metrics, names } = calculateTimelineMetrics(chatLog);
 
     const repairPercentage = metrics.repairPercentage !== undefined ? metrics.repairPercentage : 100;
@@ -289,12 +304,26 @@ export default async function handler(req, res) {
     let pacingMandatePersona = "";
     let pacingMandateDynamics = "";
 
+    let bondStrengthReasonDesc = "";
+    let conflictResolutionReasonDesc = "";
+    let relationshipDynamicsReasonDesc = "";
+    let toxicityReasonDesc = "";
+    let summaryDesc = "";
+
     if (isShort) {
+      bondStrengthReasonDesc = "A warm, supportive sentence highlighting their deep mutual affection and beautiful immediate emotional alignment.";
+      conflictResolutionReasonDesc = "1 sentence highlighting how naturally and warmly they coordinate or transition to sleep without friction.";
+      relationshipDynamicsReasonDesc = "A clear, positive look at their beautifully synchronized, highly responsive turn-taking and mutual care.";
+      toxicityReasonDesc = "A realistic view confirming that their interaction is completely healthy, clean, and filled with affection.";
+      
+      summaryDesc = `A friendly, comforting overview summary explaining the beautiful alignment, affectionate nicknames, and high synchronized responsiveness. Explicitly synthesize how their unique personal styles complement each other (e.g., how ${names.consistentPartner}'s encouraging, protective sleep-scheduling style balances with ${names.asyncPartner}'s sweet, receptive, and sleepy sentiment).`;
+
       pacingMandatePersona = `
       CRITICAL OVERRIDE FOR SHORT TIMELINES:
       - This is a brief, highly focused conversation spanning less than 1.5 days. There are no real asynchronous texting gaps.
       - Treat any pauses as entirely normal transitions (such as sleep, work, or travel) and DO NOT mention "pacing lags", "asynchrony", "waiting for responses", or "delayed replies".
       - Base both partners' scores (Security, Regulation, Receptivity, and Owning Errors/Accountability) on high positive baselines (88-95%) due to their continuous, warm, real-time availability and alignment.
+      - Discuss how their personal styles interact (e.g. ${names.consistentPartner} being protective/reminding about sleep schedules vs ${names.asyncPartner} reciprocating warmly).
       `;
 
       pacingMandateDynamics = `
@@ -306,6 +335,13 @@ export default async function handler(req, res) {
       - Under bond_strength, bond_positivity, safety_trust_reason, relationship_dynamics_reason, and summary, DO NOT use terms like "asynchronous texting rhythm", "pacing gaps", "delays", or "waiting for replies". Focus instead on their mutual availability, warm real-time emotional connection, and high responsiveness.
       `;
     } else {
+      bondStrengthReasonDesc = "A supportive sentence combining their deep affection with their pacing reality.";
+      conflictResolutionReasonDesc = "1 sentence describing how sweet check-ins and reassurance balance out occasional texting pauses.";
+      relationshipDynamicsReasonDesc = "A clear look at their turn-taking rhythm, acknowledging any pacing differences gracefully.";
+      toxicityReasonDesc = "A realistic view explaining that pacing gaps represent different habits rather than active hostility.";
+      
+      summaryDesc = `A friendly, comforting overview summary capturing the overall alignment. Synthesize their individual communication styles, how their personal habits complement or differ, and what simple adjustments they can make to align their texting rhythm gracefully over time.`;
+
       pacingMandatePersona = `
       PRE-CALCULATED STRUCTURAL CONTEXT:
       - ${names.asyncPartner} has a text repair recovery factor of ${repairPercentage}%. This means when they delay, they make up for it with high verbal affection, love notes, or validation ${repairPercentage}% of the time.
@@ -376,18 +412,18 @@ export default async function handler(req, res) {
     Return ONLY a valid JSON object matching this exact schema:
     {
       "bond_strength": "XX%",
-      "bond_strength_reason": "A supportive sentence combining their deep affection with their asynchronous pacing reality.",
+      "bond_strength_reason": "${bondStrengthReasonDesc}",
       "bond_positivity": "XX%",
       "bond_positivity_reason": "A warm phrase explaining how loving words and emojis protect the connection atmosphere.",
       "conflict_resolution": "${metrics.conflictResolution || 95}%",
-      "conflict_resolution_reason": "1 sentence describing how sweet check-ins and apologies balance out texting gaps.",
+      "conflict_resolution_reason": "${conflictResolutionReasonDesc}",
       "safety_trust": "XX%",
       "safety_trust_reason": "A warm sentence checking if mutual reassurance successfully keeps anxiety away.",
       "relationship_dynamics": "${metrics.teamwork || 95}%",
-      "relationship_dynamics_reason": "A clear, fair look at their turn-taking rhythm, acknowledging the pacing gap.",
+      "relationship_dynamics_reason": "${relationshipDynamicsReasonDesc}",
       "toxicity": "${metrics.toxicity || 3}%",
-      "toxicity_reason": "A realistic view confirming that gaps represent a difference in texting habits, not active hostility.",
-      "summary": "A friendly, comforting overview summary explaining what is going well (mutual affection, sweet validation) and what basic alignments they can work on together (improving real-time conversational flow)."
+      "toxicity_reason": "${toxicityReasonDesc}",
+      "summary": "${summaryDesc}"
     }`;
 
     // ==========================================
@@ -402,8 +438,8 @@ export default async function handler(req, res) {
       
       Return ONLY a valid JSON object matching this exact schema:
       {
-        "person1_actionables": ["Tip 1", "Tip 2"],
-        "person2_actionables": ["Tip 1", "Tip 2"]
+        "${names.consistentPartner}_actionables": ["Tip 1", "Tip 2"],
+        "${names.asyncPartner}_actionables": ["Tip 1", "Tip 2"]
       }`;
     };
 
@@ -452,59 +488,78 @@ export default async function handler(req, res) {
     const strategistPrompt = makeStrategistPrompt(personaResults, dynamicsResults);
     const strategies = await queryAgent(strategistPrompt, enrichedText);
 
-    // Defensive fallbacks to avoid unhandled TypeError if LLM structures return partial schemas
-    const profile1 = (personaResults && personaResults.profiles && personaResults.profiles[0]) || {
-      name: names.consistentPartner,
-      attachment_security: "88%",
-      attachment_security_reason: "High pacing availability and consistent sweet responses.",
-      emotional_regulation: "90%",
-      emotional_regulation_reason: "Communicates clearly without defensive reactions.",
-      receptivity: "92%",
-      receptivity_reason: "Receives messages warmly and validates partner often.",
-      owning_personal_errors: "90%",
-      owning_personal_errors_reason: "Actively facilitates emotional reassurance.",
-      accountability: "90%",
-      accountability_reason: "Maintains high, reliable accountability."
-    };
+    // --- STRUCTURAL ENFORCEMENT & DYNAMIC MAPPING VALIDATIONS ---
+    if (!dynamicsResults || typeof dynamicsResults !== 'object') {
+      throw new Error("Relationship Dynamics agent failed to generate a valid object payload.");
+    }
 
-    const profile2 = (personaResults && personaResults.profiles && personaResults.profiles[1]) || {
-      name: names.asyncPartner,
-      attachment_security: "85%",
-      attachment_security_reason: "Reassures partner warmly during occasional pauses.",
-      emotional_regulation: "85%",
-      emotional_regulation_reason: "Maintains affection and warm interaction rhythm.",
-      receptivity: "88%",
-      receptivity_reason: "Responds with love notes and validation when available.",
-      owning_personal_errors: "85%",
-      owning_personal_errors_reason: "Welcomes opportunities to check-in.",
-      accountability: "85%",
-      accountability_reason: "Displays sweet repair validation during pauses."
-    };
-
-    const person1_actionables = (strategies && strategies.person1_actionables) || [
-      "Keep sharing sweet validations directly to maintain real-time alignment.",
-      "Check in naturally without overanalyzing routine daily rest periods."
+    const requiredDynamicsKeys = [
+      'bond_strength_reason',
+      'bond_positivity',
+      'bond_positivity_reason',
+      'conflict_resolution_reason',
+      'safety_trust',
+      'safety_trust_reason',
+      'relationship_dynamics_reason',
+      'toxicity_reason',
+      'summary'
     ];
 
-    const person2_actionables = (strategies && strategies.person2_actionables) || [
-      "Send a quick warm update when transitioning into busy work or sleep blocks.",
-      "Continue using high affection and sweet emojis to keep connection safe."
-    ];
+    for (const key of requiredDynamicsKeys) {
+      if (!dynamicsResults[key]) {
+        throw new Error(`Relationship Dynamics agent response is missing key: ${key}`);
+      }
+    }
+
+    if (!personaResults || !personaResults.profiles || !Array.isArray(personaResults.profiles) || personaResults.profiles.length < 2) {
+      throw new Error("Persona Specialist agent failed to return a compliant profiles array for both individuals.");
+    }
+
+    // Dynamic speaker alignment mapping (prevents Swapped Profile Index Hazard)
+    const profiles = personaResults.profiles;
+    const profile1 = profiles.find(p => p.name && p.name.toLowerCase() === names.consistentPartner.toLowerCase()) || profiles[0];
+    const profile2 = profiles.find(p => p.name && p.name.toLowerCase() === names.asyncPartner.toLowerCase()) || profiles[1];
+
+    if (!profile1 || !profile2) {
+      throw new Error("Persona profiles could not be resolved against dynamic speaker names.");
+    }
+
+    // Dynamic strategist key resolution
+    const key1 = `${names.consistentPartner}_actionables`;
+    const key2 = `${names.asyncPartner}_actionables`;
+
+    if (!strategies || !strategies[key1] || !strategies[key2] || !Array.isArray(strategies[key1]) || !Array.isArray(strategies[key2])) {
+      throw new Error("Strategist Agent failed to map dynamic actionable vectors to dynamic speaker names.");
+    }
+
+    const person1_actionables = strategies[key1];
+    const person2_actionables = strategies[key2];
+
+    // Compute deterministic values dynamically
+    const sWarmth = parsePercent(dynamicsResults.bond_positivity, 90);
+    const sResolution = parsePercent(dynamicsResults.conflict_resolution, 95);
+    const sSafety = parsePercent(dynamicsResults.safety_trust, 90);
+    const sDynamics = parsePercent(dynamicsResults.relationship_dynamics, 95);
+    const sToxicity = parsePercent(dynamicsResults.toxicity, 3);
+
+    const calculatedOverallScore = Math.round(
+      (sWarmth + sResolution + sSafety + sDynamics + (100 - sToxicity)) / 5
+    );
 
     const finalAnalyticsResult = {
-      bond_strength: dynamicsResults.bond_strength || "90%",
-      bond_strength_reason: dynamicsResults.bond_strength_reason || "Displays strong emotional alignment and mutual reassurance.",
-      bond_positivity: dynamicsResults.bond_positivity || "92%",
-      bond_positivity_reason: dynamicsResults.bond_positivity_reason || "Warm words and sweet emojis protect the overall atmosphere.",
+      bond_strength: `${calculatedOverallScore}%`,
+      bond_strength_reason: dynamicsResults.bond_strength_reason,
+      bond_positivity: dynamicsResults.bond_positivity,
+      bond_positivity_reason: dynamicsResults.bond_positivity_reason,
       conflict_resolution: dynamicsResults.conflict_resolution || `${metrics.conflictResolution || 95}%`,
-      conflict_resolution_reason: dynamicsResults.conflict_resolution_reason || "Sweet check-ins and warm apologies balance out routine texting gaps.",
-      safety_trust: dynamicsResults.safety_trust || "90%",
-      safety_trust_reason: dynamicsResults.safety_trust_reason || "Mutual reassurance successfully keeps connection anxiety away.",
+      conflict_resolution_reason: dynamicsResults.conflict_resolution_reason,
+      safety_trust: dynamicsResults.safety_trust,
+      safety_trust_reason: dynamicsResults.safety_trust_reason,
       relationship_dynamics: dynamicsResults.relationship_dynamics || `${metrics.teamwork || 95}%`,
-      relationship_dynamics_reason: dynamicsResults.relationship_dynamics_reason || "Comfortable, warm turn-taking with clean synchronization.",
+      relationship_dynamics_reason: dynamicsResults.relationship_dynamics_reason,
       toxicity: dynamicsResults.toxicity || `${metrics.toxicity || 3}%`,
-      toxicity_reason: dynamicsResults.toxicity_reason || "Gaps represent standard sleep or busy schedules, not active hostility.",
-      summary: dynamicsResults.summary || "A highly aligned, loving interaction with strong real-time responsiveness and deep mutual affection.",
+      toxicity_reason: dynamicsResults.toxicity_reason,
+      summary: dynamicsResults.summary,
       profiles: [
         {
           ...profile1,
