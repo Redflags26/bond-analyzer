@@ -1,605 +1,142 @@
-/**
- * EXTERNAL DETERMINISTIC METRIC ENGINE
- * Computes precise mathematical pacing weights outside the LLM layer.
- * 1. enrichedText - Chat log with explicit hour-delay markers (excluding sleep/routine).
- * 2. metrics - Raw numerical constraints to lock down the LLM parameters.
- * 3. names - Dynamically resolved names from the parsed chat log.
- */
-function calculateTimelineMetrics(text) {
-  if (!text || typeof text !== 'string') {
-    return { 
-      enrichedText: '', 
-      metrics: { toxicity: 2, conflictResolution: 70, teamwork: 95, repairPercentage: 100, isShortChat: true, totalDelays: 0 },
-      names: { consistentPartner: 'Person 1', asyncPartner: 'Person 2' }
-    };
-  }
+import { CONFIG, GET_PACING_INJECTION, GET_PERSONA_PROMPT, GET_DYNAMICS_PROMPT, GET_STRATEGIST_PROMPT } from './analyze-config';
 
-  // Regex to strip emojis and miscellaneous symbols from speaker names
-  function stripEmojis(str) {
-    if (!str) return '';
-    return str
-      .replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '')
-      .replace(/[\u2600-\u26FF]/g, '') 
-      .replace(/[\u2700-\u27BF]/g, '') 
-      .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '') 
-      .replace(/\s+/g, ' ') 
-      .trim();
-  }
+// --- UTILS ---
+const stripEmojis = (s) => (s || '').replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]|[\u2600-\u26FF])/g, '').replace(/\s+/g, ' ').trim();
 
-  const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
-  const parsedMessages = [];
+const safeParse = (str) => {
+  const clean = (str || "").trim().replace(/^```json/, "").replace(/```$/, "").trim();
+  try { return JSON.parse(clean); } catch (e) { throw new Error("JSON Parse Error"); }
+};
+
+const parsePct = (v, fb = 90) => {
+  if (typeof v === 'number') return v;
+  const p = parseInt(String(v).replace(/%/g, ''), 10);
+  return isNaN(p) ? fb : p;
+};
+
+async function queryAgent(apiKey, system, user) {
+  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "openrouter/auto",
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+      response_format: { type: "json_object" },
+      temperature: 0.1
+    })
+  });
+  const data = await res.json();
+  return safeParse(data.choices[0].message.content);
+}
+
+// --- ENGINE ---
+function calculateMetrics(text) {
+  const lines = (text || '').split('\n').filter(Boolean);
+  const parsed = [];
   const speakers = new Set();
-  const pauseStartHours = [];
-
+  const pauseHours = [];
   const linePattern = /^\[?(\d{1,4}[:\/\-.]\d{1,4}(?:[:\/\-.]\d{2,4})?),\s*([^\]\-]+)\]?\s*(?:-\s*)?([^:]+):\s*(.*)$/i;
 
-  // PASS 1: Clean hidden WhatsApp characters, build Dates, and collect pause start-hours
-  let preLastTimestamp = null;
-  for (let line of lines) {
-    // Strip invisible Left-to-Right Marks (\u200e) and narrow non-break spaces (\u202f)
-    const cleanLine = line.replace(/\u200e/g, '').replace(/\u202f/g, ' ').trim();
-    const match = linePattern.exec(cleanLine);
+  let lastTs = null;
+  lines.forEach(line => {
+    const clean = line.replace(/\u200e/g, '').replace(/\u202f/g, ' ').trim();
+    const m = linePattern.exec(clean);
+    if (!m) return;
     
-    if (match) {
-      try {
-        const datePart = match[1];
-        const timePart = match[2].trim();
-        const rawSpeaker = match[3].trim();
-        const content = match[4].trim();
+    const dp = m[1].split(/[:\/\-.]/);
+    let d = parseInt(dp[0]), mon = parseInt(dp[1]) - 1, y = dp[2] ? parseInt(dp[2]) : new Date().getFullYear();
+    if (y < 100) y += 2000;
 
-        // Clean the speaker name of emojis immediately
-        const speaker = stripEmojis(rawSpeaker) || 'Unknown';
+    const tm = /(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([ap]m)?/i.exec(m[2]);
+    let hrs = parseInt(tm[1]), mins = parseInt(tm[2]);
+    if (tm[4]?.toLowerCase() === 'pm' && hrs < 12) hrs += 12;
+    if (tm[4]?.toLowerCase() === 'am' && hrs === 12) hrs = 0;
 
-        // Safely split date components
-        const dateParts = datePart.split(/[:\/\-.]/);
-        if (dateParts.length >= 2) {
-          let day = parseInt(dateParts[0], 10);
-          let month = parseInt(dateParts[1], 10) - 1; 
-          // Default to current year if missing in the WhatsApp log
-          let year = dateParts[2] ? parseInt(dateParts[2], 10) : new Date().getFullYear();
+    const ts = new Date(y, mon, d, hrs, mins).getTime();
+    const speaker = stripEmojis(m[3]);
+    speakers.add(speaker);
 
-          if (dateParts[2] && day > 1000) {
-            const tempYear = day;
-            day = year;
-            year = tempYear;
-          }
+    if (lastTs && (ts - lastTs) / 36e5 >= CONFIG.THRESHOLDS.MIN_GAP_HOURS) pauseHours.push(new Date(lastTs).getHours());
+    parsed.push({ ts, speaker, content: m[4], timeLabel: m[2], dateLabel: m[1] });
+    lastTs = ts;
+  });
 
-          if (year < 100) {
-            year = 2000 + year;
-          }
+  const routine = Array(24).fill(0);
+  pauseHours.forEach(h => [h, (h-1+24)%24, (h+1)%24].forEach(i => routine[i]++));
 
-          // 12h/24h Time Parser
-          const timeRegex = /(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([ap]m)?/i;
-          const timeMatch = timeRegex.exec(timePart);
-          let hours = 0;
-          let minutes = 0;
-          let seconds = 0;
-
-          if (timeMatch) {
-            hours = parseInt(timeMatch[1], 10);
-            minutes = parseInt(timeMatch[2], 10);
-            if (timeMatch[3]) seconds = parseInt(timeMatch[3], 10);
-            const ampm = timeMatch[4];
-            if (ampm) {
-              if (ampm.toLowerCase() === 'pm' && hours < 12) hours += 12;
-              if (ampm.toLowerCase() === 'am' && hours === 12) hours = 0;
-            }
-          }
-
-          const currentTimestamp = new Date(year, month, day, hours, minutes, seconds).getTime();
-
-          if (currentTimestamp) {
-            speakers.add(speaker);
-            
-            if (preLastTimestamp) {
-              const deltaHours = (currentTimestamp - preLastTimestamp) / (1000 * 60 * 60);
-              if (deltaHours >= 5 && deltaHours < 2000) {
-                const startHour = new Date(preLastTimestamp).getHours();
-                pauseStartHours.push(startHour);
-              }
-            }
-            
-            parsedMessages.push({ 
-              isSystemOrMedia: false, 
-              timestamp: currentTimestamp, 
-              speaker, 
-              content, 
-              match, 
-              line: cleanLine 
-            });
-            preLastTimestamp = currentTimestamp;
-          } else {
-            parsedMessages.push({ isSystemOrMedia: true, line: cleanLine });
-          }
-        }
-      } catch (e) {
-        parsedMessages.push({ isSystemOrMedia: true, line: cleanLine });
-      }
-    } else {
-      parsedMessages.push({ isSystemOrMedia: true, line: cleanLine });
-    }
-  }
-
-  const routineHourCounts = Array(24).fill(0);
-  for (const h of pauseStartHours) {
-    routineHourCounts[h]++;
-    routineHourCounts[(h - 1 + 24) % 24]++;
-    routineHourCounts[(h + 1) % 24]++;
-  }
-
-  // PASS 2: Exclude sleep/routine pause windows
-  const processedLines = [];
-  let lastTimestamp = null;
-  let totalDelays = 0;
-  let delaysWithApologiesOrWarmth = 0;
-  const speakerDelayCount = {};
-  const speakerChillingCount = {};
-
-  for (let msg of parsedMessages) {
-    if (msg.isSystemOrMedia) {
-      processedLines.push(msg.line);
-      continue;
-    }
-
-    const currentTimestamp = msg.timestamp;
-    const speaker = msg.speaker;
-    const content = msg.content;
-    const match = msg.match;
-
-    let delayTag = "";
-    if (currentTimestamp && lastTimestamp) {
-      const deltaHours = (currentTimestamp - lastTimestamp) / (1000 * 60 * 60);
-
-      if (deltaHours >= 5 && deltaHours < 2000) {
-        const lastDate = new Date(lastTimestamp);
-        const lastHour = lastDate.getHours();
-        const currentDate = new Date(currentTimestamp);
-        const currentHour = currentDate.getHours();
-
-        // 1. Explicit Night Sleep Window Check
-        let isSleepGap = false;
-        if (deltaHours <= 14) {
-          const startsLate = (lastHour >= 21 || lastHour <= 4); 
-          const endsNextMorning = (currentHour >= 5 && currentHour <= 11); 
-          const differentDay = lastDate.getDate() !== currentDate.getDate();
-          if (startsLate && endsNextMorning && differentDay) {
-            isSleepGap = true;
-          }
-        }
-
-        const isRoutineGap = (routineHourCounts[lastHour] >= 2) && (deltaHours <= 16);
-
-        if (!isSleepGap && !isRoutineGap) {
-          totalDelays++;
-          speakerDelayCount[speaker] = (speakerDelayCount[speaker] || 0) + 1;
-
-          const roundedHours = Math.round(deltaHours);
-          delayTag = ` [Asynchronous pause of ${roundedHours} hours]`;
-
-          const lowerContent = content.toLowerCase();
-          const warmKeywords = ['sorry', 'guilty', 'babe', 'love', '💕', '❤️', 'haha', 'hey', 'sweet', 'dear', 'thanks', 'hug', 'miss', '🥰', '😘', '😊', 'lol'];
-          const hasApology = warmKeywords.some(kw => lowerContent.includes(kw));
-          const isChilling = lowerContent.includes('chilling') || lowerContent.includes('relaxing') || lowerContent.includes('scrolling');
-
-          if (hasApology) delaysWithApologiesOrWarmth++;
-          if (isChilling) {
-            speakerChillingCount[speaker] = (speakerChillingCount[speaker] || 0) + 1;
-          }
-        }
-      }
-    }
-
-    // Reconstruct the chat line with a fully emoji-cleaned speaker name
-    const DateComponents = match[1].split(/[:\/\-.]/);
-    const dateStr = DateComponents[2] ? `${DateComponents[0]}/${DateComponents[1]}/${DateComponents[2]}` : `${DateComponents[0]}/${DateComponents[1]}`;
-    const enhancedLine = `[${dateStr}, ${match[2].trim()}]${delayTag} ${speaker}: ${content}`;
-    processedLines.push(enhancedLine);
-
-    if (currentTimestamp) lastTimestamp = currentTimestamp;
-  }
-
-  const detectedSpeakers = Array.from(speakers);
-  let person1 = detectedSpeakers[0] || 'Person 1';
-  let person2 = detectedSpeakers[1] || 'Person 2';
-
-  const delay1 = speakerDelayCount[person1] || 0;
-  const delay2 = speakerDelayCount[person2] || 0;
-
-  if (delay1 > delay2) {
-    const temp = person1;
-    person1 = person2;
-    person2 = temp;
-  }
-
-  const activeChillingDelays = speakerChillingCount[person2] || 0;
-
-  const validTimestamps = parsedMessages
-    .filter(m => !m.isSystemOrMedia && m.timestamp)
-    .map(m => m.timestamp);
-
-  let chatSpanDays = 0;
-  if (validTimestamps.length >= 2) {
-    const minTimestamp = Math.min(...validTimestamps);
-    const maxTimestamp = Math.max(...validTimestamps);
-    chatSpanDays = (maxTimestamp - minTimestamp) / (1000 * 60 * 60 * 24);
-  }
-
-  const isShortChat = chatSpanDays <= 1.5;
-
-  const structuralAsymmetry = totalDelays > 0 ? Math.min(totalDelays * 1.5, 12) : 0; 
-  const repairFactor = totalDelays > 0 ? Math.round((delaysWithApologiesOrWarmth / totalDelays) * 100) : 100;
+  let totalDelays = 0, repairs = 0;
+  const chillingCount = {}, delayCount = {};
   
-  const calculatedToxicity = Math.max(2, Math.min(3 + (activeChillingDelays * 1.5), 10)); 
-  const calculatedConflictResolution = Math.max(70, Math.min(70 + (repairFactor * 0.25), 95));
-  const calculatedTeamwork = Math.max(75, 95 - structuralAsymmetry);
+  const enriched = parsed.map((msg, i) => {
+    let tag = "";
+    if (i > 0) {
+      const delta = (msg.ts - parsed[i-1].ts) / 36e5;
+      if (delta >= CONFIG.THRESHOLDS.MIN_GAP_HOURS) {
+        const ld = new Date(parsed[i-1].ts), cd = new Date(msg.ts);
+        const isSleep = (ld.getHours() >= CONFIG.THRESHOLDS.SLEEP_START_HOUR || ld.getHours() <= CONFIG.THRESHOLDS.SLEEP_END_HOUR) && (cd.getHours() >= CONFIG.THRESHOLDS.MORNING_START && cd.getHours() <= CONFIG.THRESHOLDS.MORNING_END);
+        if (!isSleep && routine[ld.getHours()] < 2) {
+          totalDelays++;
+          delayCount[msg.speaker] = (delayCount[msg.speaker] || 0) + 1;
+          tag = ` [Asynchronous pause of ${Math.round(delta)} hours]`;
+          if (CONFIG.STRINGS.WARM_KEYWORDS.some(k => msg.content.toLowerCase().includes(k))) repairs++;
+          if (CONFIG.STRINGS.CHILL_KEYWORDS.some(k => msg.content.toLowerCase().includes(k))) chillingCount[msg.speaker] = (chillingCount[msg.speaker] || 0) + 1;
+        }
+      }
+    }
+    return `[${msg.dateLabel}, ${msg.timeLabel}]${tag} ${msg.speaker}: ${msg.content}`;
+  });
+
+  const sArr = Array.from(speakers);
+  let p1 = sArr[0] || 'P1', p2 = sArr[1] || 'P2';
+  if ((delayCount[p1] || 0) > (delayCount[p2] || 0)) [p1, p2] = [p2, p1];
+
+  const times = parsed.map(m => m.ts);
+  const isShort = (Math.max(...times) - Math.min(...times)) / 864e5 <= CONFIG.THRESHOLDS.SHORT_CHAT_DAYS;
 
   return {
-    enrichedText: processedLines.join('\n'),
+    enrichedText: enriched.join('\n'),
+    names: { consistentPartner: p1, asyncPartner: p2 },
     metrics: {
-      toxicity: calculatedToxicity,
-      conflictResolution: calculatedConflictResolution,
-      teamwork: calculatedTeamwork,
-      repairPercentage: repairFactor,
-      isShortChat: isShortChat,
-      totalDelays: totalDelays
-    },
-    names: {
-      consistentPartner: person1,
-      asyncPartner: person2
+      toxicity: Math.max(2, Math.min(3 + ((chillingCount[p2] || 0) * 1.5), 10)),
+      conflictResolution: Math.max(70, Math.min(70 + (repairs / (totalDelays || 1) * 25), 95)),
+      teamwork: Math.max(75, 95 - Math.min(totalDelays * 1.5, 12)),
+      repairPercentage: Math.round((repairs / (totalDelays || 1)) * 100),
+      isShortChat: isShort
     }
   };
 }
 
-// Clean potential code-block wrappings returned by OpenRouter endpoints
-function safeJsonParse(str) {
-  if (!str) return null;
-  let cleanStr = str.trim();
-  if (cleanStr.startsWith("```json")) {
-    cleanStr = cleanStr.substring(7);
-  } else if (cleanStr.startsWith("```")) {
-    cleanStr = cleanStr.substring(3);
-  }
-  if (cleanStr.endsWith("```")) {
-    cleanStr = cleanStr.substring(0, cleanStr.length - 3);
-  }
-  return JSON.parse(cleanStr.trim());
-}
-
-// Helper to parse percentage strings from LLM outputs
-function parsePercent(val, fallback = 90) {
-  if (typeof val === 'number') return val;
-  if (typeof val === 'string') {
-    const parsed = parseInt(val.replace(/%/g, ''), 10);
-    return isNaN(parsed) ? fallback : parsed;
-  }
-  return fallback;
-}
-
+// --- HANDLER ---
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
+  if (req.method !== 'POST') return res.status(405).end();
   const { chatLog, userId } = req.body;
   const apiKey = process.env.OPENROUTER_API_KEY;
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!apiKey || !supabaseUrl || !supabaseServiceKey) {
-    return res.status(500).json({ error: 'Configuration Error: Operational keys are missing from your system panel.' });
-  }
 
   try {
-    const { enrichedText, metrics, names } = calculateTimelineMetrics(chatLog);
+    const { enrichedText, metrics, names } = calculateMetrics(chatLog);
+    const pacing = GET_PACING_INJECTION(metrics.isShortChat, names, metrics);
 
-    const repairPercentage = metrics.repairPercentage !== undefined ? metrics.repairPercentage : 100;
-    const minAccountability = Math.max(75, Math.min(75 + Math.round(repairPercentage * 0.15), 90));
-    const maxAccountability = Math.max(80, Math.min(80 + Math.round(repairPercentage * 0.15), 95));
-
-    const isShort = metrics.isShortChat || metrics.totalDelays === 0;
-
-    let pacingMandatePersona = "";
-    let pacingMandateDynamics = "";
-
-    let bondStrengthReasonDesc = "";
-    let conflictResolutionReasonDesc = "";
-    let relationshipDynamicsReasonDesc = "";
-    let toxicityReasonDesc = "";
-    let summaryDesc = "";
-
-    if (isShort) {
-      bondStrengthReasonDesc = "A warm, supportive sentence highlighting their deep mutual affection and beautiful immediate emotional alignment.";
-      conflictResolutionReasonDesc = "1 sentence highlighting how naturally and warmly they coordinate or transition to sleep without friction.";
-      relationshipDynamicsReasonDesc = "A clear, positive look at their beautifully synchronized, highly responsive turn-taking and mutual care.";
-      toxicityReasonDesc = "A realistic view confirming that their interaction is completely healthy, clean, and filled with affection.";
-      
-      summaryDesc = `A friendly, comforting overview summary explaining the beautiful alignment, affectionate nicknames, and high synchronized responsiveness. Explicitly synthesize how their unique personal styles complement each other (e.g., how ${names.consistentPartner}'s encouraging, protective sleep-scheduling style balances with ${names.asyncPartner}'s sweet, receptive, and sleepy sentiment).`;
-
-      pacingMandatePersona = `
-      CRITICAL OVERRIDE FOR SHORT TIMELINES:
-      - This is a brief, highly focused conversation spanning less than 1.5 days. There are no real asynchronous texting gaps.
-      - Treat any pauses as entirely normal transitions (such as sleep, work, or travel) and DO NOT mention "pacing lags", "asynchrony", "waiting for responses", or "delayed replies".
-      - Base both partners' scores (Security, Regulation, Receptivity, and Owning Errors/Accountability) on high positive baselines (88-95%) due to their continuous, warm, real-time availability and alignment.
-      - Discuss how their personal styles interact (e.g. ${names.consistentPartner} being protective/reminding about sleep schedules vs ${names.asyncPartner} reciprocating warmly).
-      `;
-
-      pacingMandateDynamics = `
-      CRITICAL OVERRIDE FOR SHORT TIMELINES:
-      - This conversation spans less than 1.5 days. No meaningful asynchronous rhythm exists. Any pauses represent sleep or travel and must be ignored.
-      - Toxicity Level: Must be exactly "${metrics.toxicity || 3}%".
-      - Conflict Resolution: Must be exactly "${metrics.conflictResolution || 95}%".
-      - Relationship Dynamics: Must be exactly "${metrics.teamwork || 95}%".
-      - Under bond_strength, bond_positivity, safety_trust_reason, relationship_dynamics_reason, and summary, DO NOT use terms like "asynchronous texting rhythm", "pacing gaps", "delays", or "waiting for replies". Focus instead on their mutual availability, warm real-time emotional connection, and high responsiveness.
-      `;
-    } else {
-      bondStrengthReasonDesc = "A supportive sentence combining their deep affection with their pacing reality.";
-      conflictResolutionReasonDesc = "1 sentence describing how sweet check-ins and reassurance balance out occasional texting pauses.";
-      relationshipDynamicsReasonDesc = "A clear look at their turn-taking rhythm, acknowledging any pacing differences gracefully.";
-      toxicityReasonDesc = "A realistic view explaining that pacing gaps represent different habits rather than active hostility.";
-      
-      summaryDesc = `A friendly, comforting overview summary capturing the overall alignment. Synthesize their individual communication styles, how their personal habits complement or differ, and what simple adjustments they can make to align their texting rhythm gracefully over time.`;
-
-      pacingMandatePersona = `
-      PRE-CALCULATED STRUCTURAL CONTEXT:
-      - ${names.asyncPartner} has a text repair recovery factor of ${repairPercentage}%. This means when they delay, they make up for it with high verbal affection, love notes, or validation ${repairPercentage}% of the time.
-      
-      SCORING MANDATE:
-      - ${names.consistentPartner}: Secure pacing, high availability. Keep their scores (Security, Regulation, Listening, and Owning Personal Errors) high at 85-95%. Since they communicate clearly and don't exhibit long delay patterns, score them high (85-95%) for Owning Personal Errors/Accountability as they actively facilitate repair and show high emotional consistency.
-      - ${names.asyncPartner}: 
-        * Accountability / Owning Personal Errors: Set this directly to a balanced range of ${minAccountability}-${maxAccountability}% because while they reply late, their repair attempt recovery factor is high at ${repairPercentage}%.
-        * Emotional Regulation & Receptivity: Anchor these within 80-90%. They display deep affection and interest when active, but their asynchronous lifestyle slows down the conversational flow. Do not drop below 75% as their text is highly warm and non-defensive.
-      `;
-
-      pacingMandateDynamics = `
-      DETERMINISTIC METRIC CONSTRAINTS:
-      - Toxicity Level: Must be exactly "${metrics.toxicity || 3}%". (Reason: There is zero active conflict or hostility, but a mild ${metrics.toxicity || 3}% asymmetry exists because one partner responds slowly while chilling).
-      - Conflict Resolution: Must be exactly "${metrics.conflictResolution || 95}%". (Reason: While direct plans are occasionally deflected, conversational gaps are handled with high emotional reassurance and mutual validation).
-      - Relationship Dynamics: Must be exactly "${metrics.teamwork || 95}%". (Reason: Reflects an unequal real-time interactive flow where one partner routinely waits for answers).
-      `;
-    }
-
-    // ==========================================
-    // AGENT 1: PERSONA SPECIALIST
-    // ==========================================
-    const personaPrompt = `You are a behavioral psychologist profiling conversational patterns.
-    Analyze the text, noting the pre-calculated pacing constraints provided below.
-    
-    ${pacingMandatePersona}
-
-    Return ONLY a valid JSON object matching this exact schema:
-    {
-      "profiles": [
-        {
-          "name": "${names.consistentPartner}",
-          "attachment_security": "XX%",
-          "attachment_security_reason": "1 short phrase balancing text lags vs loving reassurance.",
-          "emotional_regulation": "XX%",
-          "emotional_regulation_reason": "1 clear sentence about their consistency and interactive speed.",
-          "receptivity": "XX%",
-          "receptivity_reason": "1 short sentence showing how warmly they receive their partner's check-ins.",
-          "owning_personal_errors": "XX%",
-          "owning_personal_errors_reason": "1 short sentence about how they handle mistakes, delays, or apologizing during the talk.",
-          "accountability": "XX%",
-          "accountability_reason": "1 short sentence about how they handle mistakes, delays, or apologizing during the talk."
-        },
-        {
-          "name": "${names.asyncPartner}",
-          "attachment_security": "XX%",
-          "attachment_security_reason": "1 short phrase balancing text lags vs loving reassurance.",
-          "emotional_regulation": "XX%",
-          "emotional_regulation_reason": "1 clear sentence about their consistency and interactive speed.",
-          "receptivity": "XX%",
-          "receptivity_reason": "1 short sentence showing how warmly they receive their partner's check-ins.",
-          "owning_personal_errors": "XX%",
-          "owning_personal_errors_reason": "1 short sentence about how they handle mistakes, delays, or apologizing during the talk.",
-          "accountability": "XX%",
-          "accountability_reason": "1 short sentence about how they handle mistakes, delays, or apologizing during the talk."
-        }
-      ]
-    }`;
-
-    // ==========================================
-    // AGENT 2: RELATIONSHIP DYNAMICS
-    // ==========================================
-    const dynamicsPrompt = `You are a relationship counselor evaluating a couple's interaction data.
-    You must apply the exact mathematical scores computed by our timeline parsing engine below. Do not deviate from these numbers.
-
-    ${pacingMandateDynamics}
-
-    Return ONLY a valid JSON object matching this exact schema:
-    {
-      "bond_strength": "XX%",
-      "bond_strength_reason": "${bondStrengthReasonDesc}",
-      "bond_positivity": "XX%",
-      "bond_positivity_reason": "A warm phrase explaining how loving words and emojis protect the connection atmosphere.",
-      "conflict_resolution": "${metrics.conflictResolution || 95}%",
-      "conflict_resolution_reason": "${conflictResolutionReasonDesc}",
-      "safety_trust": "XX%",
-      "safety_trust_reason": "A warm sentence checking if mutual reassurance successfully keeps anxiety away.",
-      "relationship_dynamics": "${metrics.teamwork || 95}%",
-      "relationship_dynamics_reason": "${relationshipDynamicsReasonDesc}",
-      "toxicity": "${metrics.toxicity || 3}%",
-      "toxicity_reason": "${toxicityReasonDesc}",
-      "summary": "${summaryDesc}"
-    }`;
-
-    // ==========================================
-    // AGENT 3: THE STRATEGIST
-    // ==========================================
-    const makeStrategistPrompt = (personaData, dynamicsData) => {
-      return `You are a behavioral strategist. Review these profile files generated by the analysis agents:
-      Individual Profiles: ${JSON.stringify(personaData)}
-      Macro Dynamics: ${JSON.stringify(dynamicsData)}
-      
-      Write exactly 2 actionable next steps for each person using clear, comforting, everyday language. Do not show numbers.
-      
-      Return ONLY a valid JSON object matching this exact schema:
-      {
-        "${names.consistentPartner}_actionables": ["Tip 1", "Tip 2"],
-        "${names.asyncPartner}_actionables": ["Tip 1", "Tip 2"]
-      }`;
-    };
-
-    async function queryAgent(systemInstructions, userContent) {
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "openrouter/auto", 
-          messages: [
-            { role: "system", content: systemInstructions },
-            { role: "user", content: userContent }
-          ],
-          response_format: { type: "json_object" },
-          temperature: 0.1 
-        })
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`OpenRouter query failed with status ${response.status}: ${errorText}`);
-      }
-      const resData = await response.json();
-      
-      if (!resData.choices || !resData.choices[0] || !resData.choices[0].message) {
-        throw new Error("OpenRouter returned an empty or malformed completion payload.");
-      }
-      
-      const content = resData.choices[0].message.content;
-      try {
-        return safeJsonParse(content);
-      } catch (e) {
-        console.error("Agent JSON parsing failed. Content payload was:", content);
-        throw new Error(`Failed to parse compliant JSON structure from agent response: ${e.message}`);
-      }
-    }
-
-    const [personaResults, dynamicsResults] = await Promise.all([
-      queryAgent(personaPrompt, enrichedText),
-      queryAgent(dynamicsPrompt, enrichedText)
+    const [persona, dynamics] = await Promise.all([
+      queryAgent(apiKey, GET_PERSONA_PROMPT(names, pacing), enrichedText),
+      queryAgent(apiKey, GET_DYNAMICS_PROMPT(names, metrics, pacing), enrichedText)
     ]);
 
-    const strategistPrompt = makeStrategistPrompt(personaResults, dynamicsResults);
-    const strategies = await queryAgent(strategistPrompt, enrichedText);
+    const tips = await queryAgent(apiKey, GET_STRATEGIST_PROMPT(names, persona, dynamics), enrichedText);
 
-    // --- STRUCTURAL ENFORCEMENT & DYNAMIC MAPPING VALIDATIONS ---
-    if (!dynamicsResults || typeof dynamicsResults !== 'object') {
-      throw new Error("Relationship Dynamics agent failed to generate a valid object payload.");
-    }
+    const scores = [parsePct(dynamics.bond_positivity), parsePct(dynamics.conflict_resolution), parsePct(dynamics.safety_trust), parsePct(dynamics.relationship_dynamics), (100 - parsePct(dynamics.toxicity))];
+    const avg = Math.round(scores.reduce((a, b) => a + b) / 5);
 
-    const requiredDynamicsKeys = [
-      'bond_strength_reason',
-      'bond_positivity',
-      'bond_positivity_reason',
-      'conflict_resolution_reason',
-      'safety_trust',
-      'safety_trust_reason',
-      'relationship_dynamics_reason',
-      'toxicity_reason',
-      'summary'
-    ];
-
-    for (const key of requiredDynamicsKeys) {
-      if (!dynamicsResults[key]) {
-        throw new Error(`Relationship Dynamics agent response is missing key: ${key}`);
-      }
-    }
-
-    if (!personaResults || !personaResults.profiles || !Array.isArray(personaResults.profiles) || personaResults.profiles.length < 2) {
-      throw new Error("Persona Specialist agent failed to return a compliant profiles array for both individuals.");
-    }
-
-    // Dynamic speaker alignment mapping (prevents Swapped Profile Index Hazard)
-    const profiles = personaResults.profiles;
-    const profile1 = profiles.find(p => p.name && p.name.toLowerCase() === names.consistentPartner.toLowerCase()) || profiles[0];
-    const profile2 = profiles.find(p => p.name && p.name.toLowerCase() === names.asyncPartner.toLowerCase()) || profiles[1];
-
-    if (!profile1 || !profile2) {
-      throw new Error("Persona profiles could not be resolved against dynamic speaker names.");
-    }
-
-    // Dynamic strategist key resolution
-    const key1 = `${names.consistentPartner}_actionables`;
-    const key2 = `${names.asyncPartner}_actionables`;
-
-    if (!strategies || !strategies[key1] || !strategies[key2] || !Array.isArray(strategies[key1]) || !Array.isArray(strategies[key2])) {
-      throw new Error("Strategist Agent failed to map dynamic actionable vectors to dynamic speaker names.");
-    }
-
-    const person1_actionables = strategies[key1];
-    const person2_actionables = strategies[key2];
-
-    // Compute deterministic values dynamically
-    const sWarmth = parsePercent(dynamicsResults.bond_positivity, 90);
-    const sResolution = parsePercent(dynamicsResults.conflict_resolution, 95);
-    const sSafety = parsePercent(dynamicsResults.safety_trust, 90);
-    const sDynamics = parsePercent(dynamicsResults.relationship_dynamics, 95);
-    const sToxicity = parsePercent(dynamicsResults.toxicity, 3);
-
-    const calculatedOverallScore = Math.round(
-      (sWarmth + sResolution + sSafety + sDynamics + (100 - sToxicity)) / 5
-    );
-
-    const finalAnalyticsResult = {
-      bond_strength: `${calculatedOverallScore}%`,
-      bond_strength_reason: dynamicsResults.bond_strength_reason,
-      bond_positivity: dynamicsResults.bond_positivity,
-      bond_positivity_reason: dynamicsResults.bond_positivity_reason,
-      conflict_resolution: dynamicsResults.conflict_resolution || `${metrics.conflictResolution || 95}%`,
-      conflict_resolution_reason: dynamicsResults.conflict_resolution_reason,
-      safety_trust: dynamicsResults.safety_trust,
-      safety_trust_reason: dynamicsResults.safety_trust_reason,
-      relationship_dynamics: dynamicsResults.relationship_dynamics || `${metrics.teamwork || 95}%`,
-      relationship_dynamics_reason: dynamicsResults.relationship_dynamics_reason,
-      toxicity: dynamicsResults.toxicity || `${metrics.toxicity || 3}%`,
-      toxicity_reason: dynamicsResults.toxicity_reason,
-      summary: dynamicsResults.summary,
-      profiles: [
-        {
-          ...profile1,
-          actionables: person1_actionables
-        },
-        {
-          ...profile2,
-          actionables: person2_actionables
-        }
-      ]
+    const final = {
+      ...dynamics,
+      bond_strength: `${avg}%`,
+      profiles: persona.profiles.map(p => ({
+        ...p,
+        actionables: tips[`${p.name}_actionables`] || tips[Object.keys(tips).find(k => k.toLowerCase().includes(p.name.toLowerCase()))] || []
+      }))
     };
 
-    try {
-      const cleanDbUrl = supabaseUrl.replace(/\/$/, "");
-      await fetch(`${cleanDbUrl}/rest/v1/conversations`, {
-        method: "POST",
-        headers: {
-          "apikey": supabaseServiceKey,
-          "Authorization": `Bearer ${supabaseServiceKey}`,
-          "Content-Type": "application/json",
-          "Prefer": "return=minimal"
-        },
-        body: JSON.stringify({
-          bond_strength: finalAnalyticsResult.bond_strength,
-          summary: finalAnalyticsResult.summary,
-          full_analytics: finalAnalyticsResult,
-          ...(userId ? { user_id: userId } : {})
-        })
-      });
-    } catch (dbError) {
-      console.error("Database sync trace bypass:", dbError.message);
-    }
-
-    return res.status(200).json({
-      modelUsed: "deterministic-hybrid-pipeline",
-      analytics: finalAnalyticsResult
-    });
-
-  } catch (error) {
-    console.error("Pipeline run error:", error.message);
-    return res.status(500).json({ error: `Internal execution issue during parsing: ${error.message}` });
+    return res.status(200).json({ analytics: final });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 }
