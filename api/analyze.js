@@ -14,18 +14,30 @@ function calculateTimelineMetrics(text) {
     };
   }
 
+  // Regex to strip emojis and miscellaneous symbols from speaker names
+  function stripEmojis(str) {
+    if (!str) return '';
+    return str
+      .replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '')
+      .replace(/[\u2600-\u26FF]/g, '') // Miscellaneous symbols
+      .replace(/[\u2700-\u27BF]/g, '') // Dingbats
+      .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '') // Surrogate pairs
+      .replace(/\s+/g, ' ') // Collapse multiple spaces
+      .trim();
+  }
+
   const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
   const parsedMessages = [];
   const speakers = new Set();
   const pauseStartHours = [];
 
-  // Super-robust regex to extract Date, Time, Speaker, and Content across iOS/Android formats
-  const linePattern = /^\[?(\d{1,4}[:\/\-.]\d{1,4}[:\/\-.]\d{2,4}),\s*([^\]\-]+)\]?\s*(?:-\s*)?([^:]+):\s*(.*)$/i;
+  // Updated pattern to support dates with OR without years (e.g. 15/05 or 15/05/2026)
+  const linePattern = /^\[?(\d{1,4}[:\/\-.]\d{1,4}(?:[:\/\-.]\d{2,4})?),\s*([^\]\-]+)\]?\s*(?:-\s*)?([^:]+):\s*(.*)$/i;
 
   // PASS 1: Clean hidden WhatsApp characters, build Dates, and collect pause start-hours
   let preLastTimestamp = null;
   for (let line of lines) {
-    // Strip invisible Left-to-Right Marks (\u200e) and narrow non-break spaces (\u202f) commonly injected by WhatsApp
+    // Strip invisible Left-to-Right Marks (\u200e) and narrow non-break spaces (\u202f)
     const cleanLine = line.replace(/\u200e/g, '').replace(/\u202f/g, ' ').trim();
     const match = linePattern.exec(cleanLine);
     
@@ -33,18 +45,22 @@ function calculateTimelineMetrics(text) {
       try {
         const datePart = match[1];
         const timePart = match[2].trim();
-        const speaker = match[3].trim();
+        const rawSpeaker = match[3].trim();
         const content = match[4].trim();
 
-        // Safely split date components on any common separators
+        // Clean the speaker name of emojis immediately
+        const speaker = stripEmojis(rawSpeaker) || 'Unknown';
+
+        // Safely split date components
         const dateParts = datePart.split(/[\/\-.]/);
-        if (dateParts.length >= 3) {
+        if (dateParts.length >= 2) {
           let day = parseInt(dateParts[0], 10);
           let month = parseInt(dateParts[1], 10) - 1; 
-          let year = parseInt(dateParts[2], 10);
+          // Default to current year if missing in the WhatsApp log
+          let year = dateParts[2] ? parseInt(dateParts[2], 10) : new Date().getFullYear();
 
           // Handle ISO formats (YYYY-MM-DD) safely
-          if (day > 1000) {
+          if (dateParts[2] && day > 1000) {
             const tempYear = day;
             day = year;
             year = tempYear;
@@ -55,7 +71,7 @@ function calculateTimelineMetrics(text) {
             year = 2000 + year;
           }
 
-          // Robust 12h/24h Time Parser
+          // 12h/24h Time Parser
           const timeRegex = /(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([ap]m)?/i;
           const timeMatch = timeRegex.exec(timePart);
           let hours = 0;
@@ -115,7 +131,7 @@ function calculateTimelineMetrics(text) {
     routineHourCounts[(h + 1) % 24]++;
   }
 
-  // PASS 2: Exclude sleep/routine pause windows from delay counts
+  // PASS 2: Exclude sleep/routine pause windows from delay counts and clean logs
   const processedLines = [];
   let lastTimestamp = null;
   let totalDelays = 0;
@@ -134,6 +150,7 @@ function calculateTimelineMetrics(text) {
     const content = msg.content;
     const match = msg.match;
 
+    let delayTag = "";
     if (currentTimestamp && lastTimestamp) {
       const deltaHours = (currentTimestamp - lastTimestamp) / (1000 * 60 * 60);
 
@@ -163,7 +180,7 @@ function calculateTimelineMetrics(text) {
           speakerDelayCount[speaker] = (speakerDelayCount[speaker] || 0) + 1;
 
           const roundedHours = Math.round(deltaHours);
-          let delayTag = ` [Asynchronous pause of ${roundedHours} hours]`;
+          delayTag = ` [Asynchronous pause of ${roundedHours} hours]`;
 
           const lowerContent = content.toLowerCase();
           const warmKeywords = ['sorry', 'guilty', 'babe', 'love', '💕', '❤️', 'haha', 'hey', 'sweet', 'dear', 'thanks', 'hug', 'miss', '🥰', '😘', '😊', 'lol'];
@@ -174,18 +191,17 @@ function calculateTimelineMetrics(text) {
           if (isChilling) {
             speakerChillingCount[speaker] = (speakerChillingCount[speaker] || 0) + 1;
           }
-
-          const DateComponents = match[1].split(/[\/\-.]/);
-          const enhancedLine = `[${DateComponents[0]}/${DateComponents[1]}/${DateComponents[2]}, ${match[2]}]${delayTag} ${speaker}: ${content}`;
-          processedLines.push(enhancedLine);
-          lastTimestamp = currentTimestamp;
-          continue;
         }
       }
     }
 
+    // Reconstruct the chat line with a fully emoji-cleaned speaker name
+    const DateComponents = match[1].split(/[\/\-.]/);
+    const dateStr = DateComponents[2] ? `${DateComponents[0]}/${DateComponents[1]}/${DateComponents[2]}` : `${DateComponents[0]}/${DateComponents[1]}`;
+    const enhancedLine = `[${dateStr}, ${match[2].trim()}]${delayTag} ${speaker}: ${content}`;
+    processedLines.push(enhancedLine);
+
     if (currentTimestamp) lastTimestamp = currentTimestamp;
-    processedLines.push(msg.line);
   }
 
   // Extract resolved names
@@ -463,22 +479,4 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           bond_strength: finalAnalyticsResult.bond_strength,
-          summary: finalAnalyticsResult.summary,
-          full_analytics: finalAnalyticsResult,
-          ...(userId ? { user_id: userId } : {})
-        })
-      });
-    } catch (dbError) {
-      console.error("Database sync trace bypass:", dbError.message);
-    }
-
-    return res.status(200).json({
-      modelUsed: "deterministic-hybrid-pipeline",
-      analytics: finalAnalyticsResult
-    });
-
-  } catch (error) {
-    console.error("Pipeline run error:", error.message);
-    return res.status(500).json({ error: 'Something went wrong while processing structural interaction profiles.' });
-  }
-}
+          summary: finalAnalyticsR
