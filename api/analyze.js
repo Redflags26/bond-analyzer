@@ -9,7 +9,7 @@ function calculateTimelineMetrics(text) {
   if (!text || typeof text !== 'string') {
     return { 
       enrichedText: '', 
-      metrics: { toxicity: 2, conflictResolution: 70, teamwork: 95, repairPercentage: 100 },
+      metrics: { toxicity: 2, conflictResolution: 70, teamwork: 95, repairPercentage: 100, isShortChat: true, totalDelays: 0 },
       names: { consistentPartner: 'Person 1', asyncPartner: 'Person 2' }
     };
   }
@@ -19,96 +19,103 @@ function calculateTimelineMetrics(text) {
   const speakers = new Set();
   const pauseStartHours = [];
 
-  // Robust line pattern matching iOS, Android, and Web standard date/time formats
-  const linePattern = /^\[?(\d{1,4})[\/\-.](\d{1,4})[\/\-.](\d{2,4}),\s*([^\]\-]+)\]?\s*(?:-\s*)?([^:]+):\s*(.*)$/i;
+  // Super-robust regex to extract Date, Time, Speaker, and Content across iOS/Android formats
+  const linePattern = /^\[?(\d{1,4}[:\/\-.]\d{1,4}[:\/\-.]\d{2,4}),\s*([^\]\-]+)\]?\s*(?:-\s*)?([^:]+):\s*(.*)$/i;
 
-  // PASS 1: Parse raw records, build timezone-safe Dates, and collect pause start-hour clusters
+  // PASS 1: Clean hidden WhatsApp characters, build Dates, and collect pause start-hours
   let preLastTimestamp = null;
   for (let line of lines) {
-    const match = linePattern.exec(line);
+    // Strip invisible Left-to-Right Marks (\u200e) and narrow non-break spaces (\u202f) commonly injected by WhatsApp
+    const cleanLine = line.replace(/\u200e/g, '').replace(/\u202f/g, ' ').trim();
+    const match = linePattern.exec(cleanLine);
     
     if (match) {
       try {
-        let day = parseInt(match[1], 10);
-        let month = parseInt(match[2], 10) - 1; 
-        let year = parseInt(match[3], 10);
-        const timePart = match[4].trim();
-        const speaker = match[5].trim();
-        const content = match[6].trim();
+        const datePart = match[1];
+        const timePart = match[2].trim();
+        const speaker = match[3].trim();
+        const content = match[4].trim();
 
-        // Safe swap if YYYY-MM-DD format is detected
-        if (day > 1000) {
-          const tempYear = day;
-          day = year;
-          year = tempYear;
-        }
+        // Safely split date components on any common separators
+        const dateParts = datePart.split(/[\/\-.]/);
+        if (dateParts.length >= 3) {
+          let day = parseInt(dateParts[0], 10);
+          let month = parseInt(dateParts[1], 10) - 1; 
+          let year = parseInt(dateParts[2], 10);
 
-        // Normalize 2-digit years
-        if (year < 100) {
-          year = 2000 + year;
-        }
-
-        // Reliable Time Extraction (12h/24h safe)
-        const timeRegex = /(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([ap]m)?/i;
-        const timeMatch = timeRegex.exec(timePart);
-        let hours = 0;
-        let minutes = 0;
-        let seconds = 0;
-
-        if (timeMatch) {
-          hours = parseInt(timeMatch[1], 10);
-          minutes = parseInt(timeMatch[2], 10);
-          if (timeMatch[3]) seconds = parseInt(timeMatch[3], 10);
-          const ampm = timeMatch[4];
-          if (ampm) {
-            if (ampm.toLowerCase() === 'pm' && hours < 12) hours += 12;
-            if (ampm.toLowerCase() === 'am' && hours === 12) hours = 0;
+          // Handle ISO formats (YYYY-MM-DD) safely
+          if (day > 1000) {
+            const tempYear = day;
+            day = year;
+            year = tempYear;
           }
-        }
 
-        // Platform-independent timezone-stable Date construction
-        const currentTimestamp = new Date(year, month, day, hours, minutes, seconds).getTime();
+          // Normalize 2-digit years
+          if (year < 100) {
+            year = 2000 + year;
+          }
 
-        if (currentTimestamp) {
-          speakers.add(speaker);
-          
-          if (preLastTimestamp) {
-            const deltaHours = (currentTimestamp - preLastTimestamp) / (1000 * 60 * 60);
-            if (deltaHours >= 5 && deltaHours < 2000) {
-              const startHour = new Date(preLastTimestamp).getHours();
-              pauseStartHours.push(startHour);
+          // Robust 12h/24h Time Parser
+          const timeRegex = /(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([ap]m)?/i;
+          const timeMatch = timeRegex.exec(timePart);
+          let hours = 0;
+          let minutes = 0;
+          let seconds = 0;
+
+          if (timeMatch) {
+            hours = parseInt(timeMatch[1], 10);
+            minutes = parseInt(timeMatch[2], 10);
+            if (timeMatch[3]) seconds = parseInt(timeMatch[3], 10);
+            const ampm = timeMatch[4];
+            if (ampm) {
+              if (ampm.toLowerCase() === 'pm' && hours < 12) hours += 12;
+              if (ampm.toLowerCase() === 'am' && hours === 12) hours = 0;
             }
           }
-          
-          parsedMessages.push({ 
-            isSystemOrMedia: false, 
-            timestamp: currentTimestamp, 
-            speaker, 
-            content, 
-            match, 
-            line 
-          });
-          preLastTimestamp = currentTimestamp;
-        } else {
-          parsedMessages.push({ isSystemOrMedia: true, line });
+
+          const currentTimestamp = new Date(year, month, day, hours, minutes, seconds).getTime();
+
+          if (currentTimestamp) {
+            speakers.add(speaker);
+            
+            if (preLastTimestamp) {
+              const deltaHours = (currentTimestamp - preLastTimestamp) / (1000 * 60 * 60);
+              if (deltaHours >= 5 && deltaHours < 2000) {
+                const startHour = new Date(preLastTimestamp).getHours();
+                pauseStartHours.push(startHour);
+              }
+            }
+            
+            parsedMessages.push({ 
+              isSystemOrMedia: false, 
+              timestamp: currentTimestamp, 
+              speaker, 
+              content, 
+              match, 
+              line: cleanLine 
+            });
+            preLastTimestamp = currentTimestamp;
+          } else {
+            parsedMessages.push({ isSystemOrMedia: true, line: cleanLine });
+          }
         }
       } catch (e) {
-        parsedMessages.push({ isSystemOrMedia: true, line });
+        parsedMessages.push({ isSystemOrMedia: true, line: cleanLine });
       }
     } else {
-      parsedMessages.push({ isSystemOrMedia: true, line });
+      parsedMessages.push({ isSystemOrMedia: true, line: cleanLine });
     }
   }
 
-  // Analyze starting hour clusters to identify recurring routine pause windows (e.g., daily sleep or work)
+  // Frequency-map of conversation pause hours to flag standard daily downtime cycles
   const routineHourCounts = Array(24).fill(0);
   for (const h of pauseStartHours) {
     routineHourCounts[h]++;
-    routineHourCounts[(h - 1 + 24) % 24]++; // Smooth window bounds
-    routineHourCounts[(h + 1) % 24];
+    routineHourCounts[(h - 1 + 24) % 24]++;
+    routineHourCounts[(h + 1) % 24]++;
   }
 
-  // PASS 2: Exclude sleep/routine blocks from active delay calculations
+  // PASS 2: Exclude sleep/routine pause windows from delay counts
   const processedLines = [];
   let lastTimestamp = null;
   let totalDelays = 0;
@@ -139,18 +146,18 @@ function calculateTimelineMetrics(text) {
         // 1. Explicit Night Sleep Window Check
         let isSleepGap = false;
         if (deltaHours <= 14) {
-          const startsLate = (lastHour >= 21 || lastHour <= 4); // Sent 9pm - 4am
-          const endsNextMorning = (currentHour >= 5 && currentHour <= 11); // Replied 5am - 11am
+          const startsLate = (lastHour >= 21 || lastHour <= 4); 
+          const endsNextMorning = (currentHour >= 5 && currentHour <= 11); 
           const differentDay = lastDate.getDate() !== currentDate.getDate();
           if (startsLate && endsNextMorning && differentDay) {
             isSleepGap = true;
           }
         }
 
-        // 2. Daily Routine Pause Check (started at the same recurring hours across days)
+        // 2. Routine downtime pause detection
         const isRoutineGap = (routineHourCounts[lastHour] >= 2) && (deltaHours <= 16);
 
-        // Process as an active pacing delay ONLY if it's not normal sleep or routine rest
+        // Process as active lag ONLY if it's not a sleep break or routine pause
         if (!isSleepGap && !isRoutineGap) {
           totalDelays++;
           speakerDelayCount[speaker] = (speakerDelayCount[speaker] || 0) + 1;
@@ -168,7 +175,8 @@ function calculateTimelineMetrics(text) {
             speakerChillingCount[speaker] = (speakerChillingCount[speaker] || 0) + 1;
           }
 
-          const enhancedLine = `[${match[1]}/${match[2]}/${match[3]}, ${match[4]}]${delayTag} ${speaker}: ${content}`;
+          const DateComponents = match[1].split(/[\/\-.]/);
+          const enhancedLine = `[${DateComponents[0]}/${DateComponents[1]}/${DateComponents[2]}, ${match[2]}]${delayTag} ${speaker}: ${content}`;
           processedLines.push(enhancedLine);
           lastTimestamp = currentTimestamp;
           continue;
@@ -180,7 +188,7 @@ function calculateTimelineMetrics(text) {
     processedLines.push(msg.line);
   }
 
-  // Extract dynamically parsed names with robust fallbacks
+  // Extract resolved names
   const detectedSpeakers = Array.from(speakers);
   let person1 = detectedSpeakers[0] || 'Person 1';
   let person2 = detectedSpeakers[1] || 'Person 2';
@@ -188,7 +196,7 @@ function calculateTimelineMetrics(text) {
   const delay1 = speakerDelayCount[person1] || 0;
   const delay2 = speakerDelayCount[person2] || 0;
 
-  // Swap roles so person2 (asyncPartner) represents the relative asynchronous pattern
+  // Align so person2 is the partner with relatively more delays (if any)
   if (delay1 > delay2) {
     const temp = person1;
     person1 = person2;
@@ -197,7 +205,21 @@ function calculateTimelineMetrics(text) {
 
   const activeChillingDelays = speakerChillingCount[person2] || 0;
 
-  // Scale baselines moderately using only true, verified pacing delays
+  // Calculate chronological span of the conversation in days
+  const validTimestamps = parsedMessages
+    .filter(m => !m.isSystemOrMedia && m.timestamp)
+    .map(m => m.timestamp);
+
+  let chatSpanDays = 0;
+  if (validTimestamps.length >= 2) {
+    const minTimestamp = Math.min(...validTimestamps);
+    const maxTimestamp = Math.max(...validTimestamps);
+    chatSpanDays = (maxTimestamp - minTimestamp) / (1000 * 60 * 60 * 24);
+  }
+
+  // Treat chat logs spanning less than 1.5 days as highly synchronous, ignores false "asymmetry"
+  const isShortChat = chatSpanDays <= 1.5;
+
   const structuralAsymmetry = totalDelays > 0 ? Math.min(totalDelays * 1.5, 12) : 0; 
   const repairFactor = totalDelays > 0 ? Math.round((delaysWithApologiesOrWarmth / totalDelays) * 100) : 100;
   
@@ -211,7 +233,9 @@ function calculateTimelineMetrics(text) {
       toxicity: calculatedToxicity,
       conflictResolution: calculatedConflictResolution,
       teamwork: calculatedTeamwork,
-      repairPercentage: repairFactor
+      repairPercentage: repairFactor,
+      isShortChat: isShortChat,
+      totalDelays: totalDelays
     },
     names: {
       consistentPartner: person1,
@@ -237,28 +261,62 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Configuration Error: Operational keys are missing from your system panel.' });
   }
 
-  // Calculate the parameters outside the LLM request
+  // Calculate pacing metrics outside LLM context
   const { enrichedText, metrics, names } = calculateTimelineMetrics(chatLog);
 
   // Dynamic ranges based on calculated metrics to protect parameters from extreme drops
   const minAccountability = Math.max(75, Math.min(75 + Math.round(metrics.repairPercentage * 0.15), 90));
   const maxAccountability = Math.max(80, Math.min(80 + Math.round(metrics.repairPercentage * 0.15), 95));
 
+  // Determine if we should suppress pacing commentary due to a very short time window
+  const isShort = metrics.isShortChat || metrics.totalDelays === 0;
+
+  let pacingMandatePersona = "";
+  let pacingMandateDynamics = "";
+
+  if (isShort) {
+    pacingMandatePersona = `
+    CRITICAL OVERRIDE FOR SHORT TIMELINES:
+    - This is a brief, highly focused conversation spanning less than 1.5 days. There are no real asynchronous texting gaps.
+    - Treat any pauses as entirely normal transitions (such as sleep, work, or travel) and DO NOT mention "pacing lags", "asynchrony", "waiting for responses", or "delayed replies".
+    - Base both partners' scores (Security, Regulation, Receptivity, and Owning Errors/Accountability) on high positive baselines (88-95%) due to their continuous, warm, real-time availability and alignment.
+    `;
+
+    pacingMandateDynamics = `
+    CRITICAL OVERRIDE FOR SHORT TIMELINES:
+    - This conversation spans less than 1.5 days. No meaningful asynchronous rhythm exists. Any pauses represent sleep or travel and must be ignored.
+    - Toxicity Level: Must be exactly "${metrics.toxicity}%".
+    - Conflict Resolution: Must be exactly "${metrics.conflictResolution}%".
+    - Relationship Dynamics: Must be exactly "${metrics.teamwork}%".
+    - Under bond_strength, bond_positivity, safety_trust_reason, relationship_dynamics_reason, and summary, DO NOT use terms like "asynchronous texting rhythm", "pacing gaps", "delays", or "waiting for replies". Focus instead on their mutual availability, warm real-time emotional connection, and high responsiveness.
+    `;
+  } else {
+    pacingMandatePersona = `
+    PRE-CALCULATED STRUCTURAL CONTEXT:
+    - ${names.asyncPartner} has a text repair recovery factor of ${metrics.repairPercentage}%. This means when they delay, they make up for it with high verbal affection, love notes, or validation ${metrics.repairPercentage}% of the time.
+    
+    SCORING MANDATE:
+    - ${names.consistentPartner}: Secure pacing, high availability. Keep their scores (Security, Regulation, Listening, and Owning Personal Errors) high at 85-95%. Since they communicate clearly and don't exhibit long delay patterns, score them high (85-95%) for Owning Personal Errors/Accountability as they actively facilitate repair and show high emotional consistency.
+    - ${names.asyncPartner}: 
+      * Accountability / Owning Personal Errors: Set this directly to a balanced range of ${minAccountability}-${maxAccountability}% because while they reply late, their repair attempt recovery factor is high at ${metrics.repairPercentage}%.
+      * Emotional Regulation & Receptivity: Anchor these within 80-90%. They display deep affection and interest when active, but their asynchronous lifestyle slows down the conversational flow. Do not drop below 75% as their text is highly warm and non-defensive.
+    `;
+
+    pacingMandateDynamics = `
+    DETERMINISTIC METRIC CONSTRAINTS:
+    - Toxicity Level: Must be exactly "${metrics.toxicity}%". (Reason: There is zero active conflict or hostility, but a mild ${metrics.toxicity}% asymmetry exists because one partner responds slowly while chilling).
+    - Conflict Resolution: Must be exactly "${metrics.conflictResolution}%". (Reason: While direct plans are occasionally deflected, conversational gaps are handled with high emotional reassurance and mutual validation).
+    - Relationship Dynamics: Must be exactly "${metrics.teamwork}%". (Reason: Reflects an unequal real-time interactive flow where one partner routinely waits for answers).
+    `;
+  }
+
   // ==========================================
-  // AGENT 1: PERSONA SPECIALIST (Constraints fed via Context)
+  // AGENT 1: PERSONA SPECIALIST (Hard Constraints Fed via Context)
   // ==========================================
   const personaPrompt = `You are a behavioral psychologist profiling conversational patterns.
   Analyze the text, noting the pre-calculated pacing constraints provided below.
   
-  PRE-CALCULATED STRUCTURAL CONTEXT:
-  - Sleep lags and recurring routine daily pause windows have been computationally filtered and ignored. Metrics reflect only real conversational delays.
-  - ${names.asyncPartner} has a text repair recovery factor of ${metrics.repairPercentage}%. This means when they delay, they make up for it with high verbal affection, love notes, or validation ${metrics.repairPercentage}% of the time.
-  
-  SCORING MANDATE:
-  - ${names.consistentPartner}: Secure pacing, high availability. Keep their scores (Security, Regulation, Listening, and Owning Personal Errors) high at 85-95%. Since they communicate clearly and don't exhibit long delay patterns, score them high (85-95%) for Owning Personal Errors/Accountability as they actively facilitate repair and show high emotional consistency.
-  - ${names.asyncPartner}: 
-    * Accountability / Owning Personal Errors: Set this directly to a balanced range of ${minAccountability}-${maxAccountability}% because while they reply late, their repair attempt recovery factor is high at ${metrics.repairPercentage}%.
-    * Emotional Regulation & Receptivity: Anchor these within 80-90%. They display deep affection and interest when active, but their asynchronous lifestyle slows down the conversational flow. Do not drop below 75% as their text is highly warm and non-defensive.
+  ${pacingMandatePersona}
 
   Return ONLY a valid JSON object matching this exact schema:
   {
@@ -298,11 +356,7 @@ export default async function handler(req, res) {
   const dynamicsPrompt = `You are a relationship counselor evaluating a couple's interaction data.
   You must apply the exact mathematical scores computed by our timeline parsing engine below. Do not deviate from these numbers.
 
-  DETERMINISTIC METRIC CONSTRAINTS:
-  - Sleep lags and standard routine breaks have been computationally removed.
-  - Toxicity Level: Must be exactly "${metrics.toxicity}%". (Reason: There is zero active conflict or hostility, but a mild ${metrics.toxicity}% asymmetry exists because one partner responds slowly while chilling).
-  - Conflict Resolution: Must be exactly "${metrics.conflictResolution}%". (Reason: While direct plans are occasionally deflected, conversational gaps are handled with high emotional reassurance and mutual validation).
-  - Relationship Dynamics: Must be exactly "${metrics.teamwork}%". (Reason: Reflects an unequal real-time interactive flow where one partner routinely waits for answers).
+  ${pacingMandateDynamics}
 
   Return ONLY a valid JSON object matching this exact schema:
   {
