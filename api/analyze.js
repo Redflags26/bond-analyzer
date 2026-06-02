@@ -5,7 +5,7 @@
 // ============================================================
 
 import { SCORE, REQUIRED_DYNAMICS_KEYS, buildPacingNote, buildPersonaPrompt, buildDynamicsPrompt, buildStrategistPrompt } from './analyze-config.js';
-import { calculateTimelineMetrics, queryAgent, parsePercent } from './analyze-engine.js';
+import * as ENG from './analyze-engine.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin',  '*');
