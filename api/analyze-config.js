@@ -27,20 +27,20 @@ export const CHILLING_KEYWORDS = ['chilling','relaxing','scrolling'];
 // ── Score constants ───────────────────────────────────────────
 export const SCORE = {
   TOXICITY_MIN:            2,
-  TOXICITY_MAX:            80,
+  TOXICITY_MAX:            99,
   TOXICITY_CHILLING_STEP:  1.5,
 
-  CONFLICT_BASE:           70,
-  CONFLICT_MAX:            95,
+  CONFLICT_BASE:           50,
+  CONFLICT_MAX:            99,
   CONFLICT_REPAIR_WEIGHT:  0.25,
 
-  TEAMWORK_BASE:           75,
-  TEAMWORK_MAX:            95,
+  TEAMWORK_BASE:           50,
+  TEAMWORK_MAX:            99,
   ASYMMETRY_STEP:          1.5,
   ASYMMETRY_CAP:           12,
 
-  ACCOUNTABILITY_MIN:      75,
-  ACCOUNTABILITY_MAX:      92,
+  ACCOUNTABILITY_MIN:      50,
+  ACCOUNTABILITY_MAX:      99,
   ACCOUNTABILITY_WEIGHT:   0.15,
 
   OVERALL_DIVISOR:         5,
