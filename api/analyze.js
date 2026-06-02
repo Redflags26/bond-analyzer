@@ -37,13 +37,22 @@ export default async function handler(req, res) {
       queryAgent(apiKey, buildDynamicsPrompt({ metrics, pacingNote }), enrichedText),
     ]);
 
-    // 4. Validate
-    if (!dynamicsResults || typeof dynamicsResults !== 'object')
-      throw new Error('Dynamics agent returned invalid payload.');
-    for (const key of REQUIRED_DYNAMICS_KEYS)
-      if (!dynamicsResults[key]) throw new Error(`Dynamics agent missing: ${key}`);
-    if (!Array.isArray(personaResults?.profiles) || personaResults.profiles.length < 2)
+    // 4. Validate Agents 1 & 2 (Persona & Dynamics)
+    // --------------------------------------------------------
+    
+    // Validate Persona (Micro)
+    if (!Array.isArray(personaResults?.profiles) || personaResults.profiles.length < 2) {
       throw new Error('Persona agent did not return two profiles.');
+    }
+
+    // Validate Dynamics (Macro)
+    if (!dynamicsResults || typeof dynamicsResults !== 'object') {
+      throw new Error('Dynamics agent returned invalid payload.');
+    }
+    for (const key of REQUIRED_DYNAMICS_KEYS) {
+      if (!dynamicsResults[key]) throw new Error(`Dynamics agent missing: ${key}`);
+    }
+
 
     // 5. Agent 3 — only needs summaries, not full chat text
     const strategies = await ENG.queryAgent(
@@ -51,6 +60,14 @@ export default async function handler(req, res) {
         buildStrategistPrompt({ names, personaData: personaResults, dynamicsData: dynamicsResults }),
         'Generate final verdict and tips.'
       );
+
+    // Validate Strategist (Executive) - ADD THIS FOR STABILITY
+     if (!strategies || typeof strategies !== 'object') {
+      throw new Error('Strategist agent returned invalid payload.');
+    }
+    for (const key of REQUIRED_STRATEGIST_KEYS) {
+      if (!strategies[key]) throw new Error(`Strategist agent missing: ${key}`);
+    }
 
     // 6. Resolve profiles and actionables
     const profile1 = personaResults.profiles.find(p => p.name?.toLowerCase() === names.consistentPartner.toLowerCase()) || personaResults.profiles[0];
