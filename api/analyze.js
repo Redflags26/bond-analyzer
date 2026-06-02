@@ -46,11 +46,11 @@ export default async function handler(req, res) {
       throw new Error('Persona agent did not return two profiles.');
 
     // 5. Agent 3 — only needs summaries, not full chat text
-    const strategies = await queryAgent(
-      apiKey,
-      buildStrategistPrompt({ names, personaData: personaResults, dynamicsData: dynamicsResults }),
-      ''
-    );
+    const strategies = await ENG.queryAgent(
+        apiKey,
+        buildStrategistPrompt({ names, personaData: personaResults, dynamicsData: dynamicsResults }),
+        'Generate final verdict and tips.'
+      );
 
     // 6. Resolve profiles and actionables
     const profile1 = personaResults.profiles.find(p => p.name?.toLowerCase() === names.consistentPartner.toLowerCase()) || personaResults.profiles[0];
@@ -73,23 +73,28 @@ export default async function handler(req, res) {
 
     // 8. Assemble final result
     const analytics = {
-      bond_strength:                `${overallScore}%`,
-      bond_strength_reason:         dynamicsResults.bond_strength_reason,
-      bond_positivity:              dynamicsResults.bond_positivity,
-      bond_positivity_reason:       dynamicsResults.bond_positivity_reason,
-      conflict_resolution:          dynamicsResults.conflict_resolution          || `${metrics.conflictResolution}%`,
-      conflict_resolution_reason:   dynamicsResults.conflict_resolution_reason,
-      safety_trust:                 dynamicsResults.safety_trust,
-      safety_trust_reason:          dynamicsResults.safety_trust_reason,
-      relationship_dynamics:        dynamicsResults.relationship_dynamics        || `${metrics.teamwork}%`,
+      // Macro from Agent 1 (Dynamics)
+      bond_positivity: dynamicsResults.bond_positivity,
+      bond_positivity_reason: dynamicsResults.bond_positivity_reason,
+      conflict_resolution: dynamicsResults.conflict_resolution || `${metrics.conflictResolution}%`,
+      conflict_resolution_reason: dynamicsResults.conflict_resolution_reason,
+      safety_trust: dynamicsResults.safety_trust,
+      safety_trust_reason: dynamicsResults.safety_trust_reason,
+      relationship_dynamics: dynamicsResults.relationship_dynamics || `${metrics.teamwork}%`,
       relationship_dynamics_reason: dynamicsResults.relationship_dynamics_reason,
-      toxicity:                     dynamicsResults.toxicity                     || `${metrics.toxicity}%`,
-      toxicity_reason:              dynamicsResults.toxicity_reason,
-      summary:                      dynamicsResults.summary,
+      toxicity: dynamicsResults.toxicity || `${metrics.toxicity}%`,
+      toxicity_reason: dynamicsResults.toxicity_reason,
+
+      // Verdict & Summary from Agent 3 (Executive)
+      bond_strength: strategies.bond_strength,
+      bond_strength_reason: strategies.bond_strength_reason,
+      summary: strategies.summary, // <--- Now coming from the Strategist
+
+      // Profiles + Actionables (Agent 2 + Agent 3 mapping)
       profiles: [
-        { ...profile1, actionables: strategies[k1] },
-        { ...profile2, actionables: strategies[k2] },
-      ],
+        { ...p1, actionables: strategies.actionables[p1.name] || [] },
+        { ...p2, actionables: strategies.actionables[p2.name] || [] }
+      ]
     };
 
     // 9. Persist — fire and forget, never blocks response
