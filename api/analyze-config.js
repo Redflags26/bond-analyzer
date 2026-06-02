@@ -69,64 +69,65 @@ PACING SIGNAL (pre-computed — do not re-derive):
 - Do not invent delays or pacing issues beyond what the annotated text shows.`.trim();
 }
 
-// ── Agent 1: Persona ──────────────────────────────────────────
+// ── Agent 1: Relationship Dynamics (Macro) ──
+export function buildDynamicsPrompt({ metrics, pacingNote }) {
+  return `You are a Relationship Counselor. Analyze the dynamic between the pair.
+${pacingNote}
+Return ONLY valid JSON:
+{
+  "bond_positivity": "XX%", "bond_positivity_reason": "...",
+  "conflict_resolution": "${metrics.conflictResolution}%", "conflict_resolution_reason": "...",
+  "safety_trust": "XX%", "safety_trust_reason": "...",
+  "relationship_dynamics": "${metrics.teamwork}%", "relationship_dynamics_reason": "...",
+  "toxicity": "${metrics.toxicity}%", "toxicity_reason": "..."
+}`;
+}
+
+// ── Agent 2: Persona (Micro) ──
 export function buildPersonaPrompt({ names, pacingNote }) {
-  return `You are a behavioral psychologist. Analyze the conversation and score both people.
-${pacingNote ? `\n${pacingNote}\n` : ''}
+  return `You are a Behavioral Psychologist. Profile both individuals.
+${pacingNote}
 Return ONLY valid JSON:
 {
   "profiles": [
     {
       "name": "${names.consistentPartner}",
-      "attachment_security": "XX%", "attachment_security_reason": "one sentence of 10-20 words",
-      "emotional_regulation": "XX%", "emotional_regulation_reason": "one sentence of 10-20 words",
-      "receptivity": "XX%", "receptivity_reason": "one sentence of 10-20 words",
-      "accountability": "XX%", "accountability_reason": "one sentence of 10-20 words"
+      "attachment_security": "XX%", "attachment_security_reason": "...",
+      "emotional_regulation": "XX%", "emotional_regulation_reason": "...",
+      "receptivity": "XX%", "receptivity_reason": "...",
+      "accountability": "XX%", "accountability_reason": "..."
     },
     {
       "name": "${names.asyncPartner}",
-      "attachment_security": "XX%", "attachment_security_reason": "one sentence of 10-20 words",
-      "emotional_regulation": "XX%", "emotional_regulation_reason": "one sentence of 10-20 words",
-      "receptivity": "XX%", "receptivity_reason": "one sentence of 10-20 words",
-      "accountability": "XX%", "accountability_reason": "one sentence of 10-20 words"
+      "attachment_security": "XX%", "attachment_security_reason": "...",
+      "emotional_regulation": "XX%", "emotional_regulation_reason": "...",
+      "receptivity": "XX%", "receptivity_reason": "...",
+      "accountability": "XX%", "accountability_reason": "..."
     }
   ]
 }`;
 }
 
-// ── Agent 2: Dynamics ─────────────────────────────────────────
-export function buildDynamicsPrompt({ metrics, pacingNote }) {
-  return `You are a relationship counselor. Evaluate the couple's interaction.
-${pacingNote ? `\n${pacingNote}\n` : ''}
-Return ONLY valid JSON. Use these exact locked values where shown:
-{
-  "bond_positivity": "XX%", "bond_positivity_reason": "one sentence of 10-20 words",
-  "conflict_resolution": "${metrics.conflictResolution}%", "conflict_resolution_reason": "one sentence of 10-20 words",
-  "safety_trust": "XX%", "safety_trust_reason": "one sentence of 10-20 words",
-  "relationship_dynamics": "${metrics.teamwork}%", "relationship_dynamics_reason": "one sentence of 10-20 words",
-  "toxicity": "${metrics.toxicity}%", "toxicity_reason": "one sentence of 10-20 words",
-  "bond_strength": "XX%","bond_strength_reason": "one sentence combining affection and any pacing reality. 20-30 words.",
-  "summary": "2–3 sentence friendly overview: what happened in the chat, why there reacted how they did they reacted, how they can do better together."
-}`;
-}
-
-// ── Agent 3: Strategist ───────────────────────────────────────
-// Receives only the compact summaries — not the full chat text.
+// ── Agent 3: Executive Strategist (Synthesis & Summary) ──
 export function buildStrategistPrompt({ names, personaData, dynamicsData }) {
-  const slim = {
-    p1: { name: personaData.profiles[0].name, accountability: personaData.profiles[0].accountability, regulation: personaData.profiles[0].emotional_regulation },
-    p2: { name: personaData.profiles[1].name, accountability: personaData.profiles[1].accountability, regulation: personaData.profiles[1].emotional_regulation },
-    summary: dynamicsData.summary,
-    dynamics: dynamicsData.relationship_dynamics_reason,
-  };
-  return `You are a relationship coach. Based on this analysis, write 2 specific, kind, actionable tips for each person. Plain language, no numbers.
+  return `You are a Relationship Coach. Review these findings:
+Relationship Analysis: ${JSON.stringify(dynamicsData)}
+Individual Profiles: ${JSON.stringify(personaData)}
 
-${JSON.stringify(slim)}
+TASK:
+1. Write a 2–3 sentence friendly overview summary: what happened in the chat, why they reacted how they did, and how they can do better together.
+2. Provide 2 actionable tips for each person.
+3. Determine a final Bond Strength % (ensure it matches the friction described in profiles).
 
 Return ONLY valid JSON:
 {
-  "${names.consistentPartner}_actionables": ["tip 1", "tip 2"],
-  "${names.asyncPartner}_actionables": ["tip 1", "tip 2"]
+  "bond_strength": "XX%",
+  "bond_strength_reason": "Brief synthesis.",
+  "summary": "...",
+  "actionables": {
+    "${names.consistentPartner}": ["Tip 1", "Tip 2"],
+    "${names.asyncPartner}": ["Tip 1", "Tip 2"]
+  }
 }`;
 }
 
