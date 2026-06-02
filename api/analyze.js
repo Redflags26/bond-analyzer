@@ -4,7 +4,7 @@
 //  Config → analyze-config.js
 // ============================================================
 
-import { SCORE, REQUIRED_DYNAMICS_KEYS, buildPacingNote, buildPersonaPrompt, buildDynamicsPrompt, buildStrategistPrompt } from './analyze-config.js';
+import { SCORE, REQUIRED_DYNAMICS_KEYS, REQUIRED_STRATEGIST_KEYS, buildPacingNote, buildPersonaPrompt, buildDynamicsPrompt, buildStrategistPrompt } from './analyze-config.js';
 import { calculateTimelineMetrics, queryAgent, parsePercent } from './analyze-engine.js';
 
 export default async function handler(req, res) {
