@@ -1,5 +1,5 @@
 // ============================================================
-//  analyze.js — HTTP handler
+//  analyze.js  —  HTTP handler only.
 //  Logic  → analyze-engine.js
 //  Config → analyze-config.js
 // ============================================================
@@ -16,14 +16,12 @@ import {
 import { calculateTimelineMetrics, queryAgent, parsePercent } from './analyze-engine.js';
 
 export default async function handler(req, res) {
-  // ── CORS setup ─────────────────────────────────────────────
   res.setHeader('Access-Control-Allow-Origin',  '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST')    return res.status(405).json({ error: 'Method not allowed' });
 
-  // ── Environment keys ───────────────────────────────────────
   const { chatLog, userId }  = req.body;
   const apiKey               = process.env.OPENROUTER_API_KEY;
   const supabaseUrl          = process.env.SUPABASE_URL;
@@ -33,19 +31,20 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Missing environment keys.' });
 
   try {
-    // 1. Parse chat deterministically (no LLM)
+    // 1. Parse — deterministic, no LLM
     const { enrichedText, metrics, names } = calculateTimelineMetrics(chatLog);
 
-    // 2. Build pacing context (factual observations only)
+    // 2. Build pacing context (factual observations only — no score directives)
     const pacingNote = buildPacingNote({ names, metrics });
 
-    // 3. Call Agents 1 + 2 in parallel (Dynamics + Persona)
+    // 3. Agents 1 + 2 in parallel — both get the annotated chat
+    //    Neither receives pre-computed score values to fill in.
     const [dynamicsResults, personaResults] = await Promise.all([
       queryAgent(apiKey, buildDynamicsPrompt({ pacingNote }), enrichedText),
       queryAgent(apiKey, buildPersonaPrompt({ names, pacingNote }), enrichedText),
     ]);
 
-    // 4. Validate Dynamics output
+    // 4. Validate Agent 1 (Dynamics)
     if (!dynamicsResults || typeof dynamicsResults !== 'object') {
       throw new Error('Dynamics agent returned invalid payload.');
     }
@@ -53,12 +52,12 @@ export default async function handler(req, res) {
       if (!dynamicsResults[key]) throw new Error(`Dynamics agent missing: ${key}`);
     }
 
-    // 5. Validate Persona output
+    // 5. Validate Agent 2 (Persona)
     if (!Array.isArray(personaResults?.profiles) || personaResults.profiles.length < 2) {
       throw new Error('Persona agent did not return two profiles.');
     }
 
-    // 6. Call Agent 3 (Strategist) — synthesis
+    // 6. Agent 3 — synthesises from both outputs + sees the annotated chat
     const strategies = await queryAgent(
       apiKey,
       buildStrategistPrompt({ names, personaData: personaResults, dynamicsData: dynamicsResults }),
@@ -82,18 +81,18 @@ export default async function handler(req, res) {
     if (!Array.isArray(strategies?.actionables?.[k1]) || !Array.isArray(strategies?.actionables?.[k2]))
       throw new Error('Strategist did not return actionables for both speakers.');
 
-    // 8. Compute overall bond score (neutral defaults, backup only)
+    // 8. Compute overall bond score from LLM-derived values
     const overallScore = Math.round((
-      parsePercent(dynamicsResults.bond_positivity,       50) +
-      parsePercent(dynamicsResults.conflict_resolution,   50) +
-      parsePercent(dynamicsResults.safety_trust,          50) +
-      parsePercent(dynamicsResults.relationship_dynamics, 50) +
-      (100 - parsePercent(dynamicsResults.toxicity,       50))
+      parsePercent(dynamicsResults.bond_positivity,       SCORE.FALLBACK_WARMTH)      +
+      parsePercent(dynamicsResults.conflict_resolution,   SCORE.FALLBACK_RESOLUTION)  +
+      parsePercent(dynamicsResults.safety_trust,          SCORE.FALLBACK_SAFETY)      +
+      parsePercent(dynamicsResults.relationship_dynamics, SCORE.FALLBACK_DYNAMICS)    +
+      (100 - parsePercent(dynamicsResults.toxicity,       SCORE.FALLBACK_TOXICITY))
     ) / SCORE.OVERALL_DIVISOR);
 
-    // 9. Assemble final analytics (Strategist bond_strength is authoritative)
+    // 9. Assemble final result — no internal mechanics in output
     const analytics = {
-      // Macro — Dynamics agent
+      // Macro — all from Agent 1 (Dynamics), LLM-derived
       bond_positivity:              dynamicsResults.bond_positivity,
       bond_positivity_reason:       dynamicsResults.bond_positivity_reason,
       conflict_resolution:          dynamicsResults.conflict_resolution,
@@ -105,22 +104,19 @@ export default async function handler(req, res) {
       toxicity:                     dynamicsResults.toxicity,
       toxicity_reason:              dynamicsResults.toxicity_reason,
 
-      // Strategist — authoritative verdict
+      // Verdict & Summary — from Agent 3 (Strategist)
       bond_strength:        strategies.bond_strength,
       bond_strength_reason: strategies.bond_strength_reason,
       summary:              strategies.summary,
 
-      // Profiles + actionables
+      // Profiles with actionables
       profiles: [
         { ...profile1, actionables: strategies.actionables[k1] || [] },
         { ...profile2, actionables: strategies.actionables[k2] || [] },
       ],
-
-      // Deterministic backup score (not exposed to users)
-      overallScore,
     };
 
-    // 10. Persist results (fire and forget)
+    // 10. Persist — fire and forget
     fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/conversations`, {
       method:  'POST',
       headers: {
