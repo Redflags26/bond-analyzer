@@ -138,6 +138,4 @@ export const REQUIRED_DYNAMICS_KEYS = [
   'safety_trust','safety_trust_reason',
   'relationship_dynamics','relationship_dynamics_reason',
   'toxicity','toxicity_reason',
-  'bond_strength','bond_strength_reason',
-  'summary',
 ];
