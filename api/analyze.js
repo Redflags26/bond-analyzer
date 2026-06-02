@@ -5,7 +5,7 @@
 // ============================================================
 
 import { SCORE, REQUIRED_DYNAMICS_KEYS, buildPacingNote, buildPersonaPrompt, buildDynamicsPrompt, buildStrategistPrompt } from './analyze-config.js';
-import * as ENG from './analyze-engine.js';
+import { calculateTimelineMetrics, queryAgent, parsePercent } from './analyze-engine.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin',  '*');
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
 
 
     // 5. Agent 3 — only needs summaries, not full chat text
-    const strategies = await ENG.queryAgent(
+    const strategies = await queryAgent(
         apiKey,
         buildStrategistPrompt({ names, personaData: personaResults, dynamicsData: dynamicsResults }),
         'Generate final verdict and tips.'
