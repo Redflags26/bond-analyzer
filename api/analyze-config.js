@@ -4,7 +4,7 @@
 // ============================================================
 
 // ── Model ────────────────────────────────────────────────────
-export const OPENROUTER_MODEL  = 'openrouter/owl-alpha';
+export const OPENROUTER_MODEL  = 'openrouter/auto';
 export const AGENT_TEMPERATURE = 0.1;
 
 // ── Parser thresholds ────────────────────────────────────────
