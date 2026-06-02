@@ -58,7 +58,7 @@ export default async function handler(req, res) {
     const strategies = await queryAgent(
         apiKey,
         buildStrategistPrompt({ names, personaData: personaResults, dynamicsData: dynamicsResults }),
-        'Generate final verdict and tips.'
+        enrichedText
       );
 
     // Validate Strategist (Executive) - ADD THIS FOR STABILITY
@@ -109,8 +109,8 @@ export default async function handler(req, res) {
 
       // Profiles + Actionables (Agent 2 + Agent 3 mapping)
       profiles: [
-        { ...p1, actionables: strategies.actionables[p1.name] || [] },
-        { ...p2, actionables: strategies.actionables[p2.name] || [] }
+        { ...profile1, actionables: strategies.actionables[p1.name] || [] },
+        { ...pprofile2, actionables: strategies.actionables[p2.name] || [] }
       ]
     };
 
