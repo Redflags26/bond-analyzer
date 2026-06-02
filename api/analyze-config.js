@@ -6,6 +6,7 @@
 // ── Model ────────────────────────────────────────────────────
 export const OPENROUTER_MODEL  = 'openrouter/auto';
 export const AGENT_TEMPERATURE = 0.1;
+export const AGENT_MAX_TOKENS  = 800;
 
 // ── Parser thresholds ────────────────────────────────────────
 export const DELAY_MIN_HOURS       = 8;    // gaps shorter than this are ignored
@@ -23,22 +24,10 @@ export const PAUSE_NEIGHBOURHOOD   = 1;    // ±hours around a pause-start hour
 export const WARM_KEYWORDS     = ['sorry','guilty','babe','love','💕','❤️','haha','hey','sweet','dear','thanks','hug','miss','🥰','😘','😊','lol'];
 export const CHILLING_KEYWORDS = ['chilling','relaxing','scrolling'];
 
-// ── Score constants ───────────────────────────────────────────
-// Used only by the engine for fallback metrics and name resolution.
-// Not injected into prompts.
+// ── Score constants (engine use only — never injected into prompts) ──
 export const SCORE = {
-  TOXICITY_MIN:           2,
-  TOXICITY_MAX:           99,
-  TOXICITY_CHILLING_STEP: 1.5,
-
-  CONFLICT_BASE:          50,
-  CONFLICT_MAX:           99,
-  CONFLICT_REPAIR_WEIGHT: 0.25,
-
-  TEAMWORK_BASE:          50,
-  TEAMWORK_MAX:           99,
-  ASYMMETRY_STEP:         1.5,
-  ASYMMETRY_CAP:          12,
+  ASYMMETRY_STEP: 1.5,
+  ASYMMETRY_CAP:  12,
 };
 
 // ── Pacing context — factual observations only, no score directives ──
@@ -60,24 +49,39 @@ The chat has been pre-annotated with [Pause: Xh] tags. These mark reply gaps of 
 - Treat [Pause] tags as one contextual signal — weigh them alongside tone, content, and emotional exchanges in the conversation.`.trim();
 }
 
-// ── Agent 1: Relationship Dynamics (Macro) ──────────────────
-export function buildDynamicsPrompt({ pacingNote }) {
-  return `You are an experienced Relationship Counselor. You will be given an annotated chat conversation between two people.
+// ── Agent 1: Combined Dynamics + Persona ─────────────────────
+// Single call replacing the previous two separate agents.
+export function buildAnalysisPrompt({ names, pacingNote }) {
+  return `You are a relationship analysis expert combining the roles of Relationship Counselor and Behavioral Psychologist. You will be given an annotated chat conversation between two people: ${names.consistentPartner} and ${names.asyncPartner}.
 
-Your task is to evaluate the overall relationship dynamic based solely on what is expressed in the conversation — the tone, language, emotional content, repair attempts, conflict patterns, and how each person shows up for the other.
+IMPORTANT: Respond with a single JSON object only. The very first character of your response must be {. No markdown, no code fences, no explanation before or after.
 
-The conversation may contain [Pause: Xh] annotations. These mark irregular reply gaps of 8+ hours (sleep and routine gaps have already been filtered out). Use them as a behavioural signal when relevant.
+The conversation may contain [Pause: Xh] annotations. These mark irregular reply gaps of 8+ hours — sleep and routine gaps have already been filtered out. The tag appears on the message that broke the silence, attributed to the person who replied late. Use them as a behavioural signal.
 ${pacingNote ? '\n' + pacingNote + '\n' : ''}
-Scoring guide (apply to all percentage fields):
-- 0–30%: severely concerning
-- 31–55%: struggling / below average
-- 56–74%: functional but with clear room for growth
-- 75–89%: healthy with minor friction
+PART A — Relationship Dynamics. Evaluate the overall dynamic based on tone, language, emotional content, repair attempts, conflict patterns, and how each person shows up for the other.
+
+PART B — Individual Profiles. Profile each person based on how they actually communicate — word choices, emotional tone, response to tension, engagement or disengagement.
+
+Trait definitions for profiles:
+- attachment_security: How secure and settled does this person seem? Do they seek reassurance, become anxious, or communicate with confidence?
+- emotional_regulation: How well do they manage emotions during friction or silence? Do they escalate, withdraw, or stay steady?
+- receptivity: How open are they to the other person's perspective? Do they listen, deflect, or shut down?
+- accountability: When tension arises, do they acknowledge their part, deflect, or blame?
+
+Scoring guide (apply to ALL percentage fields in both parts):
+- 0–30%: severely concerning / struggling
+- 31–55%: below average / inconsistent
+- 56–74%: functional with room to grow
+- 75–89%: healthy / strong
 - 90–100%: exceptional
 
-Derive every score from what is actually present in the conversation. The _reason field must reference specific observed behaviours or exchanges — never reference scoring systems, code, baselines, or internal methodology.
+Rules for ALL _reason fields:
+- Reference specific observed behaviours or exchanges from the conversation
+- Write in plain human language
+- Never mention scores, code, baselines, percentages, or internal methodology
 
-Return ONLY valid JSON with no additional text:
+Use EXACTLY these key names — no variations, no synonyms:
+
 {
   "bond_positivity": "XX%",
   "bond_positivity_reason": "...",
@@ -88,35 +92,7 @@ Return ONLY valid JSON with no additional text:
   "relationship_dynamics": "XX%",
   "relationship_dynamics_reason": "...",
   "toxicity": "XX%",
-  "toxicity_reason": "..."
-}`;
-}
-
-// ── Agent 2: Persona (Micro) ─────────────────────────────────
-export function buildPersonaPrompt({ names, pacingNote }) {
-  return `You are a Behavioral Psychologist specialising in relationship communication. You will be given an annotated chat conversation between two people: ${names.consistentPartner} and ${names.asyncPartner}.
-
-Your task is to profile each individual based on how they actually communicate — their word choices, emotional tone, how they respond to tension, and how they engage or disengage.
-
-The conversation may contain [Pause: Xh] annotations. These mark irregular reply gaps of 8+ hours (sleep and routine gaps have already been filtered out). The tag appears on the message that broke the silence, attributed to the person who replied late. Use them as a behavioural signal when assessing traits like accountability and emotional regulation.
-${pacingNote ? '\n' + pacingNote + '\n' : ''}
-Trait definitions:
-- attachment_security: How secure and settled does this person seem? Do they seek reassurance, become anxious, or communicate with confidence?
-- emotional_regulation: How well do they manage emotions during friction or silence? Do they escalate, withdraw, or stay steady?
-- receptivity: How open are they to the other person's perspective? Do they listen, deflect, or shut down?
-- accountability: When tension arises, do they acknowledge their part, deflect, or blame?
-
-Scoring guide:
-- 0–30%: severely struggling
-- 31–55%: below average / inconsistent
-- 56–74%: functional with room to grow
-- 75–89%: strong
-- 90–100%: exceptional
-
-The _reason field must describe a specific behaviour or pattern from the conversation in plain human language. Never reference scores, code, baselines, or internal methodology.
-
-Return ONLY valid JSON with no additional text:
-{
+  "toxicity_reason": "...",
   "profiles": [
     {
       "name": "${names.consistentPartner}",
@@ -136,12 +112,13 @@ Return ONLY valid JSON with no additional text:
 }`;
 }
 
-// ── Agent 3: Executive Strategist (Synthesis & Summary) ──────
-export function buildStrategistPrompt({ names, personaData, dynamicsData }) {
-  return `You are a Relationship Coach synthesising findings from two specialist analyses alongside the original conversation.
+// ── Agent 2: Executive Strategist ────────────────────────────
+export function buildStrategistPrompt({ names, analysisData }) {
+  return `You are a Relationship Coach synthesising findings from a specialist analysis alongside the original conversation.
 
-Relationship Dynamics Analysis: ${JSON.stringify(dynamicsData)}
-Individual Profiles: ${JSON.stringify(personaData)}
+IMPORTANT: Respond with a single JSON object only. The very first character of your response must be {. No markdown, no code fences, no explanation before or after.
+
+Analysis findings: ${JSON.stringify(analysisData)}
 
 Your tasks:
 
@@ -149,15 +126,14 @@ SUMMARY: Write 2–3 sentences in a warm, direct tone. Describe what was happeni
 
 ACTIONABLES: Provide 2 specific, practical tips for each person grounded in their actual behaviour in the chat. Avoid generic advice. Do not reference trait names, percentages, or scoring.
 
-BOND STRENGTH: A single percentage reflecting the overall health and resilience of this relationship. Should be consistent with the dynamics and persona findings — if there is friction in the profiles, it must show here. Do not mechanically average the scores.
+BOND STRENGTH: A single percentage reflecting the overall health and resilience of this relationship. Must be consistent with the analysis findings — if there is friction, it must show here. Do not mechanically average the scores.
 
-The bond_strength_reason must be 1–2 sentences of plain human language. No methodology references.
+Use EXACTLY these key names — no variations, no synonyms:
 
-Return ONLY valid JSON with no additional text:
 {
   "bond_strength": "XX%",
-  "bond_strength_reason": "...",
-  "summary": "...",
+  "bond_strength_reason": "1–2 sentences on why this bond strength was given, in plain human language.",
+  "summary": "2–3 warm sentences for the couple.",
   "actionables": {
     "${names.consistentPartner}": ["Specific tip 1", "Specific tip 2"],
     "${names.asyncPartner}": ["Specific tip 1", "Specific tip 2"]
@@ -165,18 +141,39 @@ Return ONLY valid JSON with no additional text:
 }`;
 }
 
-// ── Validation keys ───────────────────────────────────────────
-export const REQUIRED_DYNAMICS_KEYS = [
+// ── Validation key maps ───────────────────────────────────────
+// Primary keys expected from Agent 1 (combined analysis)
+export const REQUIRED_ANALYSIS_KEYS = [
   'bond_positivity', 'bond_positivity_reason',
   'conflict_resolution', 'conflict_resolution_reason',
   'safety_trust', 'safety_trust_reason',
   'relationship_dynamics', 'relationship_dynamics_reason',
   'toxicity', 'toxicity_reason',
+  'profiles',
 ];
 
+// Primary keys expected from Agent 2 (strategist)
 export const REQUIRED_STRATEGIST_KEYS = [
   'bond_strength',
-  'bond_strength_reason',
   'summary',
   'actionables',
 ];
+
+// ── Key alias map — fallbacks if model uses alternate names ──
+// Format: canonical_key: [alias1, alias2, ...]
+export const KEY_ALIASES = {
+  bond_positivity:              ['bond_positivity_score', 'positivity', 'bond_score'],
+  bond_positivity_reason:       ['positivity_reason', 'bond_positivity_explanation'],
+  conflict_resolution:          ['conflict_resolution_score', 'conflict_score', 'resolution'],
+  conflict_resolution_reason:   ['resolution_reason', 'conflict_reason', 'conflict_resolution_explanation'],
+  safety_trust:                 ['safety_trust_score', 'trust', 'safety', 'trust_score'],
+  safety_trust_reason:          ['trust_reason', 'safety_reason', 'safety_trust_explanation'],
+  relationship_dynamics:        ['relationship_dynamics_score', 'dynamics', 'dynamics_score'],
+  relationship_dynamics_reason: ['dynamics_reason', 'relationship_reason', 'relationship_dynamics_explanation'],
+  toxicity:                     ['toxicity_score', 'toxic_score'],
+  toxicity_reason:              ['toxic_reason', 'toxicity_explanation'],
+  bond_strength:                ['bond_strength_score', 'strength', 'overall_bond'],
+  bond_strength_reason:         ['strength_reason', 'bond_reason', 'bond_strength_explanation', 'overall_reason'],
+  summary:                      ['overview', 'analysis_summary', 'relationship_summary'],
+  actionables:                  ['action_items', 'tips', 'recommendations', 'actions'],
+};
