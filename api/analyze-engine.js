@@ -4,12 +4,13 @@
 // ============================================================
 
 import {
-  OPENROUTER_MODEL, AGENT_TEMPERATURE,
+  OPENROUTER_MODEL, AGENT_TEMPERATURE, AGENT_MAX_TOKENS,
   DELAY_MIN_HOURS, DELAY_MAX_HOURS,
   SLEEP_GAP_MAX_HOURS, SLEEP_START_HOUR_MIN, SLEEP_START_HOUR_MAX,
   SLEEP_END_HOUR_MIN, SLEEP_END_HOUR_MAX,
   ROUTINE_GAP_THRESHOLD, ROUTINE_GAP_MAX_HOURS, PAUSE_NEIGHBOURHOOD,
-  WARM_KEYWORDS, CHILLING_KEYWORDS, SCORE,
+  WARM_KEYWORDS, CHILLING_KEYWORDS,
+  KEY_ALIASES,
 } from './analyze-config.js';
 
 // ── Strip emojis from speaker names ──────────────────────────
@@ -36,6 +37,36 @@ export function parsePercent(val, fallback = 69) {
     return isNaN(n) ? fallback : n;
   }
   return fallback;
+}
+
+// ── Normalise agent response keys ────────────────────────────
+// Remaps known aliases to canonical keys so downstream code
+// always works with the same key names regardless of what the
+// model decided to call them.
+export function normaliseKeys(obj) {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
+
+  const result = { ...obj };
+
+  for (const [canonical, aliases] of Object.entries(KEY_ALIASES)) {
+    if (result[canonical] !== undefined) continue; // already present, nothing to do
+    for (const alias of aliases) {
+      if (result[alias] !== undefined) {
+        result[canonical] = result[alias];
+        delete result[alias];
+        break;
+      }
+    }
+    // Fallback: ensure key exists even if empty, to avoid hard throws on optional fields
+    if (result[canonical] === undefined) result[canonical] = '';
+  }
+
+  // Recursively normalise profiles array if present
+  if (Array.isArray(result.profiles)) {
+    result.profiles = result.profiles.map(p => normaliseKeys(p));
+  }
+
+  return result;
 }
 
 // ── Timeline parser ───────────────────────────────────────────
@@ -162,10 +193,7 @@ export function calculateTimelineMetrics(text) {
 
   return {
     enrichedText: processedLines.join('\n'),
-    metrics: {
-      repairPercentage: repairFactor,
-      totalDelays,
-    },
+    metrics: { repairPercentage: repairFactor, totalDelays },
     names: { consistentPartner: p1, asyncPartner: p2 },
   };
 }
@@ -177,6 +205,7 @@ export async function queryAgent(apiKey, systemPrompt, userContent) {
     headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model:           OPENROUTER_MODEL,
+      max_tokens:      AGENT_MAX_TOKENS,
       messages:        [{ role: 'system', content: systemPrompt }, { role: 'user', content: userContent }],
       response_format: { type: 'json_object' },
       temperature:     AGENT_TEMPERATURE,
@@ -185,5 +214,6 @@ export async function queryAgent(apiKey, systemPrompt, userContent) {
   if (!res.ok) throw new Error(`OpenRouter ${res.status}: ${await res.text()}`);
   const body = await res.json();
   if (!body.choices?.[0]?.message) throw new Error('OpenRouter returned empty completion');
-  return safeJsonParse(body.choices[0].message.content);
+  const parsed = safeJsonParse(body.choices[0].message.content);
+  return normaliseKeys(parsed);
 }
