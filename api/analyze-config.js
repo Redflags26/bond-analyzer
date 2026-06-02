@@ -132,10 +132,19 @@ Return ONLY valid JSON:
 }
 
 // ── Required dynamics keys ────────────────────────────────────
+// What we expect from Agent 2
 export const REQUIRED_DYNAMICS_KEYS = [
-  'bond_positivity','bond_positivity_reason',
-  'conflict_resolution','conflict_resolution_reason',
-  'safety_trust','safety_trust_reason',
-  'relationship_dynamics','relationship_dynamics_reason',
-  'toxicity','toxicity_reason',
+  'bond_positivity', 'bond_positivity_reason',
+  'conflict_resolution_reason',
+  'safety_trust', 'safety_trust_reason',
+  'relationship_dynamics_reason',
+  'toxicity_reason'
+];
+
+// What we expect from Agent 3
+export const REQUIRED_STRATEGIST_KEYS = [
+  'bond_strength', 
+  'bond_strength_reason', 
+  'summary', 
+  'actionables'
 ];
