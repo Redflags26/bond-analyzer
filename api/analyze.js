@@ -1,108 +1,61 @@
-// ============================================================
-//  analyze.js  —  HTTP handler only (~60 lines).
-//  Logic  → analyze-engine.js
-//  Config → analyze-config.js
-// ============================================================
-
 import { SCORE, REQUIRED_DYNAMICS_KEYS, buildPacingNote, buildPersonaPrompt, buildDynamicsPrompt, buildStrategistPrompt } from './analyze-config.js';
 import { calculateTimelineMetrics, queryAgent, parsePercent } from './analyze-engine.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin',  '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST')    return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { chatLog, userId }  = req.body;
-  const apiKey               = process.env.OPENROUTER_API_KEY;
-  const supabaseUrl          = process.env.SUPABASE_URL;
-  const supabaseServiceKey   = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!apiKey || !supabaseUrl || !supabaseServiceKey)
-    return res.status(500).json({ error: 'Missing environment keys.' });
+  const { chatLog, userId } = req.body;
+  const apiKey = process.env.OPENROUTER_API_KEY;
 
   try {
-    // 1. Parse — deterministic, no LLM
     const { enrichedText, metrics, names } = calculateTimelineMetrics(chatLog);
 
-    // 2. Build pacing context for prompts
-    const minAcc    = Math.min(Math.max(SCORE.ACCOUNTABILITY_MIN, SCORE.ACCOUNTABILITY_MIN + Math.round(metrics.repairPercentage * SCORE.ACCOUNTABILITY_WEIGHT)), SCORE.ACCOUNTABILITY_MAX - 5);
-    const maxAcc    = Math.min(SCORE.ACCOUNTABILITY_MAX, minAcc + 5);
+    // 1. Logic for Accountability Range
+    const minAcc = Math.max(SCORE.ACCOUNTABILITY_MIN, Math.min(SCORE.ACCOUNTABILITY_MIN + Math.round(metrics.repairPercentage * SCORE.ACCOUNTABILITY_WEIGHT), SCORE.ACCOUNTABILITY_MAX - 5));
+    const maxAcc = Math.min(SCORE.ACCOUNTABILITY_MAX, minAcc + 10);
     const pacingNote = buildPacingNote({ names, metrics, minAcc, maxAcc });
 
-    // 3. Agents 1 + 2 in parallel
-    const [personaResults, dynamicsResults] = await Promise.all([
+    // 2. Run Analysis
+    const [persona, dynamics] = await Promise.all([
       queryAgent(apiKey, buildPersonaPrompt({ names, pacingNote }), enrichedText),
-      queryAgent(apiKey, buildDynamicsPrompt({ metrics, pacingNote }), enrichedText),
+      queryAgent(apiKey, buildDynamicsPrompt({ metrics, pacingNote }), enrichedText)
     ]);
 
-    // 4. Validate
-    if (!dynamicsResults || typeof dynamicsResults !== 'object')
-      throw new Error('Dynamics agent returned invalid payload.');
-    for (const key of REQUIRED_DYNAMICS_KEYS)
-      if (!dynamicsResults[key]) throw new Error(`Dynamics agent missing: ${key}`);
-    if (!Array.isArray(personaResults?.profiles) || personaResults.profiles.length < 2)
-      throw new Error('Persona agent did not return two profiles.');
+    // 3. Run Strategy (uses Agent 1 & 2 outputs)
+    const strategies = await queryAgent(apiKey, buildStrategistPrompt({ names, personaData: persona, dynamicsData: dynamics }), "Generate tips based on the provided JSON summaries.");
 
-    // 5. Agent 3 — only needs summaries, not full chat text
-    const strategies = await queryAgent(
-      apiKey,
-      buildStrategistPrompt({ names, personaData: personaResults, dynamicsData: dynamicsResults }),
-      ''
-    );
-
-    // 6. Resolve profiles and actionables
-    const profile1 = personaResults.profiles.find(p => p.name?.toLowerCase() === names.consistentPartner.toLowerCase()) || personaResults.profiles[0];
-    const profile2 = personaResults.profiles.find(p => p.name?.toLowerCase() === names.asyncPartner.toLowerCase())     || personaResults.profiles[1];
-    if (!profile1 || !profile2) throw new Error('Could not resolve profiles to speaker names.');
-
-    const k1 = `${names.consistentPartner}_actionables`;
-    const k2 = `${names.asyncPartner}_actionables`;
-    if (!Array.isArray(strategies?.[k1]) || !Array.isArray(strategies?.[k2]))
-      throw new Error('Strategist did not return actionables for both speakers.');
-
-    // 7. Compute overall bond score
-    const overallScore = Math.round((
-      parsePercent(dynamicsResults.bond_positivity,       SCORE.FALLBACK_WARMTH)      +
-      parsePercent(dynamicsResults.conflict_resolution,   SCORE.FALLBACK_RESOLUTION)  +
-      parsePercent(dynamicsResults.safety_trust,          SCORE.FALLBACK_SAFETY)      +
-      parsePercent(dynamicsResults.relationship_dynamics, SCORE.FALLBACK_DYNAMICS)    +
-      (100 - parsePercent(dynamicsResults.toxicity,       SCORE.FALLBACK_TOXICITY))
+    // 4. Score Aggregation
+    const getS = (val, fb) => parsePercent(val, fb);
+    const overall = Math.round((
+      getS(dynamics.bond_positivity, SCORE.FALLBACK_WARMTH) +
+      getS(dynamics.conflict_resolution, SCORE.FALLBACK_RESOLUTION) +
+      getS(dynamics.safety_trust, SCORE.FALLBACK_SAFETY) +
+      getS(dynamics.relationship_dynamics, SCORE.FALLBACK_DYNAMICS) +
+      (100 - getS(dynamics.toxicity, SCORE.FALLBACK_TOXICITY))
     ) / SCORE.OVERALL_DIVISOR);
 
-    // 8. Assemble final result
+    const findP = (name) => persona.profiles.find(p => p.name?.toLowerCase() === name.toLowerCase()) || persona.profiles[0];
+
     const analytics = {
-      bond_strength:                `${overallScore}%`,
-      bond_strength_reason:         dynamicsResults.bond_strength_reason,
-      bond_positivity:              dynamicsResults.bond_positivity,
-      bond_positivity_reason:       dynamicsResults.bond_positivity_reason,
-      conflict_resolution:          dynamicsResults.conflict_resolution          || `${metrics.conflictResolution}%`,
-      conflict_resolution_reason:   dynamicsResults.conflict_resolution_reason,
-      safety_trust:                 dynamicsResults.safety_trust,
-      safety_trust_reason:          dynamicsResults.safety_trust_reason,
-      relationship_dynamics:        dynamicsResults.relationship_dynamics        || `${metrics.teamwork}%`,
-      relationship_dynamics_reason: dynamicsResults.relationship_dynamics_reason,
-      toxicity:                     dynamicsResults.toxicity                     || `${metrics.toxicity}%`,
-      toxicity_reason:              dynamicsResults.toxicity_reason,
-      summary:                      dynamicsResults.summary,
+      ...dynamics,
+      bond_strength: `${overall}%`,
       profiles: [
-        { ...profile1, actionables: strategies[k1] },
-        { ...profile2, actionables: strategies[k2] },
-      ],
+        { ...findP(names.consistentPartner), actionables: strategies[`${names.consistentPartner}_actionables`] || [] },
+        { ...findP(names.asyncPartner), actionables: strategies[`${names.asyncPartner}_actionables`] || [] }
+      ]
     };
 
-    // 9. Persist — fire and forget, never blocks response
-    fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/conversations`, {
-      method:  'POST',
-      headers: { 'apikey': supabaseServiceKey, 'Authorization': `Bearer ${supabaseServiceKey}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ bond_strength: analytics.bond_strength, summary: analytics.summary, full_analytics: analytics, ...(userId ? { user_id: userId } : {}) }),
-    }).catch(e => console.error('Supabase write failed:', e.message));
+    // 5. Background Persistence
+    if (process.env.SUPABASE_URL) {
+      fetch(`${process.env.SUPABASE_URL}/rest/v1/conversations`, {
+        method: 'POST',
+        headers: { 'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bond_strength: analytics.bond_strength, summary: analytics.summary, full_analytics: analytics, user_id: userId })
+      }).catch(e => console.error("DB Error:", e.message));
+    }
 
-    return res.status(200).json({ modelUsed: 'deterministic-hybrid-pipeline', analytics });
-
+    return res.status(200).json({ analytics });
   } catch (err) {
-    console.error('Pipeline error:', err.message);
-    return res.status(500).json({ error: `Analysis error: ${err.message}` });
+    return res.status(500).json({ error: err.message });
   }
 }
