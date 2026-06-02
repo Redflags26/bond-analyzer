@@ -56,14 +56,14 @@ Instructions:
 
 ${pacingNote ? pacingNote : ''}
 
-Return ONLY valid JSON:
+Return ONLY valid JSON with ALL of these fields present:
 {
   "bond_positivity": "XX%", "bond_positivity_reason": "...",
   "conflict_resolution": "XX%", "conflict_resolution_reason": "...",
   "safety_trust": "XX%", "safety_trust_reason": "...",
   "relationship_dynamics": "XX%", "relationship_dynamics_reason": "...",
   "toxicity": "XX%", "toxicity_reason": "..."
-}`;
+};
 }
 
 // ── Agent 2: Persona ─────────────────────────────────────────
@@ -126,8 +126,9 @@ export const REQUIRED_DYNAMICS_KEYS = [
   'conflict_resolution','conflict_resolution_reason',
   'safety_trust','safety_trust_reason',
   'relationship_dynamics','relationship_dynamics_reason',
-  'toxicity','toxicity_reason',
+  'toxicity','toxicity_reason'
 ];
+
 export const REQUIRED_STRATEGIST_KEYS = [
   'bond_strength','bond_strength_reason','summary','actionables',
 ];
