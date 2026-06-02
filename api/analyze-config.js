@@ -106,7 +106,7 @@ Return ONLY valid JSON. Use these exact locked values where shown:
   "relationship_dynamics": "${metrics.teamwork}%", "relationship_dynamics_reason": "one sentence of 10-20 words",
   "toxicity": "${metrics.toxicity}%", "toxicity_reason": "one sentence of 10-20 words",
   "bond_strength": "XX%","bond_strength_reason": "one sentence combining affection and any pacing reality. 20-30 words.",
-  "summary": "2–3 sentence friendly overview: what is going well, one thing to work on"
+  "summary": "2–3 sentence friendly overview: what happened in the chat, why there reacted how they did they reacted, how they can do better together."
 }`;
 }
 
