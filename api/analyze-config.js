@@ -63,7 +63,7 @@ Return ONLY valid JSON with ALL of these fields present:
   "safety_trust": "XX%", "safety_trust_reason": "...",
   "relationship_dynamics": "XX%", "relationship_dynamics_reason": "...",
   "toxicity": "XX%", "toxicity_reason": "..."
-};
+}`;
 }
 
 // ── Agent 2: Persona ─────────────────────────────────────────
