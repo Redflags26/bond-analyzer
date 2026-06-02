@@ -25,9 +25,29 @@ export function stripEmojis(str) {
 // ── Parse JSON that may have code-fence wrapping ──────────────
 export function safeJsonParse(str) {
   if (!str) throw new Error('empty response');
-  const s = str.trim().replace(/^```json|^```|```$/g, '').trim();
-  return JSON.parse(s);
+  
+  // 1. Clean markdown fences
+  let s = str.trim().replace(/^```json|^```|```$/g, '').trim();
+  
+  // 2. Find the first '{' and the last '}' 
+  // This ignores any trailing conversational text the AI might have added
+  const firstBracket = s.indexOf('{');
+  const lastBracket = s.lastIndexOf('}');
+  
+  if (firstBracket === -1 || lastBracket === -1) {
+    throw new Error('AI response did not contain a valid JSON object');
+  }
+  
+  s = s.substring(firstBracket, lastBracket + 1);
+  
+  try {
+    return JSON.parse(s);
+  } catch (e) {
+    console.error("Original string that failed to parse:", s);
+    throw new Error(`JSON Structure Error: ${e.message}`);
+  }
 }
+  
 
 // ── Parse a percentage value safely ──────────────────────────
 export function parsePercent(val, fallback = 69) {
