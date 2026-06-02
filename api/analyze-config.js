@@ -27,7 +27,7 @@ export const CHILLING_KEYWORDS = ['chilling','relaxing','scrolling'];
 // ── Score constants ───────────────────────────────────────────
 export const SCORE = {
   TOXICITY_MIN:            2,
-  TOXICITY_MAX:            10,
+  TOXICITY_MAX:            80,
   TOXICITY_CHILLING_STEP:  1.5,
 
   CONFLICT_BASE:           70,
@@ -45,10 +45,10 @@ export const SCORE = {
 
   OVERALL_DIVISOR:         5,
 
-  FALLBACK_WARMTH:         90,
-  FALLBACK_RESOLUTION:     95,
-  FALLBACK_SAFETY:         90,
-  FALLBACK_DYNAMICS:       95,
+  FALLBACK_WARMTH:         69,
+  FALLBACK_RESOLUTION:     69,
+  FALLBACK_SAFETY:         69,
+  FALLBACK_DYNAMICS:       69,
   FALLBACK_TOXICITY:       3,
 };
 
@@ -60,11 +60,12 @@ export function buildPacingNote({ names, metrics, minAcc, maxAcc }) {
   // Only flag asymmetry when the async partner has notably more delays
   return `
 PACING SIGNAL (pre-computed — do not re-derive):
-- ${metrics.totalDelays} significant reply gaps detected after filtering sleep and routine pauses.
+- ${metrics.totalDelays} reply gaps detected after filtering sleep and routine pauses.
 - ${names.asyncPartner} carries more of these gaps. When they do reply, they repair ${metrics.repairPercentage}% of the time with warmth or affection.
-- Score ${names.asyncPartner}'s Accountability in the ${minAcc}–${maxAcc}% range. Their Regulation and Receptivity should stay 80–90% (warm when active, not defensive).
-- Score ${names.consistentPartner}'s availability-related metrics at 85–95% (consistently responsive).
-- Locked scores: Toxicity = ${metrics.toxicity}%, Conflict Resolution = ${metrics.conflictResolution}%, Relationship Dynamics = ${metrics.teamwork}%.
+- Score ${names.asyncPartner}'s Accountability in the ${minAcc}–${maxAcc}% range.
+- Score ${names.consistentPartner}'s availability-related metrics higher.
+- Toxicity is high when ${metrics.totalDelays} is high.
+- Locked scores: Conflict Resolution = ${metrics.conflictResolution}%, Relationship Dynamics = ${metrics.teamwork}%.
 - Do not invent delays or pacing issues beyond what the annotated text shows.`.trim();
 }
 
@@ -77,17 +78,17 @@ Return ONLY valid JSON:
   "profiles": [
     {
       "name": "${names.consistentPartner}",
-      "attachment_security": "XX%", "attachment_security_reason": "one phrase",
-      "emotional_regulation": "XX%", "emotional_regulation_reason": "one sentence",
-      "receptivity": "XX%", "receptivity_reason": "one sentence",
-      "accountability": "XX%", "accountability_reason": "one sentence"
+      "attachment_security": "XX%", "attachment_security_reason": "one sentence of 10-20 words",
+      "emotional_regulation": "XX%", "emotional_regulation_reason": "one sentence of 10-20 words",
+      "receptivity": "XX%", "receptivity_reason": "one sentence of 10-20 words",
+      "accountability": "XX%", "accountability_reason": "one sentence of 10-20 words"
     },
     {
       "name": "${names.asyncPartner}",
-      "attachment_security": "XX%", "attachment_security_reason": "one phrase",
-      "emotional_regulation": "XX%", "emotional_regulation_reason": "one sentence",
-      "receptivity": "XX%", "receptivity_reason": "one sentence",
-      "accountability": "XX%", "accountability_reason": "one sentence"
+      "attachment_security": "XX%", "attachment_security_reason": "one sentence of 10-20 words",
+      "emotional_regulation": "XX%", "emotional_regulation_reason": "one sentence of 10-20 words",
+      "receptivity": "XX%", "receptivity_reason": "one sentence of 10-20 words",
+      "accountability": "XX%", "accountability_reason": "one sentence of 10-20 words"
     }
   ]
 }`;
@@ -99,12 +100,12 @@ export function buildDynamicsPrompt({ metrics, pacingNote }) {
 ${pacingNote ? `\n${pacingNote}\n` : ''}
 Return ONLY valid JSON. Use these exact locked values where shown:
 {
-  "bond_positivity": "XX%", "bond_positivity_reason": "one phrase about warmth and tone",
-  "conflict_resolution": "${metrics.conflictResolution}%", "conflict_resolution_reason": "one sentence",
-  "safety_trust": "XX%", "safety_trust_reason": "one sentence",
-  "relationship_dynamics": "${metrics.teamwork}%", "relationship_dynamics_reason": "one sentence",
-  "toxicity": "${metrics.toxicity}%", "toxicity_reason": "one sentence",
-  "bond_strength_reason": "one sentence combining affection and any pacing reality",
+  "bond_positivity": "XX%", "bond_positivity_reason": "one sentence of 10-20 words",
+  "conflict_resolution": "${metrics.conflictResolution}%", "conflict_resolution_reason": "one sentence of 10-20 words",
+  "safety_trust": "XX%", "safety_trust_reason": "one sentence of 10-20 words",
+  "relationship_dynamics": "${metrics.teamwork}%", "relationship_dynamics_reason": "one sentence of 10-20 words",
+  "toxicity": "${metrics.toxicity}%", "toxicity_reason": "one sentence of 10-20 words",
+  "bond_strength": "XX%","bond_strength_reason": "one sentence combining affection and any pacing reality. 20-30 words.",
   "summary": "2–3 sentence friendly overview: what is going well, one thing to work on"
 }`;
 }
@@ -132,10 +133,10 @@ Return ONLY valid JSON:
 // ── Required dynamics keys ────────────────────────────────────
 export const REQUIRED_DYNAMICS_KEYS = [
   'bond_positivity','bond_positivity_reason',
-  'conflict_resolution_reason',
+  'conflict_resolution','conflict_resolution_reason',
   'safety_trust','safety_trust_reason',
-  'relationship_dynamics_reason',
-  'toxicity_reason',
-  'bond_strength_reason',
+  'relationship_dynamics','relationship_dynamics_reason',
+  'toxicity','toxicity_reason',
+  'bond_strength','bond_strength_reason',
   'summary',
 ];
