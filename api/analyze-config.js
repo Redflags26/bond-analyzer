@@ -6,7 +6,7 @@
 // ── Model ────────────────────────────────────────────────────
 export const OPENROUTER_MODEL  = 'openrouter/auto';
 export const AGENT_TEMPERATURE = 0.1;
-export const AGENT_MAX_TOKENS  = 800;
+export const AGENT_MAX_TOKENS  = 2500;
 
 // ── Parser thresholds ────────────────────────────────────────
 export const DELAY_MIN_HOURS       = 8;    // gaps shorter than this are ignored
