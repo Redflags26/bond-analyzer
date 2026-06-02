@@ -1,10 +1,18 @@
 // ============================================================
-//  analyze.js  —  HTTP handler only (~60 lines).
+//  analyze.js  —  HTTP handler only.
 //  Logic  → analyze-engine.js
 //  Config → analyze-config.js
 // ============================================================
 
-import { SCORE, REQUIRED_DYNAMICS_KEYS, REQUIRED_STRATEGIST_KEYS, buildPacingNote, buildPersonaPrompt, buildDynamicsPrompt, buildStrategistPrompt } from './analyze-config.js';
+import {
+  SCORE,
+  REQUIRED_DYNAMICS_KEYS,
+  REQUIRED_STRATEGIST_KEYS,
+  buildPacingNote,
+  buildPersonaPrompt,
+  buildDynamicsPrompt,
+  buildStrategistPrompt,
+} from './analyze-config.js';
 import { calculateTimelineMetrics, queryAgent, parsePercent } from './analyze-engine.js';
 
 export default async function handler(req, res) {
@@ -26,26 +34,17 @@ export default async function handler(req, res) {
     // 1. Parse — deterministic, no LLM
     const { enrichedText, metrics, names } = calculateTimelineMetrics(chatLog);
 
-    // 2. Build pacing context for prompts
-    const minAcc    = Math.min(Math.max(SCORE.ACCOUNTABILITY_MIN, SCORE.ACCOUNTABILITY_MIN + Math.round(metrics.repairPercentage * SCORE.ACCOUNTABILITY_WEIGHT)), SCORE.ACCOUNTABILITY_MAX - 5);
-    const maxAcc    = Math.min(SCORE.ACCOUNTABILITY_MAX, minAcc + 5);
-    const pacingNote = buildPacingNote({ names, metrics, minAcc, maxAcc });
+    // 2. Build pacing context (factual observations only — no score directives)
+    const pacingNote = buildPacingNote({ names, metrics });
 
-    // 3. Agents 1 + 2 in parallel
-    const [personaResults, dynamicsResults] = await Promise.all([
+    // 3. Agents 1 + 2 in parallel — both get the annotated chat
+    //    Neither receives pre-computed score values to fill in.
+    const [dynamicsResults, personaResults] = await Promise.all([
+      queryAgent(apiKey, buildDynamicsPrompt({ pacingNote }), enrichedText),
       queryAgent(apiKey, buildPersonaPrompt({ names, pacingNote }), enrichedText),
-      queryAgent(apiKey, buildDynamicsPrompt({ metrics, pacingNote }), enrichedText),
     ]);
 
-    // 4. Validate Agents 1 & 2 (Persona & Dynamics)
-    // --------------------------------------------------------
-    
-    // Validate Persona (Micro)
-    if (!Array.isArray(personaResults?.profiles) || personaResults.profiles.length < 2) {
-      throw new Error('Persona agent did not return two profiles.');
-    }
-
-    // Validate Dynamics (Macro)
+    // 4. Validate Agent 1 (Dynamics)
     if (!dynamicsResults || typeof dynamicsResults !== 'object') {
       throw new Error('Dynamics agent returned invalid payload.');
     }
@@ -53,23 +52,26 @@ export default async function handler(req, res) {
       if (!dynamicsResults[key]) throw new Error(`Dynamics agent missing: ${key}`);
     }
 
+    // 5. Validate Agent 2 (Persona)
+    if (!Array.isArray(personaResults?.profiles) || personaResults.profiles.length < 2) {
+      throw new Error('Persona agent did not return two profiles.');
+    }
 
-    // 5. Agent 3 — only needs summaries, not full chat text
+    // 6. Agent 3 — synthesises from both outputs + sees the annotated chat
     const strategies = await queryAgent(
-        apiKey,
-        buildStrategistPrompt({ names, personaData: personaResults, dynamicsData: dynamicsResults }),
-        enrichedText
-      );
+      apiKey,
+      buildStrategistPrompt({ names, personaData: personaResults, dynamicsData: dynamicsResults }),
+      enrichedText,
+    );
 
-    // Validate Strategist (Executive) - ADD THIS FOR STABILITY
-     if (!strategies || typeof strategies !== 'object') {
+    if (!strategies || typeof strategies !== 'object') {
       throw new Error('Strategist agent returned invalid payload.');
     }
     for (const key of REQUIRED_STRATEGIST_KEYS) {
       if (!strategies[key]) throw new Error(`Strategist agent missing: ${key}`);
     }
 
-    // 6. Resolve profiles and actionables
+    // 7. Resolve profiles to named speakers
     const profile1 = personaResults.profiles.find(p => p.name?.toLowerCase() === names.consistentPartner.toLowerCase()) || personaResults.profiles[0];
     const profile2 = personaResults.profiles.find(p => p.name?.toLowerCase() === names.asyncPartner.toLowerCase())     || personaResults.profiles[1];
     if (!profile1 || !profile2) throw new Error('Could not resolve profiles to speaker names.');
@@ -79,7 +81,7 @@ export default async function handler(req, res) {
     if (!Array.isArray(strategies?.actionables?.[k1]) || !Array.isArray(strategies?.actionables?.[k2]))
       throw new Error('Strategist did not return actionables for both speakers.');
 
-    // 7. Compute overall bond score
+    // 8. Compute overall bond score from LLM-derived values
     const overallScore = Math.round((
       parsePercent(dynamicsResults.bond_positivity,       SCORE.FALLBACK_WARMTH)      +
       parsePercent(dynamicsResults.conflict_resolution,   SCORE.FALLBACK_RESOLUTION)  +
@@ -88,37 +90,47 @@ export default async function handler(req, res) {
       (100 - parsePercent(dynamicsResults.toxicity,       SCORE.FALLBACK_TOXICITY))
     ) / SCORE.OVERALL_DIVISOR);
 
-    // 8. Assemble final result
+    // 9. Assemble final result — no internal mechanics in output
     const analytics = {
-      // Macro from Agent 1 (Dynamics)
-      bond_positivity: dynamicsResults.bond_positivity,
-      bond_positivity_reason: dynamicsResults.bond_positivity_reason,
-      conflict_resolution: dynamicsResults.conflict_resolution || `${metrics.conflictResolution}%`,
-      conflict_resolution_reason: dynamicsResults.conflict_resolution_reason,
-      safety_trust: dynamicsResults.safety_trust,
-      safety_trust_reason: dynamicsResults.safety_trust_reason,
-      relationship_dynamics: dynamicsResults.relationship_dynamics || `${metrics.teamwork}%`,
+      // Macro — all from Agent 1 (Dynamics), LLM-derived
+      bond_positivity:              dynamicsResults.bond_positivity,
+      bond_positivity_reason:       dynamicsResults.bond_positivity_reason,
+      conflict_resolution:          dynamicsResults.conflict_resolution,
+      conflict_resolution_reason:   dynamicsResults.conflict_resolution_reason,
+      safety_trust:                 dynamicsResults.safety_trust,
+      safety_trust_reason:          dynamicsResults.safety_trust_reason,
+      relationship_dynamics:        dynamicsResults.relationship_dynamics,
       relationship_dynamics_reason: dynamicsResults.relationship_dynamics_reason,
-      toxicity: dynamicsResults.toxicity || `${metrics.toxicity}%`,
-      toxicity_reason: dynamicsResults.toxicity_reason,
+      toxicity:                     dynamicsResults.toxicity,
+      toxicity_reason:              dynamicsResults.toxicity_reason,
 
-      // Verdict & Summary from Agent 3 (Executive)
-      bond_strength: strategies.bond_strength,
+      // Verdict & Summary — from Agent 3 (Strategist)
+      bond_strength:        strategies.bond_strength,
       bond_strength_reason: strategies.bond_strength_reason,
-      summary: strategies.summary, // <--- Now coming from the Strategist
+      summary:              strategies.summary,
 
-      // Profiles + Actionables (Agent 2 + Agent 3 mapping)
+      // Profiles with actionables
       profiles: [
         { ...profile1, actionables: strategies.actionables[k1] || [] },
-        { ...profile2, actionables: strategies.actionables[k2] || [] }
-      ]
+        { ...profile2, actionables: strategies.actionables[k2] || [] },
+      ],
     };
 
-    // 9. Persist — fire and forget, never blocks response
+    // 10. Persist — fire and forget
     fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/conversations`, {
       method:  'POST',
-      headers: { 'apikey': supabaseServiceKey, 'Authorization': `Bearer ${supabaseServiceKey}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ bond_strength: analytics.bond_strength, summary: analytics.summary, full_analytics: analytics, ...(userId ? { user_id: userId } : {}) }),
+      headers: {
+        'apikey':        supabaseServiceKey,
+        'Authorization': `Bearer ${supabaseServiceKey}`,
+        'Content-Type':  'application/json',
+        'Prefer':        'return=minimal',
+      },
+      body: JSON.stringify({
+        bond_strength:  analytics.bond_strength,
+        summary:        analytics.summary,
+        full_analytics: analytics,
+        ...(userId ? { user_id: userId } : {}),
+      }),
     }).catch(e => console.error('Supabase write failed:', e.message));
 
     return res.status(200).json({ modelUsed: 'deterministic-hybrid-pipeline', analytics });
