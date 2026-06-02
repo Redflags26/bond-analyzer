@@ -76,7 +76,7 @@ export default async function handler(req, res) {
 
     const k1 = `${names.consistentPartner}_actionables`;
     const k2 = `${names.asyncPartner}_actionables`;
-    if (!Array.isArray(strategies?.[k1]) || !Array.isArray(strategies?.[k2]))
+    if (!Array.isArray(strategies?.actionables?.[k1]) || !Array.isArray(strategies?.actionables?.[k2]))
       throw new Error('Strategist did not return actionables for both speakers.');
 
     // 7. Compute overall bond score
