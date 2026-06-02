@@ -54,8 +54,10 @@ Instructions:
 - Base scores only on observed behaviours.
 - Reasons must reference specific exchanges.
 
+
 ${pacingNote ? pacingNote : ''}
 
+CRITICAL: You must return ALL the following keys. Do not omit any.
 Return ONLY valid JSON with ALL of these fields present:
 {
   "bond_positivity": "XX%", "bond_positivity_reason": "...",
