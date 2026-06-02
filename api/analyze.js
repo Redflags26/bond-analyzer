@@ -1,15 +1,13 @@
 // ============================================================
-//  analyze.js  —  HTTP handler only.
-//  Logic  → analyze-engine.js
-//  Config → analyze-config.js
+//  analyze.js — HTTP handler.
+//  Orchestrates the 2-agent pipeline (Analysis -> Strategist).
 // ============================================================
 
 import {
-  REQUIRED_DYNAMICS_KEYS,
+  REQUIRED_ANALYSIS_KEYS,
   REQUIRED_STRATEGIST_KEYS,
   buildPacingNote,
-  buildPersonaPrompt,
-  buildDynamicsPrompt,
+  buildAnalysisPrompt,
   buildStrategistPrompt,
 } from './analyze-config.js';
 import { calculateTimelineMetrics, queryAgent } from './analyze-engine.js';
@@ -18,6 +16,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin',  '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST')    return res.status(405).json({ error: 'Method not allowed' });
 
@@ -30,79 +29,81 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Missing environment keys.' });
 
   try {
-    // 1. Parse — deterministic, no LLM
+    // 1. Parse — Deterministic timeline annotation
     const { enrichedText, metrics, names } = calculateTimelineMetrics(chatLog);
 
-    // 2. Pacing context — factual observations only, no score directives
+    // 2. Build Pacing Note — Factual context for the LLM
     const pacingNote = buildPacingNote({ names, metrics });
 
-    // 3. Agents 1 + 2 in parallel
-    const [dynamicsResults, personaResults] = await Promise.all([
-      queryAgent(apiKey, buildDynamicsPrompt({ pacingNote }), enrichedText),
-      queryAgent(apiKey, buildPersonaPrompt({ names, pacingNote }), enrichedText),
-    ]);
-
-    // 4. Validate Agent 1 (Dynamics)
-    if (!dynamicsResults || typeof dynamicsResults !== 'object')
-      throw new Error('Dynamics agent returned invalid payload.');
-    for (const key of REQUIRED_DYNAMICS_KEYS) {
-      if (!dynamicsResults[key]) throw new Error(`Dynamics agent missing: ${key}`);
-    }
-
-    // 5. Validate Agent 2 (Persona)
-    if (!Array.isArray(personaResults?.profiles) || personaResults.profiles.length < 2)
-      throw new Error('Persona agent did not return two profiles.');
-
-    // 6. Agent 3 — synthesises from both outputs + annotated chat
-    const strategies = await queryAgent(
-      apiKey,
-      buildStrategistPrompt({ names, personaData: personaResults, dynamicsData: dynamicsResults }),
-      enrichedText,
+    // 3. Agent 1: Combined Analysis (Relationship Dynamics + Individual Persona)
+    const analysisResults = await queryAgent(
+      apiKey, 
+      buildAnalysisPrompt({ names, pacingNote }), 
+      enrichedText
     );
 
-    if (!strategies || typeof strategies !== 'object')
-      throw new Error('Strategist agent returned invalid payload.');
-    for (const key of REQUIRED_STRATEGIST_KEYS) {
-      if (!strategies[key]) throw new Error(`Strategist agent missing: ${key}`);
+    // 4. Validate Agent 1 Response
+    if (!analysisResults || typeof analysisResults !== 'object')
+      throw new Error('Analysis agent returned invalid payload.');
+      
+    for (const key of REQUIRED_ANALYSIS_KEYS) {
+      if (analysisResults[key] === undefined) throw new Error(`Analysis key missing: ${key}`);
     }
 
-    // 7. Resolve profiles to named speakers
-    const profile1 = personaResults.profiles.find(p => p.name?.toLowerCase() === names.consistentPartner.toLowerCase()) || personaResults.profiles[0];
-    const profile2 = personaResults.profiles.find(p => p.name?.toLowerCase() === names.asyncPartner.toLowerCase())     || personaResults.profiles[1];
-    if (!profile1 || !profile2) throw new Error('Could not resolve profiles to speaker names.');
+    if (!Array.isArray(analysisResults.profiles) || analysisResults.profiles.length < 2)
+      throw new Error('Analysis agent did not return two individual profiles.');
+
+    // 5. Agent 2: Executive Strategist — Synthesis & Verdict
+    // This agent receives the structured analysis + original context
+    const strategies = await queryAgent(
+      apiKey,
+      buildStrategistPrompt({ names, analysisData: analysisResults }),
+      enrichedText
+    );
+
+    // 6. Validate Agent 2 Response
+    if (!strategies || typeof strategies !== 'object')
+      throw new Error('Strategist agent returned invalid payload.');
+      
+    for (const key of REQUIRED_STRATEGIST_KEYS) {
+      if (strategies[key] === undefined) throw new Error(`Strategist key missing: ${key}`);
+    }
+
+    // 7. Map Profiles and Resolve Actionables
+    // Names are resolved against speaker detection to prevent "swapped profile" errors.
+    const profile1 = analysisResults.profiles.find(p => p.name?.toLowerCase() === names.consistentPartner.toLowerCase()) || analysisResults.profiles[0];
+    const profile2 = analysisResults.profiles.find(p => p.name?.toLowerCase() === names.asyncPartner.toLowerCase())     || analysisResults.profiles[1];
 
     const k1 = names.consistentPartner;
     const k2 = names.asyncPartner;
-    if (!Array.isArray(strategies?.actionables?.[k1]) || !Array.isArray(strategies?.actionables?.[k2]))
-      throw new Error('Strategist did not return actionables for both speakers.');
 
-    // 8. Assemble final result
+    // 8. Assemble final result for HTML consumption
     const analytics = {
-      // Macro — Agent 1 (Dynamics)
-      bond_positivity:              dynamicsResults.bond_positivity,
-      bond_positivity_reason:       dynamicsResults.bond_positivity_reason,
-      conflict_resolution:          dynamicsResults.conflict_resolution,
-      conflict_resolution_reason:   dynamicsResults.conflict_resolution_reason,
-      safety_trust:                 dynamicsResults.safety_trust,
-      safety_trust_reason:          dynamicsResults.safety_trust_reason,
-      relationship_dynamics:        dynamicsResults.relationship_dynamics,
-      relationship_dynamics_reason: dynamicsResults.relationship_dynamics_reason,
-      toxicity:                     dynamicsResults.toxicity,
-      toxicity_reason:              dynamicsResults.toxicity_reason,
+      // Macro Dynamics (from Agent 1)
+      bond_positivity:              analysisResults.bond_positivity,
+      bond_positivity_reason:       analysisResults.bond_positivity_reason,
+      conflict_resolution:          analysisResults.conflict_resolution,
+      conflict_resolution_reason:   analysisResults.conflict_resolution_reason,
+      safety_trust:                 analysisResults.safety_trust,
+      safety_trust_reason:          analysisResults.safety_trust_reason,
+      relationship_dynamics:        analysisResults.relationship_dynamics,
+      relationship_dynamics_reason: analysisResults.relationship_dynamics_reason,
+      toxicity:                     analysisResults.toxicity,
+      toxicity_reason:              analysisResults.toxicity_reason,
 
-      // Verdict — Agent 3 (Strategist)
+      // Verdict & Summary (from Agent 2)
       bond_strength:        strategies.bond_strength,
       bond_strength_reason: strategies.bond_strength_reason,
       summary:              strategies.summary,
 
-      // Profiles with actionables
+      // Profiles merged with actionables
       profiles: [
         { ...profile1, actionables: strategies.actionables[k1] || [] },
         { ...profile2, actionables: strategies.actionables[k2] || [] },
       ],
     };
 
-    // 9. Persist — fire and forget
+    // 9. Persist to Supabase — fire and forget
     fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/conversations`, {
       method:  'POST',
       headers: {
@@ -119,6 +120,7 @@ export default async function handler(req, res) {
       }),
     }).catch(e => console.error('Supabase write failed:', e.message));
 
+    // 10. Return result to Frontend
     return res.status(200).json({ modelUsed: 'deterministic-hybrid-pipeline', analytics });
 
   } catch (err) {
