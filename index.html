@@ -365,10 +365,27 @@
     </footer>
 
     <script>
-        let latestAnalytics    = null;
+        /* ── Constants ── */
+        const PRIMARY_USER_ID = '093236df-7fb5-46ba-9188-c511145689ec';
+        const EMAIL_REGEX     = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        /* ── State ── */
+        let latestAnalytics       = null;
         let activeRecipientOption = null;
-        let currentUserId      = null;   // set after token verification
-        let currentInviteCount = 0;      // how many invites this user has sent
+        let currentUserId         = null;
+        let currentInviteCount    = 0;
+
+        /* ── PostHog — loaded securely from backend config ── */
+        async function initPosthog() {
+            try {
+                const res  = await fetch('/api/config');
+                const cfg  = await res.json();
+                if (!cfg.posthogKey) return;
+                !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+" (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+                posthog.init(cfg.posthogKey, { api_host: cfg.posthogHost, autocapture: true, capture_pageview: true, capture_pageleave: true });
+            } catch { /* posthog is non-critical */ }
+        }
+        initPosthog();
 
         /* ══════════════════════════════════════════════════════════════════
            ACCESS GATE — token verification on page load
@@ -449,10 +466,12 @@
             document.body.classList.remove('gated');
             document.body.classList.add('ready');
             updateInviteCountUI();
+            if (typeof posthog !== 'undefined' && currentUserId) {
+                posthog.identify(currentUserId);
+            }
         }
 
         function updateInviteCountUI() {
-            const PRIMARY_USER_ID = '093236df-7fb5-46ba-9188-c511145689ec';
             const remaining = 3 - currentInviteCount;
             const countText = document.getElementById('inviteCountText');
             const limitMsg  = document.getElementById('inviteLimitMsg');
@@ -479,7 +498,6 @@
 
         /* ── Submit interest (blocked users) ── */
         async function submitInterest() {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             const email      = document.getElementById('interestEmail').value.trim();
             const successEl  = document.getElementById('interestSuccess');
             const errorEl    = document.getElementById('interestError');
@@ -487,7 +505,7 @@
             successEl.classList.add('hidden');
             errorEl.classList.add('hidden');
 
-            if (!email || !emailRegex.test(email)) {
+            if (!email || !EMAIL_REGEX.test(email)) {
                 document.getElementById('interestErrorText').innerText = 'Please enter a valid email address.';
                 errorEl.classList.remove('hidden'); return;
             }
@@ -515,7 +533,6 @@
 
         /* ── Send invite ── */
         async function sendInvite() {
-            const emailRegex    = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             const inviteEmail   = document.getElementById('inviteEmail').value.trim();
             const successBanner = document.getElementById('inviteSuccessBanner');
             const errorBanner   = document.getElementById('inviteErrorBanner');
@@ -528,7 +545,7 @@
                 document.getElementById('inviteErrorText').innerText = 'Please enter an email address.';
                 errorBanner.classList.remove('hidden'); return;
             }
-            if (!emailRegex.test(inviteEmail)) {
+            if (!EMAIL_REGEX.test(inviteEmail)) {
                 document.getElementById('inviteErrorText').innerText = 'That email address doesn\'t look right.';
                 errorBanner.classList.remove('hidden'); return;
             }
@@ -537,7 +554,6 @@
             btn.innerText = 'Sending...';
 
             // Pre-check invite limit before hitting API (primary user exempt)
-            const PRIMARY_USER_ID = '093236df-7fb5-46ba-9188-c511145689ec';
             if (currentUserId !== PRIMARY_USER_ID && currentInviteCount >= 3) {
                 document.getElementById('inviteErrorText').innerText = "You've used all 3 of your invites.";
                 errorBanner.classList.remove('hidden');
@@ -638,7 +654,6 @@
         async function emailReport() {
             if (!latestAnalytics) return;
 
-            const emailRegex    = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             const selfEmail     = document.getElementById('emailSelf').value.trim();
             const partnerEmail  = document.getElementById('emailPartner').value.trim();
             const successBanner = document.getElementById('emailSuccessBanner');
@@ -651,11 +666,11 @@
                 document.getElementById('emailErrorText').innerText = 'Please enter at least one email address.';
                 errorBanner.classList.remove('hidden'); return;
             }
-            if (selfEmail && !emailRegex.test(selfEmail)) {
+            if (selfEmail && !EMAIL_REGEX.test(selfEmail)) {
                 document.getElementById('emailErrorText').innerText = 'Your email address looks invalid.';
                 errorBanner.classList.remove('hidden'); return;
             }
-            if (partnerEmail && !emailRegex.test(partnerEmail)) {
+            if (partnerEmail && !EMAIL_REGEX.test(partnerEmail)) {
                 document.getElementById('emailErrorText').innerText = "Your partner's email looks invalid.";
                 errorBanner.classList.remove('hidden'); return;
             }
@@ -882,6 +897,5 @@
                 analyzeBtn.innerText = 'Analyze Conversation';
             }
         }
-    </script>
-</body>
+    </script></body>
 </html>
