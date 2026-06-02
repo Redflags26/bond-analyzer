@@ -52,13 +52,7 @@ export function calculateTimelineMetrics(text) {
     names: { consistentPartner: 'Person 1', asyncPartner: 'Person 2' },
   };
 
-  const linePattern = /^
-
-\[?(\d{1,4}[:\/\-.]\d{1,4}(?:[:\/\-.]\d{2,4})?),\s*([^\]
-
-\-]+)\]
-
-?\s*(?:-\s*)?([^:]+):\s*(.*)$/i;
+  const linePattern = /^\[?(\d{1,4}[:\/\-.]\d{1,4}(?:[:\/\-.]\d{2,4})?),\s*([^\]\-]+)\]?\s*(?:-\s*)?([^:]+):\s*(.*)$/i;
   const timePattern = /(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([ap]m)?/i;
 
   const speakers        = new Set();
