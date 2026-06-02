@@ -9,14 +9,14 @@ export const OPENROUTER_MODEL  = 'openrouter/auto';
 export const AGENT_TEMPERATURE = 0.1;
 
 // ── Parser thresholds ────────────────────────────────────────
-export const DELAY_MIN_HOURS           = 5;     // gaps shorter than this are ignored
+export const DELAY_MIN_HOURS           = 8;     // gaps shorter than this are ignored
 export const DELAY_MAX_HOURS           = 2000;  // gaps longer than this are data errors
 export const SLEEP_GAP_MAX_HOURS       = 14;
 export const SLEEP_START_HOUR_MIN      = 21;    // 9 pm — considered "late night"
 export const SLEEP_START_HOUR_MAX      = 4;     // 4 am — still "late night"
 export const SLEEP_END_HOUR_MIN        = 5;     // 5 am — "morning" starts
 export const SLEEP_END_HOUR_MAX        = 11;    // 11 am — "morning" ends
-export const ROUTINE_GAP_THRESHOLD     = 2;     // hour must recur ≥ this many times to be routine
+export const ROUTINE_GAP_THRESHOLD     = 3;     // hour must recur ≥ this many times to be routine
 export const ROUTINE_GAP_MAX_HOURS     = 16;
 export const PAUSE_NEIGHBOURHOOD       = 1;     // ±hours around a pause-start hour
 
