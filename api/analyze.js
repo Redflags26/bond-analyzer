@@ -1,38 +1,39 @@
-import { SCORE, REQUIRED_DYNAMICS_KEYS, buildPacingNote, buildPersonaPrompt, buildDynamicsPrompt, buildStrategistPrompt } from './analyze-config.js';
-import { calculateTimelineMetrics, queryAgent, parsePercent } from './analyze-engine.js';
+import * as CFG from './analyze-config.js';
+import * as ENG from './analyze-engine.js';
 
 export default async function handler(req, res) {
+  // 1. HTTP SETUP & VALIDATION
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
   const { chatLog, userId } = req.body;
   const apiKey = process.env.OPENROUTER_API_KEY;
 
   try {
-    const { enrichedText, metrics, names } = calculateTimelineMetrics(chatLog);
+    // 2. PARSE DETERMINISTIC DATA
+    const { enrichedText, metrics, names } = ENG.calculateTimelineMetrics(chatLog);
 
-    // 1. Logic for Accountability Range
-    const minAcc = Math.max(SCORE.ACCOUNTABILITY_MIN, Math.min(SCORE.ACCOUNTABILITY_MIN + Math.round(metrics.repairPercentage * SCORE.ACCOUNTABILITY_WEIGHT), SCORE.ACCOUNTABILITY_MAX - 5));
-    const maxAcc = Math.min(SCORE.ACCOUNTABILITY_MAX, minAcc + 10);
-    const pacingNote = buildPacingNote({ names, metrics, minAcc, maxAcc });
+    // 3. CONSTRUCT PACING CONTEXT
+    const minAcc = Math.max(CFG.SCORE.ACCOUNTABILITY_MIN, Math.min(CFG.SCORE.ACCOUNTABILITY_MIN + Math.round(metrics.repairPercentage * CFG.SCORE.ACCOUNTABILITY_WEIGHT), CFG.SCORE.ACCOUNTABILITY_MAX - 5));
+    const maxAcc = Math.min(CFG.SCORE.ACCOUNTABILITY_MAX, minAcc + 10);
+    const pacingNote = CFG.buildPacingNote({ names, metrics, minAcc, maxAcc });
 
-    // 2. Run Analysis
+    // 4. PARALLEL ANALYSIS (Agent 1 & Agent 2)
     const [persona, dynamics] = await Promise.all([
-      queryAgent(apiKey, buildPersonaPrompt({ names, pacingNote }), enrichedText),
-      queryAgent(apiKey, buildDynamicsPrompt({ metrics, pacingNote }), enrichedText)
+      ENG.queryAgent(apiKey, CFG.buildPersonaPrompt({ names, pacingNote }), enrichedText),
+      ENG.queryAgent(apiKey, CFG.buildDynamicsPrompt({ metrics, pacingNote }), enrichedText)
     ]);
 
-    // 3. Run Strategy (uses Agent 1 & 2 outputs)
-    const strategies = await queryAgent(apiKey, buildStrategistPrompt({ names, personaData: persona, dynamicsData: dynamics }), "Generate tips based on the provided JSON summaries.");
+    // 5. SEQUENTIAL STRATEGY (Agent 3)
+    const strategies = await ENG.queryAgent(apiKey, CFG.buildStrategistPrompt({ names, personaData: persona, dynamicsData: dynamics }), "Generate tips based on summaries.");
 
-    // 4. Score Aggregation
-    const getS = (val, fb) => parsePercent(val, fb);
+    // 6. SCORE AGGREGATION & FINAL ASSEMBLY
+    const getS = (val, fb) => ENG.parsePercent(val, fb);
     const overall = Math.round((
-      getS(dynamics.bond_positivity, SCORE.FALLBACK_WARMTH) +
-      getS(dynamics.conflict_resolution, SCORE.FALLBACK_RESOLUTION) +
-      getS(dynamics.safety_trust, SCORE.FALLBACK_SAFETY) +
-      getS(dynamics.relationship_dynamics, SCORE.FALLBACK_DYNAMICS) +
-      (100 - getS(dynamics.toxicity, SCORE.FALLBACK_TOXICITY))
-    ) / SCORE.OVERALL_DIVISOR);
+      getS(dynamics.bond_positivity, CFG.SCORE.FALLBACK_WARMTH) +
+      getS(dynamics.conflict_resolution, CFG.SCORE.FALLBACK_RESOLUTION) +
+      getS(dynamics.safety_trust, CFG.SCORE.FALLBACK_SAFETY) +
+      getS(dynamics.relationship_dynamics, CFG.SCORE.FALLBACK_DYNAMICS) +
+      (100 - getS(dynamics.toxicity, CFG.SCORE.FALLBACK_TOXICITY))
+    ) / CFG.SCORE.OVERALL_DIVISOR);
 
     const findP = (name) => persona.profiles.find(p => p.name?.toLowerCase() === name.toLowerCase()) || persona.profiles[0];
 
@@ -45,17 +46,20 @@ export default async function handler(req, res) {
       ]
     };
 
-    // 5. Background Persistence
+    // 7. ASYNCHRONOUS PERSISTENCE (Database)
     if (process.env.SUPABASE_URL) {
       fetch(`${process.env.SUPABASE_URL}/rest/v1/conversations`, {
         method: 'POST',
         headers: { 'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ bond_strength: analytics.bond_strength, summary: analytics.summary, full_analytics: analytics, user_id: userId })
-      }).catch(e => console.error("DB Error:", e.message));
+      }).catch(e => console.error("Database Trace Bypassed:", e.message));
     }
 
+    // 8. FINAL RESPONSE
     return res.status(200).json({ analytics });
+
   } catch (err) {
+    console.error("Pipeline Failure:", err.message);
     return res.status(500).json({ error: err.message });
   }
 }
