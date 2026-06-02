@@ -1,7 +1,6 @@
 // ============================================================
 //  analyze-engine.js
 //  Pure logic — no HTTP, no env vars.
-//  Edit scoring, parsing, and agent calling here.
 // ============================================================
 
 import {
@@ -17,21 +16,20 @@ import {
 export function stripEmojis(str) {
   if (!str) return '';
   return str
-    .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')
+    .replace(/[\u{1F000}-\u{1FFFF}]/gu, '') // covers all emoji ranges incl. surrogate pairs
     .replace(/[\u2000-\u27FF\uE000-\uF8FF]/g, '')
-    .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '')
     .replace(/\s+/g, ' ').trim();
 }
 
 // ── Parse JSON that may have code-fence wrapping ──────────────
 export function safeJsonParse(str) {
   if (!str) throw new Error('empty response');
-  let s = str.trim().replace(/^```json|^```|```$/g, '').trim();
+  const s = str.trim().replace(/^```json|^```|```$/g, '').trim();
   return JSON.parse(s);
 }
 
 // ── Parse a percentage value safely ──────────────────────────
-export function parsePercent(val, fallback) {
+export function parsePercent(val, fallback = 69) {
   if (typeof val === 'number') return val;
   if (typeof val === 'string') {
     const n = parseInt(val, 10);
@@ -44,13 +42,7 @@ export function parsePercent(val, fallback) {
 export function calculateTimelineMetrics(text) {
   if (!text || typeof text !== 'string') return {
     enrichedText: '',
-    metrics: {
-      toxicity:           SCORE.FALLBACK_TOXICITY,
-      conflictResolution: SCORE.FALLBACK_RESOLUTION,
-      teamwork:           SCORE.FALLBACK_DYNAMICS,
-      repairPercentage:   100,
-      totalDelays:        0,
-    },
+    metrics: { repairPercentage: 100, totalDelays: 0 },
     names: { consistentPartner: 'Person 1', asyncPartner: 'Person 2' },
   };
 
@@ -64,13 +56,12 @@ export function calculateTimelineMetrics(text) {
   const processedLines  = [];
   const msgs            = [];
 
-  let minTs = Infinity, maxTs = -Infinity;
   let lastTs = null;
   let totalDelays = 0, warmRepairCount = 0;
 
   // PASS 1 — parse timestamps and collect pause start hours
   for (const raw of text.split('\n')) {
-    const line  = raw.replace(/\u200e|\u202f/g, ' ').trim();
+    const line = raw.replace(/\u200e|\u202f/g, ' ').trim();
     if (!line) continue;
     const match = linePattern.exec(line);
     if (!match) { msgs.push({ line, ts: null }); continue; }
@@ -96,8 +87,6 @@ export function calculateTimelineMetrics(text) {
       if (!ts) throw new Error('bad ts');
 
       speakers.add(speaker);
-      if (ts < minTs) minTs = ts;
-      if (ts > maxTs) maxTs = ts;
 
       if (lastTs) {
         const dH = (ts - lastTs) / 3600000;
@@ -121,7 +110,7 @@ export function calculateTimelineMetrics(text) {
     }
   }
 
-  // PASS 2 — annotate delays and reconstruct lines
+  // PASS 2 — annotate irregular delays and reconstruct lines
   lastTs = null;
   for (const msg of msgs) {
     if (!msg.ts) { processedLines.push(msg.line); continue; }
@@ -147,9 +136,9 @@ export function calculateTimelineMetrics(text) {
 
         if (!isSleep && !isRoutine) {
           totalDelays++;
-          speakerDelays[speaker]   = (speakerDelays[speaker]   || 0) + 1;
+          speakerDelays[speaker] = (speakerDelays[speaker] || 0) + 1;
           const lower = content.toLowerCase();
-          if (WARM_KEYWORDS.some(kw    => lower.includes(kw))) warmRepairCount++;
+          if (WARM_KEYWORDS.some(kw     => lower.includes(kw))) warmRepairCount++;
           if (CHILLING_KEYWORDS.some(kw => lower.includes(kw))) {
             speakerChilling[speaker] = (speakerChilling[speaker] || 0) + 1;
           }
@@ -169,17 +158,12 @@ export function calculateTimelineMetrics(text) {
   p1 = p1 || 'Person 1'; p2 = p2 || 'Person 2';
   if ((speakerDelays[p1] || 0) > (speakerDelays[p2] || 0)) [p1, p2] = [p2, p1];
 
-  const chilling     = speakerChilling[p2] || 0;
   const repairFactor = totalDelays > 0 ? Math.round((warmRepairCount / totalDelays) * 100) : 100;
-  const asymmetry    = totalDelays > 0 ? Math.min(totalDelays * SCORE.ASYMMETRY_STEP, SCORE.ASYMMETRY_CAP) : 0;
 
   return {
     enrichedText: processedLines.join('\n'),
     metrics: {
-      toxicity:           Math.max(SCORE.TOXICITY_MIN, Math.min(SCORE.TOXICITY_MIN + chilling * SCORE.TOXICITY_CHILLING_STEP, SCORE.TOXICITY_MAX)),
-      conflictResolution: Math.max(SCORE.CONFLICT_BASE, Math.min(SCORE.CONFLICT_BASE + repairFactor * SCORE.CONFLICT_REPAIR_WEIGHT, SCORE.CONFLICT_MAX)),
-      teamwork:           Math.max(SCORE.TEAMWORK_BASE, SCORE.TEAMWORK_MAX - asymmetry),
-      repairPercentage:   repairFactor,
+      repairPercentage: repairFactor,
       totalDelays,
     },
     names: { consistentPartner: p1, asyncPartner: p2 },
