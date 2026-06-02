@@ -1,94 +1,98 @@
 // ============================================================
 //  TRUVAH — ANALYZE CONFIG
 //  All tunable constants and prompt templates.
-//  analyze.js imports everything from here.
 // ============================================================
 
 // ── Model ────────────────────────────────────────────────────
 export const OPENROUTER_MODEL  = 'openrouter/auto';
 export const AGENT_TEMPERATURE = 0.1;
+export const AGENT_MAX_TOKENS  = 2500;
 
 // ── Parser thresholds ────────────────────────────────────────
-export const DELAY_MIN_HOURS           = 8;     // gaps shorter than this are ignored
-export const DELAY_MAX_HOURS           = 2000;  // gaps longer than this are data errors
-export const SLEEP_GAP_MAX_HOURS       = 14;
-export const SLEEP_START_HOUR_MIN      = 21;    // 9 pm — considered "late night"
-export const SLEEP_START_HOUR_MAX      = 4;     // 4 am — still "late night"
-export const SLEEP_END_HOUR_MIN        = 5;     // 5 am — "morning" starts
-export const SLEEP_END_HOUR_MAX        = 11;    // 11 am — "morning" ends
-export const ROUTINE_GAP_THRESHOLD     = 3;     // hour must recur ≥ this many times to be routine
-export const ROUTINE_GAP_MAX_HOURS     = 16;
-export const PAUSE_NEIGHBOURHOOD       = 1;     // ±hours around a pause-start hour
+export const DELAY_MIN_HOURS       = 8;    // gaps shorter than this are ignored
+export const DELAY_MAX_HOURS       = 2000; // gaps longer than this are data errors
+export const SLEEP_GAP_MAX_HOURS   = 14;
+export const SLEEP_START_HOUR_MIN  = 21;   // 9 pm — considered "late night"
+export const SLEEP_START_HOUR_MAX  = 4;    // 4 am — still "late night"
+export const SLEEP_END_HOUR_MIN    = 5;    // 5 am — "morning" starts
+export const SLEEP_END_HOUR_MAX    = 11;   // 11 am — "morning" ends
+export const ROUTINE_GAP_THRESHOLD = 3;    // hour must recur ≥ this many times to be routine
+export const ROUTINE_GAP_MAX_HOURS = 16;
+export const PAUSE_NEIGHBOURHOOD   = 1;    // ±hours around a pause-start hour
 
 // ── Keywords ─────────────────────────────────────────────────
 export const WARM_KEYWORDS     = ['sorry','guilty','babe','love','💕','❤️','haha','hey','sweet','dear','thanks','hug','miss','🥰','😘','😊','lol'];
 export const CHILLING_KEYWORDS = ['chilling','relaxing','scrolling'];
 
-// ── Score constants ───────────────────────────────────────────
+// ── Score constants (engine use only — never injected into prompts) ──
 export const SCORE = {
-  TOXICITY_MIN:            2,
-  TOXICITY_MAX:            99,
-  TOXICITY_CHILLING_STEP:  1.5,
-
-  CONFLICT_BASE:           50,
-  CONFLICT_MAX:            99,
-  CONFLICT_REPAIR_WEIGHT:  0.25,
-
-  TEAMWORK_BASE:           50,
-  TEAMWORK_MAX:            99,
-  ASYMMETRY_STEP:          1.5,
-  ASYMMETRY_CAP:           12,
-
-  ACCOUNTABILITY_MIN:      50,
-  ACCOUNTABILITY_MAX:      99,
-  ACCOUNTABILITY_WEIGHT:   0.15,
-
-  OVERALL_DIVISOR:         5,
-
-  FALLBACK_WARMTH:         69,
-  FALLBACK_RESOLUTION:     69,
-  FALLBACK_SAFETY:         69,
-  FALLBACK_DYNAMICS:       69,
-  FALLBACK_TOXICITY:       3,
+  ASYMMETRY_STEP: 1.5,
+  ASYMMETRY_CAP:  12,
 };
 
-// ── Pacing note — only injected when delays are meaningful ───
-// Called with { names, metrics }. Returns '' when no signal worth mentioning.
-export function buildPacingNote({ names, metrics, minAcc, maxAcc }) {
+// ── Pacing context — factual observations only, no score directives ──
+export function buildPacingNote({ names, metrics }) {
   if (metrics.totalDelays === 0) return '';
 
-  // Only flag asymmetry when the async partner has notably more delays
+  const repairDesc = metrics.repairPercentage >= 70
+    ? 'most of the time'
+    : metrics.repairPercentage >= 40
+      ? 'about half the time'
+      : 'rarely';
+
   return `
-PACING SIGNAL (pre-computed — do not re-derive):
-- ${metrics.totalDelays} reply gaps detected after filtering sleep and routine pauses.
-- ${names.asyncPartner} carries more of these gaps. When they do reply, they repair ${metrics.repairPercentage}% of the time with warmth or affection.
-- Score ${names.asyncPartner}'s Accountability in the ${minAcc}–${maxAcc}% range.
-- Score ${names.consistentPartner}'s availability-related metrics higher.
-- Toxicity is high when ${metrics.totalDelays} is high.
-- Locked scores: Conflict Resolution = ${metrics.conflictResolution}%, Relationship Dynamics = ${metrics.teamwork}%.
-- Do not invent delays or pacing issues beyond what the annotated text shows.`.trim();
+CONVERSATION STRUCTURE NOTE:
+The chat has been pre-annotated with [Pause: Xh] tags. These mark reply gaps of 8+ hours that fall outside overnight sleep windows and recurring routine patterns — meaning they are genuinely irregular silences, not just someone sleeping or following a consistent daily schedule.
+- ${metrics.totalDelays} such irregular gaps were found.
+- ${names.asyncPartner} accounts for more of these gaps than ${names.consistentPartner}.
+- After their gaps, ${names.asyncPartner} returns with warm or affectionate language ${repairDesc} (${metrics.repairPercentage}% of the time).
+- Treat [Pause] tags as one contextual signal — weigh them alongside tone, content, and emotional exchanges in the conversation.`.trim();
 }
 
-// ── Agent 1: Relationship Dynamics (Macro) ──
-export function buildDynamicsPrompt({ metrics, pacingNote }) {
-  return `You are a Relationship Counselor. Analyze the dynamic between the pair.
-${pacingNote}
-Return ONLY valid JSON:
-{
-  "bond_positivity": "XX%", "bond_positivity_reason": "...",
-  "conflict_resolution": "${metrics.conflictResolution}%", "conflict_resolution_reason": "...",
-  "safety_trust": "XX%", "safety_trust_reason": "...",
-  "relationship_dynamics": "${metrics.teamwork}%", "relationship_dynamics_reason": "...",
-  "toxicity": "${metrics.toxicity}%", "toxicity_reason": "..."
-}`;
-}
+// ── Agent 1: Combined Dynamics + Persona ─────────────────────
+// Single call replacing the previous two separate agents.
+export function buildAnalysisPrompt({ names, pacingNote }) {
+  return `You are a relationship analysis expert combining the roles of Relationship Counselor and Behavioral Psychologist. You will be given an annotated chat conversation between two people: ${names.consistentPartner} and ${names.asyncPartner}.
 
-// ── Agent 2: Persona (Micro) ──
-export function buildPersonaPrompt({ names, pacingNote }) {
-  return `You are a Behavioral Psychologist. Profile both individuals.
-${pacingNote}
-Return ONLY valid JSON:
+IMPORTANT: Respond with a single JSON object only. The very first character of your response must be {. No markdown, no code fences, no explanation before or after.
+
+The conversation may contain [Pause: Xh] annotations. These mark irregular reply gaps of 8+ hours — sleep and routine gaps have already been filtered out. The tag appears on the message that broke the silence, attributed to the person who replied late. Use them as a behavioural signal.
+${pacingNote ? '\n' + pacingNote + '\n' : ''}
+PART A — Relationship Dynamics. Evaluate the overall dynamic based on tone, language, emotional content, repair attempts, conflict patterns, and how each person shows up for the other.
+
+PART B — Individual Profiles. Profile each person based on how they actually communicate — word choices, emotional tone, response to tension, engagement or disengagement.
+
+Trait definitions for profiles:
+- attachment_security: How secure and settled does this person seem? Do they seek reassurance, become anxious, or communicate with confidence?
+- emotional_regulation: How well do they manage emotions during friction or silence? Do they escalate, withdraw, or stay steady?
+- receptivity: How open are they to the other person's perspective? Do they listen, deflect, or shut down?
+- accountability: When tension arises, do they acknowledge their part, deflect, or blame?
+
+Scoring guide (apply to ALL percentage fields in both parts):
+- 0–30%: severely concerning / struggling
+- 31–55%: below average / inconsistent
+- 56–74%: functional with room to grow
+- 75–89%: healthy / strong
+- 90–100%: exceptional
+
+Rules for ALL _reason fields:
+- Reference specific observed behaviours or exchanges from the conversation
+- Write in plain human language
+- Never mention scores, code, baselines, percentages, or internal methodology
+
+Use EXACTLY these key names — no variations, no synonyms:
+
 {
+  "bond_positivity": "XX%",
+  "bond_positivity_reason": "...",
+  "conflict_resolution": "XX%",
+  "conflict_resolution_reason": "...",
+  "safety_trust": "XX%",
+  "safety_trust_reason": "...",
+  "relationship_dynamics": "XX%",
+  "relationship_dynamics_reason": "...",
+  "toxicity": "XX%",
+  "toxicity_reason": "...",
   "profiles": [
     {
       "name": "${names.consistentPartner}",
@@ -108,43 +112,68 @@ Return ONLY valid JSON:
 }`;
 }
 
-// ── Agent 3: Executive Strategist (Synthesis & Summary) ──
-export function buildStrategistPrompt({ names, personaData, dynamicsData }) {
-  return `You are a Relationship Coach. Review these findings:
-Relationship Analysis: ${JSON.stringify(dynamicsData)}
-Individual Profiles: ${JSON.stringify(personaData)}
+// ── Agent 2: Executive Strategist ────────────────────────────
+export function buildStrategistPrompt({ names, analysisData }) {
+  return `You are a Relationship Coach synthesising findings from a specialist analysis alongside the original conversation.
 
-TASK:
-1. Write a 2–3 sentence friendly overview summary: what happened in the chat, why they reacted how they did, and how they can do better together.
-2. Provide 2 actionable tips for each person.
-3. Determine a final Bond Strength % (ensure it matches the friction described in profiles).
+IMPORTANT: Respond with a single JSON object only. The very first character of your response must be {. No markdown, no code fences, no explanation before or after.
 
-Return ONLY valid JSON:
+Analysis findings: ${JSON.stringify(analysisData)}
+
+Your tasks:
+
+SUMMARY: Write 2–3 sentences in a warm, direct tone. Describe what was happening emotionally in the conversation, what each person seemed to need, and one concrete thing they could do differently together. Write for the couple — no jargon, no references to scores or analysis methods.
+
+ACTIONABLES: Provide 2 specific, practical tips for each person grounded in their actual behaviour in the chat. Avoid generic advice. Do not reference trait names, percentages, or scoring.
+
+BOND STRENGTH: A single percentage reflecting the overall health and resilience of this relationship. Must be consistent with the analysis findings — if there is friction, it must show here. Do not mechanically average the scores.
+
+Use EXACTLY these key names — no variations, no synonyms:
+
 {
   "bond_strength": "XX%",
-  "bond_strength_reason": "Brief synthesis.",
-  "summary": "...",
+  "bond_strength_reason": "1–2 sentences on why this bond strength was given, in plain human language.",
+  "summary": "2–3 warm sentences for the couple.",
   "actionables": {
-    "${names.consistentPartner}": ["Tip 1", "Tip 2"],
-    "${names.asyncPartner}": ["Tip 1", "Tip 2"]
+    "${names.consistentPartner}": ["Specific tip 1", "Specific tip 2"],
+    "${names.asyncPartner}": ["Specific tip 1", "Specific tip 2"]
   }
 }`;
 }
 
-// ── Required dynamics keys ────────────────────────────────────
-// What we expect from Agent 2
-export const REQUIRED_DYNAMICS_KEYS = [
+// ── Validation key maps ───────────────────────────────────────
+// Primary keys expected from Agent 1 (combined analysis)
+export const REQUIRED_ANALYSIS_KEYS = [
   'bond_positivity', 'bond_positivity_reason',
-  'conflict_resolution_reason',
+  'conflict_resolution', 'conflict_resolution_reason',
   'safety_trust', 'safety_trust_reason',
-  'relationship_dynamics_reason',
-  'toxicity_reason'
+  'relationship_dynamics', 'relationship_dynamics_reason',
+  'toxicity', 'toxicity_reason',
+  'profiles',
 ];
 
-// What we expect from Agent 3
+// Primary keys expected from Agent 2 (strategist)
 export const REQUIRED_STRATEGIST_KEYS = [
-  'bond_strength', 
-  'bond_strength_reason', 
-  'summary', 
-  'actionables'
+  'bond_strength',
+  'summary',
+  'actionables',
 ];
+
+// ── Key alias map — fallbacks if model uses alternate names ──
+// Format: canonical_key: [alias1, alias2, ...]
+export const KEY_ALIASES = {
+  bond_positivity:              ['bond_positivity_score', 'positivity', 'bond_score'],
+  bond_positivity_reason:       ['positivity_reason', 'bond_positivity_explanation'],
+  conflict_resolution:          ['conflict_resolution_score', 'conflict_score', 'resolution'],
+  conflict_resolution_reason:   ['resolution_reason', 'conflict_reason', 'conflict_resolution_explanation'],
+  safety_trust:                 ['safety_trust_score', 'trust', 'safety', 'trust_score'],
+  safety_trust_reason:          ['trust_reason', 'safety_reason', 'safety_trust_explanation'],
+  relationship_dynamics:        ['relationship_dynamics_score', 'dynamics', 'dynamics_score'],
+  relationship_dynamics_reason: ['dynamics_reason', 'relationship_reason', 'relationship_dynamics_explanation'],
+  toxicity:                     ['toxicity_score', 'toxic_score'],
+  toxicity_reason:              ['toxic_reason', 'toxicity_explanation'],
+  bond_strength:                ['bond_strength_score', 'strength', 'overall_bond'],
+  bond_strength_reason:         ['strength_reason', 'bond_reason', 'bond_strength_explanation', 'overall_reason'],
+  summary:                      ['overview', 'analysis_summary', 'relationship_summary'],
+  actionables:                  ['action_items', 'tips', 'recommendations', 'actions'],
+};

@@ -1,37 +1,56 @@
 // ============================================================
 //  analyze-engine.js
 //  Pure logic — no HTTP, no env vars.
-//  Edit scoring, parsing, and agent calling here.
 // ============================================================
 
 import {
-  OPENROUTER_MODEL, AGENT_TEMPERATURE,
+  OPENROUTER_MODEL, AGENT_TEMPERATURE, AGENT_MAX_TOKENS,
   DELAY_MIN_HOURS, DELAY_MAX_HOURS,
   SLEEP_GAP_MAX_HOURS, SLEEP_START_HOUR_MIN, SLEEP_START_HOUR_MAX,
   SLEEP_END_HOUR_MIN, SLEEP_END_HOUR_MAX,
   ROUTINE_GAP_THRESHOLD, ROUTINE_GAP_MAX_HOURS, PAUSE_NEIGHBOURHOOD,
-  WARM_KEYWORDS, CHILLING_KEYWORDS, SCORE,
+  WARM_KEYWORDS, CHILLING_KEYWORDS,
+  KEY_ALIASES,
 } from './analyze-config.js';
 
 // ── Strip emojis from speaker names ──────────────────────────
 export function stripEmojis(str) {
   if (!str) return '';
   return str
-    .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')
+    .replace(/[\u{1F000}-\u{1FFFF}]/gu, '') // covers all emoji ranges incl. surrogate pairs
     .replace(/[\u2000-\u27FF\uE000-\uF8FF]/g, '')
-    .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '')
     .replace(/\s+/g, ' ').trim();
 }
 
 // ── Parse JSON that may have code-fence wrapping ──────────────
 export function safeJsonParse(str) {
   if (!str) throw new Error('empty response');
+  
+  // 1. Clean markdown fences
   let s = str.trim().replace(/^```json|^```|```$/g, '').trim();
-  return JSON.parse(s);
+  
+  // 2. Find the first '{' and the last '}' 
+  // This ignores any trailing conversational text the AI might have added
+  const firstBracket = s.indexOf('{');
+  const lastBracket = s.lastIndexOf('}');
+  
+  if (firstBracket === -1 || lastBracket === -1) {
+    throw new Error('AI response did not contain a valid JSON object');
+  }
+  
+  s = s.substring(firstBracket, lastBracket + 1);
+  
+  try {
+    return JSON.parse(s);
+  } catch (e) {
+    console.error("Original string that failed to parse:", s);
+    throw new Error(`JSON Structure Error: ${e.message}`);
+  }
 }
+  
 
 // ── Parse a percentage value safely ──────────────────────────
-export function parsePercent(val, fallback) {
+export function parsePercent(val, fallback = 69) {
   if (typeof val === 'number') return val;
   if (typeof val === 'string') {
     const n = parseInt(val, 10);
@@ -40,17 +59,41 @@ export function parsePercent(val, fallback) {
   return fallback;
 }
 
+// ── Normalise agent response keys ────────────────────────────
+// Remaps known aliases to canonical keys so downstream code
+// always works with the same key names regardless of what the
+// model decided to call them.
+export function normaliseKeys(obj) {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
+
+  const result = { ...obj };
+
+  for (const [canonical, aliases] of Object.entries(KEY_ALIASES)) {
+    if (result[canonical] !== undefined) continue; // already present, nothing to do
+    for (const alias of aliases) {
+      if (result[alias] !== undefined) {
+        result[canonical] = result[alias];
+        delete result[alias];
+        break;
+      }
+    }
+    // Fallback: ensure key exists even if empty, to avoid hard throws on optional fields
+    if (result[canonical] === undefined) result[canonical] = '';
+  }
+
+  // Recursively normalise profiles array if present
+  if (Array.isArray(result.profiles)) {
+    result.profiles = result.profiles.map(p => normaliseKeys(p));
+  }
+
+  return result;
+}
+
 // ── Timeline parser ───────────────────────────────────────────
 export function calculateTimelineMetrics(text) {
   if (!text || typeof text !== 'string') return {
     enrichedText: '',
-    metrics: {
-      toxicity:           SCORE.FALLBACK_TOXICITY,
-      conflictResolution: SCORE.FALLBACK_RESOLUTION,
-      teamwork:           SCORE.FALLBACK_DYNAMICS,
-      repairPercentage:   100,
-      totalDelays:        0,
-    },
+    metrics: { repairPercentage: 100, totalDelays: 0 },
     names: { consistentPartner: 'Person 1', asyncPartner: 'Person 2' },
   };
 
@@ -64,13 +107,12 @@ export function calculateTimelineMetrics(text) {
   const processedLines  = [];
   const msgs            = [];
 
-  let minTs = Infinity, maxTs = -Infinity;
   let lastTs = null;
   let totalDelays = 0, warmRepairCount = 0;
 
   // PASS 1 — parse timestamps and collect pause start hours
   for (const raw of text.split('\n')) {
-    const line  = raw.replace(/\u200e|\u202f/g, ' ').trim();
+    const line = raw.replace(/\u200e|\u202f/g, ' ').trim();
     if (!line) continue;
     const match = linePattern.exec(line);
     if (!match) { msgs.push({ line, ts: null }); continue; }
@@ -96,8 +138,6 @@ export function calculateTimelineMetrics(text) {
       if (!ts) throw new Error('bad ts');
 
       speakers.add(speaker);
-      if (ts < minTs) minTs = ts;
-      if (ts > maxTs) maxTs = ts;
 
       if (lastTs) {
         const dH = (ts - lastTs) / 3600000;
@@ -121,7 +161,7 @@ export function calculateTimelineMetrics(text) {
     }
   }
 
-  // PASS 2 — annotate delays and reconstruct lines
+  // PASS 2 — annotate irregular delays and reconstruct lines
   lastTs = null;
   for (const msg of msgs) {
     if (!msg.ts) { processedLines.push(msg.line); continue; }
@@ -147,9 +187,9 @@ export function calculateTimelineMetrics(text) {
 
         if (!isSleep && !isRoutine) {
           totalDelays++;
-          speakerDelays[speaker]   = (speakerDelays[speaker]   || 0) + 1;
+          speakerDelays[speaker] = (speakerDelays[speaker] || 0) + 1;
           const lower = content.toLowerCase();
-          if (WARM_KEYWORDS.some(kw    => lower.includes(kw))) warmRepairCount++;
+          if (WARM_KEYWORDS.some(kw     => lower.includes(kw))) warmRepairCount++;
           if (CHILLING_KEYWORDS.some(kw => lower.includes(kw))) {
             speakerChilling[speaker] = (speakerChilling[speaker] || 0) + 1;
           }
@@ -169,19 +209,11 @@ export function calculateTimelineMetrics(text) {
   p1 = p1 || 'Person 1'; p2 = p2 || 'Person 2';
   if ((speakerDelays[p1] || 0) > (speakerDelays[p2] || 0)) [p1, p2] = [p2, p1];
 
-  const chilling     = speakerChilling[p2] || 0;
   const repairFactor = totalDelays > 0 ? Math.round((warmRepairCount / totalDelays) * 100) : 100;
-  const asymmetry    = totalDelays > 0 ? Math.min(totalDelays * SCORE.ASYMMETRY_STEP, SCORE.ASYMMETRY_CAP) : 0;
 
   return {
     enrichedText: processedLines.join('\n'),
-    metrics: {
-      toxicity:           Math.max(SCORE.TOXICITY_MIN, Math.min(SCORE.TOXICITY_MIN + chilling * SCORE.TOXICITY_CHILLING_STEP, SCORE.TOXICITY_MAX)),
-      conflictResolution: Math.max(SCORE.CONFLICT_BASE, Math.min(SCORE.CONFLICT_BASE + repairFactor * SCORE.CONFLICT_REPAIR_WEIGHT, SCORE.CONFLICT_MAX)),
-      teamwork:           Math.max(SCORE.TEAMWORK_BASE, SCORE.TEAMWORK_MAX - asymmetry),
-      repairPercentage:   repairFactor,
-      totalDelays,
-    },
+    metrics: { repairPercentage: repairFactor, totalDelays },
     names: { consistentPartner: p1, asyncPartner: p2 },
   };
 }
@@ -193,6 +225,7 @@ export async function queryAgent(apiKey, systemPrompt, userContent) {
     headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model:           OPENROUTER_MODEL,
+      max_tokens:      AGENT_MAX_TOKENS,
       messages:        [{ role: 'system', content: systemPrompt }, { role: 'user', content: userContent }],
       response_format: { type: 'json_object' },
       temperature:     AGENT_TEMPERATURE,
@@ -201,5 +234,6 @@ export async function queryAgent(apiKey, systemPrompt, userContent) {
   if (!res.ok) throw new Error(`OpenRouter ${res.status}: ${await res.text()}`);
   const body = await res.json();
   if (!body.choices?.[0]?.message) throw new Error('OpenRouter returned empty completion');
-  return safeJsonParse(body.choices[0].message.content);
+  const parsed = safeJsonParse(body.choices[0].message.content);
+  return normaliseKeys(parsed);
 }
