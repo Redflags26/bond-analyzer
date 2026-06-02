@@ -17,7 +17,9 @@ import {
 export function stripEmojis(str) {
   if (!str) return '';
   return str
-    .replace(/[\u{1F000}-\u{1FFFF}\u2000-\u27FF\uE000-\uF8FF]/gu, '')
+    .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')
+    .replace(/[\u2000-\u27FF\uE000-\uF8FF]/g, '')
+    .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '')
     .replace(/\s+/g, ' ').trim();
 }
 
