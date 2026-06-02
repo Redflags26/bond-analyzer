@@ -74,8 +74,8 @@ export default async function handler(req, res) {
     const profile2 = personaResults.profiles.find(p => p.name?.toLowerCase() === names.asyncPartner.toLowerCase())     || personaResults.profiles[1];
     if (!profile1 || !profile2) throw new Error('Could not resolve profiles to speaker names.');
 
-    const k1 = `Person 1`;
-    const k2 = `Person 2`;
+    const k1 = names.consistentPartner;
+    const k2 = names.asyncPartner;
     if (!Array.isArray(strategies?.actionables?.[k1]) || !Array.isArray(strategies?.actionables?.[k2]))
       throw new Error('Strategist did not return actionables for both speakers.');
 
@@ -109,8 +109,8 @@ export default async function handler(req, res) {
 
       // Profiles + Actionables (Agent 2 + Agent 3 mapping)
       profiles: [
-        { ...profile1, actionables: strategies.actionables[p1.name] || [] },
-        { ...profile2, actionables: strategies.actionables[p2.name] || [] }
+        { ...profile1, actionables: strategies.actionables[k1] || [] },
+        { ...profile2, actionables: strategies.actionables[k2] || [] }
       ]
     };
 
