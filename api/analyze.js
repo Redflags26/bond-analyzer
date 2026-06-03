@@ -76,6 +76,17 @@ export default async function handler(req, res) {
 
     const k1 = names.consistentPartner;
     const k2 = names.asyncPartner;
+    
+    const actionablesContainer = strategies.actionables || {};
+    const p1Actionables = actionablesContainer[k1] 
+      || strategies.person1_actionables 
+      || actionablesContainer['person1_actionables'] 
+      || [];
+    const p2Actionables = actionablesContainer[k2] 
+      || strategies.person2_actionables 
+      || actionablesContainer['person2_actionables'] 
+      || [];
+  
 
     // 8. Assemble final result for HTML consumption
     const analytics = {
@@ -98,39 +109,32 @@ export default async function handler(req, res) {
 
       // Profiles merged with actionables
       profiles: [
-        { ...profile1, actionables: strategies.actionables[k1] || [] },
-        { ...profile2, actionables: strategies.actionables[k2] || [] },
+        { ...profile1, actionables: p1Actionables },
+        { ...profile2, actionables: p2Actionables },
       ],
     };
     
-      try {
-      const cleanDbUrl = supabaseUrl.replace(/\/$/, "");
-      await fetch(`${cleanDbUrl}/rest/v1/conversations`, {
-        method: "POST",
+     try {
+      const dbResponse = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/conversations`, {
+        method:  'POST',
         headers: {
-          "apikey": supabaseServiceKey,
-          "Authorization": `Bearer ${supabaseServiceKey}`,
-          "Content-Type": "application/json",
-          "Prefer": "return=minimal"
+          'apikey':        supabaseServiceKey,
+          'Authorization': `Bearer ${supabaseServiceKey}`,
+          'Content-Type':  'application/json',
+          'Prefer':        'return=minimal',
         },
         body: JSON.stringify({
-          bond_strength: finalAnalyticsResult.bond_strength,
-          summary: finalAnalyticsResult.summary,
-          full_analytics: finalAnalyticsResult,
-          ...(userId ? { user_id: userId } : {})
-        })
+          bond_strength:  analytics.bond_strength,
+          summary:        analytics.summary,
+          full_analytics: analytics,
+          ...(userId ? { user_id: userId } : {}),
+        }),
       });
-    } catch (dbError) {
-      console.error("Database sync trace bypass:", dbError.message);
+
+      if (!dbResponse.ok) {
+        const errorDetails = await dbResponse.text();
+        console.error(`Supabase rejected payload: ${dbResponse.status} - ${errorDetails}`);
+      }
+    } catch (e) {
+      console.error('Supabase networking write failed:', e.message);
     }
-
-    return res.status(200).json({
-      modelUsed: "deterministic-hybrid-pipeline",
-      analytics: finalAnalyticsResult
-    });
-
-  } catch (error) {
-    console.error("Pipeline run error:", error.message);
-    return res.status(500).json({ error: 'Something went wrong while processing structural interaction profiles.' });
-  }
-}
