@@ -809,6 +809,13 @@
                         const profileCard = document.createElement('div');
                         profileCard.className = "bg-[#FAF9F5]/50 border border-stone-200/60 rounded-xl p-5 shadow-3xs flex flex-col justify-between space-y-4";
                         
+                        // Generate unique IDs for this specific animation run
+                        const runId = Date.now();
+                        const attachId = `p${idx}-attach-${runId}`;
+                        const regId    = `p${idx}-reg-${runId}`;
+                        const recepId  = `p${idx}-recep-${runId}`;
+                        const accId    = `p${idx}-acc-${runId}`;
+
                         const actionsHtml = user.actionables.map(action => `
                             <li class="flex items-start gap-2.5 text-xs text-stone-600 bg-white p-2.5 rounded border border-stone-200/40 font-light shadow-3xs">
                                 <span class="text-stone-400 font-mono mt-0.5">→</span>
@@ -829,7 +836,7 @@
                                             <span class="font-mono text-stone-500 font-medium text-[11px]">${user.attachment_security || '0%'}</span>
                                         </div>
                                         <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
-                                            <div id="p${idx}-attachBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
+                                            <div id="${attachId}" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
                                         </div>
                                         <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.attachment_security_reason || ''}</p>
                                     </div>
@@ -839,7 +846,7 @@
                                             <span class="font-mono text-stone-500 font-medium text-[11px]">${user.emotional_regulation || '0%'}</span>
                                         </div>
                                         <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
-                                            <div id="p${idx}-regBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
+                                            <div id="${regId}" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
                                         </div>
                                         <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.emotional_regulation_reason || ''}</p>
                                     </div>
@@ -849,7 +856,7 @@
                                             <span class="font-mono text-stone-500 font-medium text-[11px]">${user.receptivity || '0%'}</span>
                                         </div>
                                         <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
-                                            <div id="p${idx}-recepBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
+                                            <div id="${recepId}" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
                                         </div>
                                         <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.receptivity_reason || ''}</p>
                                     </div>
@@ -859,7 +866,7 @@
                                             <span class="font-mono text-stone-500 font-medium text-[11px]">${user.accountability || '0%'}</span>
                                         </div>
                                         <div class="w-full bg-stone-200/40 h-[1.5px] rounded-full overflow-hidden">
-                                            <div id="p${idx}-accBar" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
+                                            <div id="${accId}" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
                                         </div>
                                         <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.accountability_reason || ''}</p>
                                     </div>
@@ -872,12 +879,19 @@
                         `;
                         profileContainer.appendChild(profileCard);
 
-                        setTimeout(() => {
-                            if (document.getElementById(`p${idx}-attachBar`)) document.getElementById(`p${idx}-attachBar`).style.width = user.attachment_security || '0%';
-                            if (document.getElementById(`p${idx}-regBar`))    document.getElementById(`p${idx}-regBar`).style.width    = user.emotional_regulation || '0%';
-                            if (document.getElementById(`p${idx}-recepBar`))  document.getElementById(`p${idx}-recepBar`).style.width  = user.receptivity || '0%';
-                            if (document.getElementById(`p${idx}-accBar`))    document.getElementById(`p${idx}-accBar`).style.width    = user.accountability || '0%';
-                        }, 150);
+                        // Trigger animation using double-requestAnimationFrame for maximum reliability
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                const setWidth = (id, val) => {
+                                    const el = document.getElementById(id);
+                                    if (el) el.style.width = (parseInt(val) || 0) + '%';
+                                };
+                                setWidth(attachId, user.attachment_security);
+                                setWidth(regId,    user.emotional_regulation);
+                                setWidth(recepId,  user.receptivity);
+                                setWidth(accId,    user.accountability);
+                            });
+                        });
                     });
                 }
 
