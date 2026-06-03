@@ -76,6 +76,17 @@ export default async function handler(req, res) {
 
     const k1 = names.consistentPartner;
     const k2 = names.asyncPartner;
+    
+    const actionablesContainer = strategies.actionables || {};
+    const p1Actionables = actionablesContainer[k1] 
+      || strategies.person1_actionables 
+      || actionablesContainer['person1_actionables'] 
+      || [];
+    const p2Actionables = actionablesContainer[k2] 
+      || strategies.person2_actionables 
+      || actionablesContainer['person2_actionables'] 
+      || [];
+  
 
     // 8. Assemble final result for HTML consumption
     const analytics = {
@@ -98,29 +109,37 @@ export default async function handler(req, res) {
 
       // Profiles merged with actionables
       profiles: [
-        { ...profile1, actionables: strategies.actionables[k1] || [] },
-        { ...profile2, actionables: strategies.actionables[k2] || [] },
+        { ...profile1, actionables: p1Actionables },
+        { ...profile2, actionables: p2Actionables },
       ],
     };
+    
+    try {
+      const dbResponse = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/conversations`, {
+        method:  'POST',
+        headers: {
+          'apikey':        supabaseServiceKey,
+          'Authorization': `Bearer ${supabaseServiceKey}`,
+          'Content-Type':  'application/json',
+          'Prefer':        'return=minimal',
+        },
+        body: JSON.stringify({
+          bond_strength:  analytics.bond_strength,
+          summary:        analytics.summary,
+          full_analytics: analytics,
+          ...(userId ? { user_id: userId } : {}),
+        }),
+      });
 
-    // 9. Persist to Supabase — fire and forget
-    fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/conversations`, {
-      method:  'POST',
-      headers: {
-        'apikey':        supabaseServiceKey,
-        'Authorization': `Bearer ${supabaseServiceKey}`,
-        'Content-Type':  'application/json',
-        'Prefer':        'return=minimal',
-      },
-      body: JSON.stringify({
-        bond_strength:  analytics.bond_strength,
-        summary:        analytics.summary,
-        full_analytics: analytics,
-        ...(userId ? { user_id: userId } : {}),
-      }),
-    }).catch(e => console.error('Supabase write failed:', e.message));
+      if (!dbResponse.ok) {
+        const errorDetails = await dbResponse.text();
+        console.error(`Supabase rejected payload: ${dbResponse.status} - ${errorDetails}`);
+      }
+    } catch (dbError) {
+      console.error('Supabase networking write failed:', dbError.message);
+    }
 
-    // 10. Return result to Frontend
+    // 10. Return result to Frontend[cite: 1]
     return res.status(200).json({ modelUsed: 'deterministic-hybrid-pipeline', analytics });
 
   } catch (err) {
