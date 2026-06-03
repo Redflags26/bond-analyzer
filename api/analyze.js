@@ -102,29 +102,28 @@ export default async function handler(req, res) {
         { ...profile2, actionables: strategies.actionables[k2] || [] },
       ],
     };
+    
+    try {
+  const response = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/conversations`, {
+    method:  'POST',
+    headers: {
+      'apikey':        supabaseServiceKey,
+      'Authorization': `Bearer ${supabaseServiceKey}`,
+      'Content-Type':  'application/json',
+      'Prefer':        'return=representation', // Change this to debug
+    },
+    body: JSON.stringify({
+      bond_strength:  analytics.bond_strength,
+      summary:        analytics.summary,
+      full_analytics: analytics,
+      ...(userId ? { user_id: userId } : {}),
+    }),
+  });
 
-    // 9. Persist to Supabase — fire and forget
-    fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/conversations`, {
-      method:  'POST',
-      headers: {
-        'apikey':        supabaseServiceKey,
-        'Authorization': `Bearer ${supabaseServiceKey}`,
-        'Content-Type':  'application/json',
-        'Prefer':        'return=minimal',
-      },
-      body: JSON.stringify({
-        bond_strength:  analytics.bond_strength,
-        summary:        analytics.summary,
-        full_analytics: analytics,
-        ...(userId ? { user_id: userId } : {}),
-      }),
-    }).catch(e => console.error('Supabase write failed:', e.message));
-
-    // 10. Return result to Frontend
-    return res.status(200).json({ modelUsed: 'deterministic-hybrid-pipeline', analytics });
-
-  } catch (err) {
-    console.error('Pipeline error:', err.message);
-    return res.status(500).json({ error: `Analysis error: ${err.message}` });
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.error('Supabase write failed:', errorData);
   }
+} catch (e) {
+  console.error('Network/Fetch error:', e.message);
 }
