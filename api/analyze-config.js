@@ -122,7 +122,7 @@ Analysis findings: ${JSON.stringify(analysisData)}
 
 Your tasks:
 
-SUMMARY: Write 2–3 sentences in a warm, direct tone. Describe what was happening emotionally in the conversation, what each person seemed to need, and one concrete thing they could do differently together. Write for the couple — no jargon, no references to scores or analysis methods.
+SUMMARY: Write 2–3 sentences in a warm, direct tone. Describe how the bond will shape in the next 5 years if things continue as is, what each person seemed to need, and one concrete thing they could do differently together. Write for the couple — no jargon, no references to scores or analysis methods.
 
 ACTIONABLES: Provide 2 specific, practical tips for each person grounded in their actual behaviour in the chat. Avoid generic advice. Do not reference trait names, percentages, or scoring.
 
@@ -133,7 +133,7 @@ Use EXACTLY these key names — no variations, no synonyms:
 {
   "bond_strength": "XX%",
   "bond_strength_reason": "1–2 sentences on why this bond strength was given, in plain human language.",
-  "summary": "2–3 warm sentences for the couple.",
+  "summary": "Write 2-3 sentences in a warm direct tone. Describe how the bond will shape in the next 5 years if things continue as is.",
   "actionables": {
     "${names.consistentPartner}": ["Specific tip 1", "Specific tip 2"],
     "${names.asyncPartner}": ["Specific tip 1", "Specific tip 2"]
