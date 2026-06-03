@@ -114,7 +114,7 @@ export default async function handler(req, res) {
       ],
     };
     
-     try {
+    try {
       const dbResponse = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/conversations`, {
         method:  'POST',
         headers: {
@@ -135,6 +135,15 @@ export default async function handler(req, res) {
         const errorDetails = await dbResponse.text();
         console.error(`Supabase rejected payload: ${dbResponse.status} - ${errorDetails}`);
       }
-    } catch (e) {
-      console.error('Supabase networking write failed:', e.message);
+    } catch (dbError) {
+      console.error('Supabase networking write failed:', dbError.message);
     }
+
+    // 10. Return result to Frontend[cite: 1]
+    return res.status(200).json({ modelUsed: 'deterministic-hybrid-pipeline', analytics });
+
+  } catch (err) {
+    console.error('Pipeline error:', err.message);
+    return res.status(500).json({ error: `Analysis error: ${err.message}` });
+  }
+}
