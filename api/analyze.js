@@ -102,36 +102,29 @@ export default async function handler(req, res) {
         { ...profile2, actionables: strategies.actionables[k2] || [] },
       ],
     };
-    
-// 9. Persist to Supabase — NOW AWAITED
-    try {
-      const dbResponse = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/conversations`, {
-        method:  'POST',
-        headers: {
-          'apikey':        supabaseServiceKey,
-          'Authorization': `Bearer ${supabaseServiceKey}`,
-          'Content-Type':  'application/json',
-          'Prefer':        'return=minimal',
-        },
-        body: JSON.stringify({
-          bond_strength:  analytics.bond_strength,
-          summary:        analytics.summary,
-          full_analytics: analytics,
-          ...(userId ? { user_id: userId } : {}),
-        }),
-      });
 
-      if (!dbResponse.ok) {
-        const errorText = await dbResponse.text();
-        console.error('Supabase save error:', errorText);
-      }
-    } catch (dbError) {
-      console.error('Database connection failed:', dbError.message);
-    }
+    // 9. Persist to Supabase — fire and forget
+    fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/conversations`, {
+      method:  'POST',
+      headers: {
+        'apikey':        supabaseServiceKey,
+        'Authorization': `Bearer ${supabaseServiceKey}`,
+        'Content-Type':  'application/json',
+        'Prefer':        'return=minimal',
+      },
+      body: JSON.stringify({
+        bond_strength:  analytics.bond_strength,
+        summary:        analytics.summary,
+        full_analytics: analytics,
+        ...(userId ? { user_id: userId } : {}),
+      }),
+    }).catch(e => console.error('Supabase write failed:', e.message));
 
     // 10. Return result to Frontend
-    return res.status(200).json({ 
-      modelUsed: 'deterministic-hybrid-pipeline', 
-      analytics 
-    });
-    
+    return res.status(200).json({ modelUsed: 'deterministic-hybrid-pipeline', analytics });
+
+  } catch (err) {
+    console.error('Pipeline error:', err.message);
+    return res.status(500).json({ error: `Analysis error: ${err.message}` });
+  }
+}
