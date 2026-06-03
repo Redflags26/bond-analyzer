@@ -220,20 +220,36 @@ export function calculateTimelineMetrics(text) {
 
 // ── Call one LLM agent ────────────────────────────────────────
 export async function queryAgent(apiKey, systemPrompt, userContent) {
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method:  'POST',
-    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model:           OPENROUTER_MODEL,
-      max_tokens:      AGENT_MAX_TOKENS,
-      messages:        [{ role: 'system', content: systemPrompt }, { role: 'user', content: userContent }],
-      response_format: { type: 'json_object' },
-      temperature:     AGENT_TEMPERATURE,
-    }),
-  });
-  if (!res.ok) throw new Error(`OpenRouter ${res.status}: ${await res.text()}`);
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const model     = OPENROUTER_MODEL; // e.g. 'gemini-2.0-flash'
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`,
+    {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: systemPrompt }]
+        },
+        contents: [{
+          role:  'user',
+          parts: [{ text: userContent || '.' }]
+        }],
+        generationConfig: {
+          temperature:     AGENT_TEMPERATURE,
+          maxOutputTokens: AGENT_MAX_TOKENS,
+          responseMimeType: 'application/json',  // forces JSON output — replaces response_format
+        },
+      }),
+    }
+  );
+
+  if (!res.ok) throw new Error(`Gemini ${res.status}: ${await res.text()}`);
+  
   const body = await res.json();
-  if (!body.choices?.[0]?.message) throw new Error('OpenRouter returned empty completion');
-  const parsed = safeJsonParse(body.choices[0].message.content);
-  return normaliseKeys(parsed);
+  const text  = body.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('Gemini returned empty completion');
+  
+  return safeJsonParse(text);
 }

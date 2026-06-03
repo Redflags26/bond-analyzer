@@ -4,7 +4,7 @@
 // ============================================================
 
 // ── Model ────────────────────────────────────────────────────
-export const OPENROUTER_MODEL  = 'openrouter/auto';
+export const OPENROUTER_MODEL  = 'gemini-2.5-flash-lite';
 export const AGENT_TEMPERATURE = 0.1;
 export const AGENT_MAX_TOKENS  = 2500;
 
