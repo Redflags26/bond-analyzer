@@ -103,27 +103,34 @@ export default async function handler(req, res) {
       ],
     };
     
-    try {
-  const response = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/conversations`, {
-    method:  'POST',
-    headers: {
-      'apikey':        supabaseServiceKey,
-      'Authorization': `Bearer ${supabaseServiceKey}`,
-      'Content-Type':  'application/json',
-      'Prefer':        'return=representation', // Change this to debug
-    },
-    body: JSON.stringify({
-      bond_strength:  analytics.bond_strength,
-      summary:        analytics.summary,
-      full_analytics: analytics,
-      ...(userId ? { user_id: userId } : {}),
-    }),
-  });
+      try {
+      const cleanDbUrl = supabaseUrl.replace(/\/$/, "");
+      await fetch(`${cleanDbUrl}/rest/v1/conversations`, {
+        method: "POST",
+        headers: {
+          "apikey": supabaseServiceKey,
+          "Authorization": `Bearer ${supabaseServiceKey}`,
+          "Content-Type": "application/json",
+          "Prefer": "return=minimal"
+        },
+        body: JSON.stringify({
+          bond_strength: finalAnalyticsResult.bond_strength,
+          summary: finalAnalyticsResult.summary,
+          full_analytics: finalAnalyticsResult,
+          ...(userId ? { user_id: userId } : {})
+        })
+      });
+    } catch (dbError) {
+      console.error("Database sync trace bypass:", dbError.message);
+    }
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    console.error('Supabase write failed:', errorData);
+    return res.status(200).json({
+      modelUsed: "deterministic-hybrid-pipeline",
+      analytics: finalAnalyticsResult
+    });
+
+  } catch (error) {
+    console.error("Pipeline run error:", error.message);
+    return res.status(500).json({ error: 'Something went wrong while processing structural interaction profiles.' });
   }
-} catch (e) {
-  console.error('Network/Fetch error:', e.message);
 }
