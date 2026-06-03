@@ -186,27 +186,27 @@
                 <div class="space-y-4">
                     <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">How well things went</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/60 space-y-2 shadow-3xs">
                             <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">General Warmth & Kindness</span><span id="positivityVal" class="text-xs font-mono text-stone-500">--</span></div>
                             <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="positivityBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
                             <p id="positivityReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
                         </div>
-                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/60 space-y-2 shadow-3xs">
                             <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Solving Problems Together</span><span id="conflictVal" class="text-xs font-mono text-stone-500">--</span></div>
                             <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="conflictBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
                             <p id="conflictReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
                         </div>
-                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/60 space-y-2 shadow-3xs">
                             <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Comfortable Sharing Feelings</span><span id="safetyVal" class="text-xs font-mono text-stone-500">--</span></div>
                             <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="safetyBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
                             <p id="safetyReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
                         </div>
-                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/60 space-y-2 shadow-3xs">
                             <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Teamwork & Connection</span><span id="dynamicsVal" class="text-xs font-mono text-stone-500">--</span></div>
                             <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="dynamicsBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
                             <p id="dynamicsReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
                         </div>
-                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 md:col-span-2 space-y-2 shadow-3xs">
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/60 md:col-span-2 space-y-2 shadow-3xs">
                             <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Toxicity Level</span><span id="toxicityVal" class="text-xs font-mono text-stone-500">--</span></div>
                             <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="toxicityBar" class="custom-transition bg-stone-400 h-full" style="width: 0%"></div></div>
                             <p id="toxicityReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
@@ -796,13 +796,20 @@
                 document.getElementById('toxicityReason').innerText  = scores.toxicity_reason || '';
                 document.getElementById('summaryText').innerText     = scores.summary ? `"${scores.summary}"` : '';
                 
-                setTimeout(() => {
-                    document.getElementById('positivityBar').style.width = scores.bond_positivity || '0%';
-                    document.getElementById('conflictBar').style.width   = scores.conflict_resolution || '0%';
-                    document.getElementById('safetyBar').style.width     = scores.safety_trust || '0%';
-                    document.getElementById('dynamicsBar').style.width   = scores.relationship_dynamics || '0%';
-                    document.getElementById('toxicityBar').style.width   = scores.toxicity || '0%';
-                }, 100);
+                // Unified reliable animation trigger for Macro bars
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        const setMacroWidth = (id, val) => {
+                            const el = document.getElementById(id);
+                            if (el) el.style.width = (parseInt(val) || 0) + '%';
+                        };
+                        setMacroWidth('positivityBar', scores.bond_positivity);
+                        setMacroWidth('conflictBar',   scores.conflict_resolution);
+                        setMacroWidth('safetyBar',     scores.safety_trust);
+                        setMacroWidth('dynamicsBar',   scores.relationship_dynamics);
+                        setMacroWidth('toxicityBar',   scores.toxicity);
+                    });
+                });
 
                 if (scores.profiles && Array.isArray(scores.profiles)) {
                     scores.profiles.forEach((user, idx) => {
@@ -879,7 +886,7 @@
                         `;
                         profileContainer.appendChild(profileCard);
 
-                        // Trigger animation using double-requestAnimationFrame for maximum reliability
+                        // Reliable trigger for Profile bars
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => {
                                 const setWidth = (id, val) => {
