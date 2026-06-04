@@ -583,7 +583,7 @@
                 });
                 const result = await response.json();
                 if (!response.ok) {
-                    if (result.error === 'INVITE_LIMIT_REACHED') {
+                    if (result.error === 'INVITE_LIMIT_REACHED' && currentUserId !== PRIMARY_USER_ID) {
                         currentInviteCount = 3;
                         updateInviteCountUI();
                         throw new Error("You've used all 3 of your invites.");
@@ -766,7 +766,7 @@
                 const data = await response.json();
 
                 /* ── Usage limit — permanent, no retry ── */
-                if (response.status === 403 && data.error === 'usage_limit_reached') {
+                if (response.status === 403 && data.error === 'usage_limit_reached' && currentUserId !== PRIMARY_USER_ID) {
                     isLimitError = true;
                     limitBanner.classList.remove('hidden');
                     emptyState.classList.remove('hidden');
