@@ -8,6 +8,12 @@ export const OPENROUTER_MODEL  = 'gemini-3.1-flash-lite';
 export const AGENT_TEMPERATURE = 0.0;
 export const AGENT_MAX_TOKENS  = 2500;
 
+// ── Usage limit ───────────────────────────────────────────────
+export const CHATS_PER_USER = 2; // max analyses allowed per access token
+
+// Testing User
+export const PRIMARY_USER_ID = '093236df-7fb5-46ba-9188-c511145689ec';
+
 // ── Parser thresholds ────────────────────────────────────────
 export const DELAY_MIN_HOURS       = 8;    // gaps shorter than this are ignored
 export const DELAY_MAX_HOURS       = 2000; // gaps longer than this are data errors
