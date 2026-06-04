@@ -4,6 +4,7 @@
 // ============================================================
 
 import {
+  CHATS_PER_USER,
   REQUIRED_ANALYSIS_KEYS,
   REQUIRED_STRATEGIST_KEYS,
   buildPacingNote,
@@ -32,7 +33,30 @@ export default async function handler(req, res) {
     // 1. Parse — Deterministic timeline annotation
     const { enrichedText, metrics, names } = calculateTimelineMetrics(chatLog);
 
-    // 2. Build Pacing Note — Factual context for the LLM
+    // 2. Usage gate — check how many analyses this user has already run
+    if (userId) {
+      const countRes = await fetch(
+        `${supabaseUrl.replace(/\/$/, '')}/rest/v1/conversations?user_id=eq.${userId}&select=id`,
+        {
+          headers: {
+            'apikey':        supabaseServiceKey,
+            'Authorization': `Bearer ${supabaseServiceKey}`,
+            'Prefer':        'count=exact',
+          },
+        }
+      );
+      const totalUsed = parseInt(countRes.headers.get('content-range')?.split('/')[1] ?? '0', 10);
+      if (totalUsed >= CHATS_PER_USER) {
+        return res.status(403).json({
+          error:     'usage_limit_reached',
+          used:      totalUsed,
+          limit:     CHATS_PER_USER,
+          message:   `You've used all ${CHATS_PER_USER} of your analyses. Reach out to your inviter for more access.`,
+        });
+      }
+    }
+
+    // 3. Build Pacing Note — Factual context for the LLM
     const pacingNote = buildPacingNote({ names, metrics });
 
     // 3. Agent 1: Combined Analysis (Relationship Dynamics + Individual Persona)
