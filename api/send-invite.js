@@ -191,7 +191,6 @@ function buildInviteEmail(inviteUrl) {
           <tr>
             <td class="section-pad" style="padding:28px 32px;text-align:center;">
               <a href="${inviteUrl}" style="display:inline-block;background:#1c1917;color:#faf9f5;text-decoration:none;font-family:Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;padding:14px 40px;border-radius:10px;">Ask Truvah &rarr;</a>
-              <p style="margin:14px 0 0 0;font-family:Helvetica,Arial,sans-serif;font-size:11px;color:#a8a29e;">Or copy this link: <span style="color:#57534e;">${inviteUrl}</span></p>
             </td>
           </tr>
 
