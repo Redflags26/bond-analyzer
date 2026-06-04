@@ -7,6 +7,7 @@ import {
   CHATS_PER_USER,
   REQUIRED_ANALYSIS_KEYS,
   REQUIRED_STRATEGIST_KEYS,
+  PRIMARY_USER_ID,
   buildPacingNote,
   buildAnalysisPrompt,
   buildStrategistPrompt,
@@ -34,7 +35,7 @@ export default async function handler(req, res) {
     const { enrichedText, metrics, names } = calculateTimelineMetrics(chatLog);
 
     // 2. Usage gate — check how many analyses this user has already run
-    if (userId) {
+    if (userId && userId !== PRIMARY_USER_ID) {
       const countRes = await fetch(
         `${supabaseUrl.replace(/\/$/, '')}/rest/v1/conversations?user_id=eq.${userId}&select=id`,
         {
