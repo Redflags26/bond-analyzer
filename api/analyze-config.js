@@ -128,7 +128,7 @@ Analysis findings: ${JSON.stringify(analysisData)}
 
 Your tasks:
 
-SUMMARY: Write 2–3 sentences in a warm, direct tone. Critically evaluate & give your hontest take on the situation, what works or doesnt.Describe how the bond will shape out if things continue as is. Things to be more observant on going forward if there are. How to develop from here? Keep it candid. Write for the couple — no jargon, no references to scores or analysis methods.
+SUMMARY: Write 2–3 sentences in a warm, direct tone. Give your hontest take on the situation. What is working/what is not. Describe how the bond will shape out if things continue as is. Things to be observant of going forward if any. What's best from here? Keep it candid. Write for the couple — no jargon, no references to scores or analysis methods.
 
 ACTIONABLES: Provide 2 specific, practical tips for each person grounded in their actual behaviour in the chat. Avoid generic advice. Do not reference trait names, percentages, or scoring.
 
@@ -139,7 +139,7 @@ Use EXACTLY these key names — no variations, no synonyms:
 {
   "bond_strength": "XX%",
   "bond_strength_reason": "1–2 sentences on why this bond strength was given, in plain human language.",
-  "summary": "Write 2-3 sentences in a warm direct tone. Critically evaluate & give your honest take on the situation, what works or doesnt. Describe how the bond will shape out if things continue as is. Things to be more observant on going forward if there are. How to develop from here? Keep it candid. Describe how the bond will shape out if things continue as is.",
+  "summary": "Write 2-3 sentences in a warm direct tone. Give your honest take on the situation, what is working/what is not. Describe how the bond will shape out if things continue as is. Things to be more observant on going forward if any. What's best from here? Keep it candid.",
   "actionables": {
     "${names.consistentPartner}": ["Specific tip 1", "Specific tip 2"],
     "${names.asyncPartner}": ["Specific tip 1", "Specific tip 2"]
