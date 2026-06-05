@@ -120,7 +120,7 @@ Use EXACTLY these key names — no variations, no synonyms:
 
 // ── Agent 2: Executive Strategist ────────────────────────────
 export function buildStrategistPrompt({ names, analysisData }) {
-  return `You are a Relationship Coach synthesising findings from a specialist analysis alongside the original conversation.
+  return `You are a Relationship Coach synthesising findings from a specialist analysis.
 
 IMPORTANT: Respond with a single JSON object only. The very first character of your response must be {. No markdown, no code fences, no explanation before or after.
 
@@ -128,7 +128,7 @@ Analysis findings: ${JSON.stringify(analysisData)}
 
 Your tasks:
 
-SUMMARY: Write 2-3 sentences in a warm direct tone. Things to keep an eye on or things to continue doing going forward. Describe how the bond will shape out if things continue as is and why highlighting behavioral synergies/gaps based on analysis findings. Keep it empethatic if required. Be human-voiced! Write for the couple — no jargon, no references to scores or analysis methods.
+SUMMARY: Write 2-3 sentences in a warm direct tone. Give your honest take based on individual behavioral synergies/need-gaps & current relationship dynamics paremeters related commentry highlighted analysis findings above. Things to keep an eye on or things to continue doing going forward. How things will shape out if it continues like this. Keep it specific (not generic) yet empethatic. Be human-voiced! Write for the couple — no jargon, no references to scores or analysis methods.
 
 ACTIONABLES: Provide 2 specific, practical tips for each person grounded in their actual behaviour in the chat. Avoid generic advice. Do not reference trait names, percentages, or scoring.
 
@@ -139,7 +139,7 @@ Use EXACTLY these key names — no variations, no synonyms:
 {
   "bond_strength": "XX%",
   "bond_strength_reason": "1–2 sentences on why this bond strength was given, in plain human language.",
-  "summary": "Write 2-3 sentences in a warm direct tone. Things to keep an eye on or things to continue doing going forward. Keep it empethatic if required. Describe how the bond will shape out if things continue as is and why highlighting behavioral synergies/gaps based on analysis findings. Be human-voiced! Write for the couple — no jargon, no references to scores or analysis methods.",
+  "summary": "Write 2-3 sentences in a warm direct tone. Give your honest take based on individual behavioral synergies/need-gaps & current relationship dynamics paremeters related commentry highlighted analysis findings above. Things to keep an eye on or things to continue doing going forward. How things will shape out if it continues like this. Keep it specific (not generic) yet empethatic. Be human-voiced! Write for the couple — no jargon, no references to scores or analysis methods.",
   "actionables": {
     "${names.consistentPartner}": ["Specific tip 1", "Specific tip 2"],
     "${names.asyncPartner}": ["Specific tip 1", "Specific tip 2"]
