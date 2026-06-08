@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Truvah | Understanding Your Conversations</title>
-    <link rel="icon" type="image/png" href="Trulogo.png">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght=0,300;0,400;0,500;0,600;0,700;1,300&family=Playfair+Display:ital,wght=0,400;0,500;1,400&display=swap');
@@ -77,10 +76,10 @@
             <div id="gateBlocked" class="hidden space-y-4">
                 <div class="inline-flex items-center gap-1.5 bg-stone-950 text-[#FAF9F5] px-3 py-1 rounded-full text-[9px] tracking-[0.2em] font-medium uppercase">
                     <span class="w-1 h-1 rounded-full bg-stone-500 inline-block"></span>
-                    Members only 🔒
+                    Invite only
                 </div>
-                <h2 class="text-2xl font-normal text-stone-900 serif-font italic leading-snug">Enter your email to claim free access!</h2>
-                <p class="text-sm text-stone-500 font-light leading-relaxed">Only a few slots remaining⚡</p>
+                <h2 class="text-2xl font-normal text-stone-900 serif-font italic leading-snug">This is a private space.</h2>
+                <p class="text-sm text-stone-500 font-light leading-relaxed">Truvah is available by invitation only. Leave your email and we'll reach out when a spot opens up.</p>
                 <p id="gateError" class="text-xs text-red-500 font-light hidden"></p>
 
                 <!-- Interest capture form -->
@@ -88,20 +87,15 @@
                     <div class="flex gap-2">
                         <input id="interestEmail" type="email" placeholder="your@email.com"
                             class="flex-1 px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
-                        
-                        <!-- 1. Added id="interestBtn" and disabled state styling -->
                         <button id="interestBtn" onclick="submitInterest()"
-                            class="bg-stone-950 hover:bg-stone-800 disabled:bg-stone-700 disabled:cursor-not-allowed text-[#FAF9F5] font-medium px-4 py-2.5 rounded-xl text-xs tracking-[0.12em] uppercase transition-all duration-200 cursor-pointer whitespace-nowrap">
+                            class="bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium px-4 py-2.5 rounded-xl text-xs tracking-[0.12em] uppercase transition-all duration-200 cursor-pointer whitespace-nowrap">
                             Claim Access
                         </button>
                     </div>
-                    
-                    <!-- 2. Updated text to reflect instant unlock instead of "You're on the list" -->
                     <div id="interestSuccess" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3 rounded-xl text-xs font-light flex items-center gap-2">
                         <span class="text-emerald-500 font-bold">✓</span>
                         <span>Access confirmed. Unlocking your dashboard...</span>
                     </div>
-                    
                     <div id="interestError" class="hidden bg-red-50/50 border border-red-200/50 text-red-700 p-3 rounded-xl text-xs font-light flex items-center gap-2">
                         <span>✕</span>
                         <span id="interestErrorText">Something went wrong.</span>
@@ -163,21 +157,6 @@
                 <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3.5 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-3 text-xs tracking-[0.12em] uppercase shadow-xs">
                     Analyze Conversation
                 </button>
-
-                <!-- Usage limit reached — shown permanently when user hits their cap -->
-                <div id="analyzeLimitBanner" class="hidden animate-banner-slide bg-stone-100 border border-stone-200/60 text-stone-700 p-3.5 rounded-xl text-xs font-light flex items-start gap-2.5">
-                    <span class="text-stone-400 mt-0.5 shrink-0">◎</span>
-                    <div>
-                        <span id="analyzeLimitText" class="font-medium block mb-0.5">You've used all your analyses.</span>
-                        <span class="text-stone-500">Each invite gives access to 2 analyses. Reach out to your inviter for more access.</span>
-                    </div>
-                </div>
-
-                <!-- General analysis error — shown on recoverable failures -->
-                <div id="analyzeErrorBanner" class="hidden animate-banner-slide bg-red-50/50 border border-red-200/50 text-red-700 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
-                    <span class="shrink-0">✕</span>
-                    <span id="analyzeErrorText">Something went wrong. Please try again.</span>
-                </div>
             </div>
         </section>
 
@@ -207,27 +186,27 @@
                 <div class="space-y-4">
                     <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">How well things went</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/60 space-y-2 shadow-3xs">
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
                             <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">General Warmth & Kindness</span><span id="positivityVal" class="text-xs font-mono text-stone-500">--</span></div>
                             <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="positivityBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
                             <p id="positivityReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
                         </div>
-                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/60 space-y-2 shadow-3xs">
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
                             <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Solving Problems Together</span><span id="conflictVal" class="text-xs font-mono text-stone-500">--</span></div>
                             <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="conflictBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
                             <p id="conflictReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
                         </div>
-                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/60 space-y-2 shadow-3xs">
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
                             <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Comfortable Sharing Feelings</span><span id="safetyVal" class="text-xs font-mono text-stone-500">--</span></div>
                             <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="safetyBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
                             <p id="safetyReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
                         </div>
-                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/60 space-y-2 shadow-3xs">
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
                             <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Teamwork & Connection</span><span id="dynamicsVal" class="text-xs font-mono text-stone-500">--</span></div>
                             <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="dynamicsBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
                             <p id="dynamicsReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
                         </div>
-                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/60 md:col-span-2 space-y-2 shadow-3xs">
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 md:col-span-2 space-y-2 shadow-3xs">
                             <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Toxicity Level</span><span id="toxicityVal" class="text-xs font-mono text-stone-500">--</span></div>
                             <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="toxicityBar" class="custom-transition bg-stone-400 h-full" style="width: 0%"></div></div>
                             <p id="toxicityReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
@@ -246,7 +225,7 @@
 
                 <div class="bg-stone-950 text-[#FAF9F5] p-6 rounded-xl space-y-2.5 shadow-xs relative overflow-hidden">
                     <div class="absolute top-0 right-0 p-4 text-stone-800 opacity-15 text-6xl serif-font pointer-events-none italic select-none">♥</div>
-                    <h4 class="text-[9px] text-stone-400 font-bold uppercase tracking-[0.25em]">Expert Advice!</h4>
+                    <h4 class="text-[9px] text-stone-400 font-bold uppercase tracking-[0.25em]">5 Years From Now!</h4>
                     <p id="summaryText" class="text-sm font-serif font-light leading-relaxed italic text-stone-200 relative z-10"></p>
                 </div>
 
@@ -386,6 +365,16 @@
     </footer>
 
     <script>
+        /* ── PostHog Initialization (MOVED TO TOP OF SCRIPT) ── */
+        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+" (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+        
+        posthog.init('phx_KDPamGQm9JUsNgSeAgBr6YVL9VNcm7xRQqYcN7ZUA66hxxHz', {
+            api_host: 'https://app.posthog.com',
+            autocapture: true,
+            capture_pageview: true,
+            capture_pageleave: true,
+        });
+
         /* ── Constants ── */
         const PRIMARY_USER_ID = '093236df-7fb5-46ba-9188-c511145689ec';
         const EMAIL_REGEX     = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -396,23 +385,10 @@
         let currentUserId         = null;
         let currentInviteCount    = 0;
 
-        /* ── PostHog — loaded securely from backend config ── */
-        async function initPosthog() {
-            try {
-                const res  = await fetch('/api/config');
-                const cfg  = await res.json();
-                if (!cfg.posthogKey) return;
-                !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+" (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-                posthog.init(cfg.posthogKey, { api_host: cfg.posthogHost, autocapture: true, capture_pageview: true, capture_pageleave: true });
-            } catch { /* posthog is non-critical */ }
-        }
-        initPosthog();
-
         /* ══════════════════════════════════════════════════════════════════
            ACCESS GATE — token verification on page load
         ══════════════════════════════════════════════════════════════════ */
 
-        // Extract token from URL query string
         function getTokenFromUrl() {
             const params = new URLSearchParams(window.location.search);
             return params.get('token') || null;
@@ -427,12 +403,11 @@
                 });
                 const data = await res.json();
                 if (!res.ok || !data.valid) return null;
-                return data; // { userId, email, inviteCount }
+                return data; 
             } catch { return null; }
         }
 
         async function initAccess() {
-            // 1. Check sessionStorage for an already-verified session
             const storedSession = sessionStorage.getItem('truvah_session');
             if (storedSession) {
                 try {
@@ -443,10 +418,9 @@
                         grantAccess();
                         return;
                     }
-                } catch { /* corrupt storage, fall through */ }
+                } catch { }
             }
 
-            // 2. Try URL token (first-time visitor arriving from invite link)
             const urlToken = getTokenFromUrl();
             if (urlToken) {
                 const result = await verifyAccess(urlToken);
@@ -457,25 +431,21 @@
                         userId:      result.userId,
                         inviteCount: result.inviteCount || 0
                     }));
-                    // Clean token from URL — they're now session-verified
                     window.history.replaceState({}, document.title, window.location.pathname);
                     grantAccess();
                     return;
                 } else {
-                    // Token present but invalid/used
                     showGateBlocked('This invite link is no longer valid. Ask someone to send you a new one.');
                     return;
                 }
             }
-
-            // 3. No session, no token — show blocked wall
             showGateBlocked();
         }
 
         function showGateBlocked(errorMsg) {
             document.getElementById('gateChecking').classList.add('hidden');
             document.getElementById('gateBlocked').classList.remove('hidden');
-            document.body.classList.add('ready'); // make gate wall itself visible
+            document.body.classList.add('ready');
             if (errorMsg) {
                 const errEl = document.getElementById('gateError');
                 errEl.innerText = errorMsg;
@@ -487,6 +457,8 @@
             document.body.classList.remove('gated');
             document.body.classList.add('ready');
             updateInviteCountUI();
+            
+            // PostHog Identify
             if (typeof posthog !== 'undefined' && currentUserId) {
                 posthog.identify(currentUserId);
             }
@@ -498,7 +470,6 @@
             const limitMsg  = document.getElementById('inviteLimitMsg');
             const form      = document.getElementById('inviteForm');
             if (!countText) return;
-            // Primary user never sees the limit
             if (currentUserId === PRIMARY_USER_ID) {
                 limitMsg && limitMsg.classList.add('hidden');
                 form     && form.classList.remove('hidden');
@@ -517,14 +488,11 @@
             }
         }
 
-        /* ── Submit interest (blocked users) ── */
-
-/* ── Submit interest (blocked users) ── */
         async function submitInterest() {
             const email      = document.getElementById('interestEmail').value.trim();
             const successEl  = document.getElementById('interestSuccess');
             const errorEl    = document.getElementById('interestError');
-            const btn        = document.getElementById('interestBtn'); // 1. Get reference to button
+            const btn        = document.getElementById('interestBtn');
 
             successEl.classList.add('hidden');
             errorEl.classList.add('hidden');
@@ -534,32 +502,21 @@
                 errorEl.classList.remove('hidden'); return;
             }
 
-            // 2. Disable button and change text immediately when clicked
             if (btn) {
                 btn.disabled  = true;
                 btn.innerText = 'Granting access...';
             }
 
             try {
-                // ── NEW API CALL: Pointing to the new independent endpoint ──
                 const res  = await fetch('/api/request-without-invite', {
                     method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body:    JSON.stringify({ email })
                 });
 
-                /* ── OLD API CALL (Commented out for future reference) ──
-                const res  = await fetch('/api/request-access', {
-                    method:  'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify({ email })
-                });
-                ──────────────────────────────────────────────────────── */
-
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Something went wrong.');
 
-                // Auto-verification routine using the returned token
                 if (data.token) {
                     const result = await verifyAccess(data.token);
                     if (result) {
@@ -571,29 +528,21 @@
                         }));
                         grantAccess();
                     } else {
-                        throw new Error('Access could not be verified automatically. Please refresh or try again.');
+                        throw new Error('Access could not be verified automatically.');
                     }
                 } else {
-                    throw new Error('No access token received from the server.');
+                    throw new Error('No access token received.');
                 }
-
-                /* ── OLD WAITLIST UI HANDLER (Commented out for future reference) ──
-                successEl.classList.remove('hidden');
-                document.getElementById('interestForm').querySelector('input').value = '';
-                document.getElementById('interestForm').querySelector('button').disabled = true;
-                ─────────────────────────────────────────────────────────────────── */
-
             } catch (err) {
                 document.getElementById('interestErrorText').innerText = err.message;
                 errorEl.classList.remove('hidden');
-                
-                // 3. Re-enable button and reset text if an error occurs so they can try again
                 if (btn) {
                     btn.disabled  = false;
                     btn.innerText = 'Claim Access';
                 }
             }
-        }        // Run on page load
+        }
+
         initAccess();
 
         /* ── Send invite ── */
@@ -618,7 +567,6 @@
             btn.disabled  = true;
             btn.innerText = 'Sending...';
 
-            // Pre-check invite limit before hitting API (primary user exempt)
             if (currentUserId !== PRIMARY_USER_ID && currentInviteCount >= 3) {
                 document.getElementById('inviteErrorText').innerText = "You've used all 3 of your invites.";
                 errorBanner.classList.remove('hidden');
@@ -641,7 +589,6 @@
                     throw new Error(result.error || 'Invite could not be sent');
                 }
 
-                // Update local count from server response
                 currentInviteCount = 3 - (result.remainingInvites || 0);
                 const stored = JSON.parse(sessionStorage.getItem('truvah_session') || '{}');
                 stored.inviteCount = currentInviteCount;
@@ -698,7 +645,6 @@
 
             inputsWrap.classList.remove('hidden');
 
-            // Animate reveal for the right inputs
             if (option === 'me' || option === 'both') {
                 selfWrap.classList.remove('hidden');
                 selfWrap.classList.add('input-reveal');
@@ -769,87 +715,58 @@
 
         /* ── Main analysis ── */
         async function analyzeChat() {
-            /* ── DOM refs ── */
             const chatInputElem       = document.getElementById('chatInput');
             const deleteSuccessBanner = document.getElementById('deleteSuccessBanner');
+            const chatLog             = chatInputElem.value.trim();
             const analyzeBtn          = document.getElementById('analyzeBtn');
             const resultSection       = document.getElementById('resultSection');
             const emptyState          = document.getElementById('emptyState');
             const modelBadge          = document.getElementById('modelBadge');
             const profileContainer    = document.getElementById('profileContainer');
-            const limitBanner         = document.getElementById('analyzeLimitBanner');
-            const errorBanner         = document.getElementById('analyzeErrorBanner');
+            
+            if (!chatLog) return alert('Please paste some text lines to analyze.');
 
-            /* ── Clear previous banners ── */
-            limitBanner.classList.add('hidden');
-            errorBanner.classList.add('hidden');
-
-            const chatLog = chatInputElem.value.trim();
-
-            /* ── Guard: empty input (inline, no alert) ── */
-            if (!chatLog) {
-                document.getElementById('analyzeErrorText').innerText = 'Please paste a conversation before analyzing.';
-                errorBanner.classList.remove('hidden');
-                return;
-            }
-
-            /* ── Loading state ── */
             analyzeBtn.disabled  = true;
             analyzeBtn.innerText = 'Reading through your conversation...';
             resultSection.classList.add('hidden');
             emptyState.classList.remove('hidden');
             modelBadge.classList.add('hidden');
             deleteSuccessBanner.classList.add('hidden');
+            
             chatInputElem.classList.remove('animate-text-fade');
             profileContainer.innerHTML = '';
 
-            /* ── Track whether this is a permanent block (no retry) ── */
-            let isLimitError = false;
-
             try {
-                const response = await fetch('/api/analyze', {
-                    method:  'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify({ chatLog, userId: currentUserId }),
+                const response = await fetch("/api/analyze", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ chatLog, userId: currentUserId })
                 });
 
                 const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Could not process text.');
 
-                /* ── Usage limit — permanent, no retry ── */
-                if (response.status === 403 && data.error === 'usage_limit_reached' && currentUserId !== PRIMARY_USER_ID) {
-                    isLimitError = true;
-                    limitBanner.classList.remove('hidden');
-                    emptyState.classList.remove('hidden');
-                    return; // finally still runs to reset button
-                }
-
-                /* ── Other API errors — recoverable ── */
-                if (!response.ok) {
-                    document.getElementById('analyzeErrorText').innerText = data.error || 'Could not process the conversation. Please try again.';
-                    errorBanner.classList.remove('hidden');
-                    return;
-                }
-
-                /* ── Success: clear input with fade ── */
                 chatInputElem.classList.add('animate-text-fade');
+                
                 setTimeout(() => {
                     chatInputElem.value = '';
                     chatInputElem.classList.remove('animate-text-fade');
                     deleteSuccessBanner.classList.remove('hidden');
                 }, 800);
 
-                if (document.getElementById('modelNameText'))
-                    document.getElementById('modelNameText').innerText = 'Active Connection';
+                if (document.getElementById('modelNameText')) {
+                    document.getElementById('modelNameText').innerText = "Active Connection";
+                }
                 modelBadge.classList.remove('hidden');
 
-                const scores    = data.analytics;
+                const scores = data.analytics;
                 latestAnalytics = scores;
 
-                /* ── Reset email panel for fresh report ── */
+                /* Reset email panel for new report */
                 activeRecipientOption = null;
                 ['Me', 'Partner', 'Both'].forEach(o => {
                     const el = document.getElementById('opt' + o);
-                    if (el) el.style.cssText = '';
+                    if (el) { el.style.cssText = ''; }
                 });
                 document.getElementById('emailInputs').classList.add('hidden');
                 document.getElementById('selfInputWrap').classList.add('hidden');
@@ -858,6 +775,7 @@
                 document.getElementById('emailPartner').value = '';
                 document.getElementById('emailSuccessBanner').classList.add('hidden');
                 document.getElementById('emailErrorBanner').classList.add('hidden');
+
                 const collapsed = document.getElementById('emailCollapsed');
                 const expanded  = document.getElementById('emailExpanded');
                 const chevron   = document.getElementById('emailChevron');
@@ -865,52 +783,50 @@
                 collapsed.onclick = expandEmailPanel;
                 expanded.classList.add('hidden');
                 chevron.style.transform = '';
+
                 const emailBtn = document.getElementById('emailReportBtn');
                 if (emailBtn) {
-                    emailBtn.disabled      = false;
-                    emailBtn.innerText     = 'Send Report';
+                    emailBtn.disabled    = false;
+                    emailBtn.innerText   = 'Send Report';
                     emailBtn.style.cssText = '';
-                    emailBtn.className     = 'w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs';
+                    emailBtn.className   = 'w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs';
                 }
-
-                /* ── Populate macro scores ── */
-                document.getElementById('bondStrengthMeter').innerText  = scores.bond_strength || '0%';
+                
+                document.getElementById('bondStrengthMeter').innerText = scores.bond_strength || '0%';
                 document.getElementById('bondStrengthReason').innerText = scores.bond_strength_reason ? `"${scores.bond_strength_reason}"` : '';
-                document.getElementById('positivityVal').innerText      = scores.bond_positivity || '--';
-                document.getElementById('positivityReason').innerText   = scores.bond_positivity_reason || '';
-                document.getElementById('conflictVal').innerText        = scores.conflict_resolution || '--';
-                document.getElementById('conflictReason').innerText     = scores.conflict_resolution_reason || '';
-                document.getElementById('safetyVal').innerText          = scores.safety_trust || '--';
-                document.getElementById('safetyReason').innerText       = scores.safety_trust_reason || '';
-                document.getElementById('dynamicsVal').innerText        = scores.relationship_dynamics || '--';
-                document.getElementById('dynamicsReason').innerText     = scores.relationship_dynamics_reason || '';
-                document.getElementById('toxicityVal').innerText        = scores.toxicity || '--';
-                document.getElementById('toxicityReason').innerText     = scores.toxicity_reason || '';
-                document.getElementById('summaryText').innerText        = scores.summary ? `"${scores.summary}"` : '';
-
-                /* ── Animate macro bars ── */
+                document.getElementById('positivityVal').innerText   = scores.bond_positivity || '--';
+                document.getElementById('positivityReason').innerText = scores.bond_positivity_reason || '';
+                document.getElementById('conflictVal').innerText     = scores.conflict_resolution || '--';
+                document.getElementById('conflictReason').innerText  = scores.conflict_resolution_reason || '';
+                document.getElementById('safetyVal').innerText       = scores.safety_trust || '--';
+                document.getElementById('safetyReason').innerText    = scores.safety_trust_reason || '';
+                document.getElementById('dynamicsVal').innerText     = scores.relationship_dynamics || '--';
+                document.getElementById('dynamicsReason').innerText  = scores.relationship_dynamics_reason || '';
+                document.getElementById('toxicityVal').innerText     = scores.toxicity || '--';
+                document.getElementById('toxicityReason').innerText  = scores.toxicity_reason || '';
+                document.getElementById('summaryText').innerText     = scores.summary ? `"${scores.summary}"` : '';
+                
+                // Unified reliable animation trigger for Macro bars
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
-                        const setBar = (id, val) => {
+                        const setMacroWidth = (id, val) => {
                             const el = document.getElementById(id);
                             if (el) el.style.width = (parseInt(val) || 0) + '%';
                         };
-                        setBar('positivityBar', scores.bond_positivity);
-                        setBar('conflictBar',   scores.conflict_resolution);
-                        setBar('safetyBar',     scores.safety_trust);
-                        setBar('dynamicsBar',   scores.relationship_dynamics);
-                        setBar('toxicityBar',   scores.toxicity);
+                        setMacroWidth('positivityBar', scores.bond_positivity);
+                        setMacroWidth('conflictBar',   scores.conflict_resolution);
+                        setMacroWidth('safetyBar',     scores.safety_trust);
+                        setMacroWidth('dynamicsBar',   scores.relationship_dynamics);
+                        setMacroWidth('toxicityBar',   scores.toxicity);
                     });
                 });
 
-                /* ── Render profile cards ── */
                 if (scores.profiles && Array.isArray(scores.profiles)) {
                     scores.profiles.forEach((user, idx) => {
-                        const card  = document.createElement('div');
-                        card.className = 'bg-[#FAF9F5]/50 border border-stone-200/60 rounded-xl p-5 shadow-3xs flex flex-col justify-between space-y-4';
-
-                        // Unique IDs scoped to this render run — prevents stale bar refs
-                        const runId   = Date.now();
+                        const profileCard = document.createElement('div');
+                        profileCard.className = "bg-[#FAF9F5]/50 border border-stone-200/60 rounded-xl p-5 shadow-3xs flex flex-col justify-between space-y-4";
+                        
+                        const runId = Date.now();
                         const attachId = `p${idx}-attach-${runId}`;
                         const regId    = `p${idx}-reg-${runId}`;
                         const recepId  = `p${idx}-recep-${runId}`;
@@ -920,9 +836,10 @@
                             <li class="flex items-start gap-2.5 text-xs text-stone-600 bg-white p-2.5 rounded border border-stone-200/40 font-light shadow-3xs">
                                 <span class="text-stone-400 font-mono mt-0.5">→</span>
                                 <span>${action}</span>
-                            </li>`).join('');
+                            </li>
+                        `).join('');
 
-                        card.innerHTML = `
+                        profileCard.innerHTML = `
                             <div class="space-y-4">
                                 <div class="border-b border-stone-200/40 pb-2">
                                     <span class="text-[9px] uppercase font-bold tracking-widest text-stone-400 block">Personal Style</span>
@@ -935,7 +852,7 @@
                                             <span class="font-mono text-stone-500 font-medium text-[11px]">${user.attachment_security || '0%'}</span>
                                         </div>
                                         <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden">
-                                            <div id="${attachId}" class="custom-transition bg-stone-950 h-full" style="width:0%"></div>
+                                            <div id="${attachId}" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
                                         </div>
                                         <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.attachment_security_reason || ''}</p>
                                     </div>
@@ -945,7 +862,7 @@
                                             <span class="font-mono text-stone-500 font-medium text-[11px]">${user.emotional_regulation || '0%'}</span>
                                         </div>
                                         <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden">
-                                            <div id="${regId}" class="custom-transition bg-stone-950 h-full" style="width:0%"></div>
+                                            <div id="${regId}" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
                                         </div>
                                         <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.emotional_regulation_reason || ''}</p>
                                     </div>
@@ -955,7 +872,7 @@
                                             <span class="font-mono text-stone-500 font-medium text-[11px]">${user.receptivity || '0%'}</span>
                                         </div>
                                         <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden">
-                                            <div id="${recepId}" class="custom-transition bg-stone-950 h-full" style="width:0%"></div>
+                                            <div id="${recepId}" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
                                         </div>
                                         <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.receptivity_reason || ''}</p>
                                     </div>
@@ -965,7 +882,7 @@
                                             <span class="font-mono text-stone-500 font-medium text-[11px]">${user.accountability || '0%'}</span>
                                         </div>
                                         <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden">
-                                            <div id="${accId}" class="custom-transition bg-stone-950 h-full" style="width:0%"></div>
+                                            <div id="${accId}" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
                                         </div>
                                         <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.accountability_reason || ''}</p>
                                     </div>
@@ -974,20 +891,20 @@
                             <div class="space-y-2 pt-3 border-t border-stone-200/40">
                                 <span class="text-[10px] uppercase font-bold tracking-wider text-stone-400 block">Easy Next Steps</span>
                                 <ul class="space-y-1.5">${actionsHtml}</ul>
-                            </div>`;
-                        profileContainer.appendChild(card);
+                            </div>
+                        `;
+                        profileContainer.appendChild(profileCard);
 
-                        /* Animate profile bars — double rAF ensures DOM is painted */
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => {
-                                const setBar = (id, val) => {
+                                const setWidth = (id, val) => {
                                     const el = document.getElementById(id);
                                     if (el) el.style.width = (parseInt(val) || 0) + '%';
                                 };
-                                setBar(attachId, user.attachment_security);
-                                setBar(regId,    user.emotional_regulation);
-                                setBar(recepId,  user.receptivity);
-                                setBar(accId,    user.accountability);
+                                setWidth(attachId, user.attachment_security);
+                                setWidth(regId,    user.emotional_regulation);
+                                setWidth(recepId,  user.receptivity);
+                                setWidth(accId,    user.accountability);
                             });
                         });
                     });
@@ -997,28 +914,17 @@
                 resultSection.classList.remove('hidden');
                 resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-                /* Reveal invite section after first successful analysis */
                 const inviteSection = document.getElementById('inviteSection');
                 inviteSection.classList.remove('hidden');
                 inviteSection.classList.add('invite-reveal');
 
             } catch (err) {
-                /* Network-level failure */
-                document.getElementById('analyzeErrorText').innerText = 'Could not reach the server. Check your connection and try again.';
-                errorBanner.classList.remove('hidden');
+                alert(`Could not complete analysis right now: ${err.message}`);
             } finally {
-                /* Always re-enable button unless it's a permanent limit block */
-                if (isLimitError) {
-                    analyzeBtn.disabled  = true;
-                    analyzeBtn.innerText = 'Analysis Limit Reached';
-                    analyzeBtn.classList.replace('bg-stone-950', 'bg-stone-300');
-                    analyzeBtn.classList.remove('hover:bg-stone-800', 'cursor-pointer');
-                    analyzeBtn.classList.add('cursor-not-allowed');
-                } else {
-                    analyzeBtn.disabled  = false;
-                    analyzeBtn.innerText = 'Analyze Conversation';
-                }
+                analyzeBtn.disabled  = false;
+                analyzeBtn.innerText = 'Analyze Conversation';
             }
         }
-    </script></body>
+    </script>
+</body>
 </html>
