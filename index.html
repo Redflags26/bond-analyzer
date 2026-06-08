@@ -513,7 +513,7 @@
         }
 
         /* ── Submit interest (blocked users) ── */
-        async function submitInterest() {
+       async function submitInterest() {
             const email      = document.getElementById('interestEmail').value.trim();
             const successEl  = document.getElementById('interestSuccess');
             const errorEl    = document.getElementById('interestError');
@@ -527,23 +527,53 @@
             }
 
             try {
+                // ── NEW API CALL: Pointing to the new independent endpoint ──
+                const res  = await fetch('/api/request-without-invite', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ email })
+                });
+
+                /* ── OLD API CALL (Commented out for future reference) ──
                 const res  = await fetch('/api/request-access', {
                     method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body:    JSON.stringify({ email })
                 });
+                ──────────────────────────────────────────────────────── */
+
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Something went wrong.');
 
+                // Auto-verification routine using the returned token
+                if (data.token) {
+                    const result = await verifyAccess(data.token);
+                    if (result) {
+                        currentUserId      = result.userId;
+                        currentInviteCount = result.inviteCount || 0;
+                        sessionStorage.setItem('truvah_session', JSON.stringify({
+                            userId:      result.userId,
+                            inviteCount: result.inviteCount || 0
+                        }));
+                        grantAccess();
+                    } else {
+                        throw new Error('Access could not be verified automatically. Please refresh or try again.');
+                    }
+                } else {
+                    throw new Error('No access token received from the server.');
+                }
+
+                /* ── OLD WAITLIST UI HANDLER (Commented out for future reference) ──
                 successEl.classList.remove('hidden');
                 document.getElementById('interestForm').querySelector('input').value = '';
                 document.getElementById('interestForm').querySelector('button').disabled = true;
+                ─────────────────────────────────────────────────────────────────── */
+
             } catch (err) {
                 document.getElementById('interestErrorText').innerText = err.message;
                 errorEl.classList.remove('hidden');
             }
         }
-
         // Run on page load
         initAccess();
 
