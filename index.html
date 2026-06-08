@@ -88,15 +88,20 @@
                     <div class="flex gap-2">
                         <input id="interestEmail" type="email" placeholder="your@email.com"
                             class="flex-1 px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
-                        <button onclick="submitInterest()"
-                            class="bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium px-4 py-2.5 rounded-xl text-xs tracking-[0.12em] uppercase transition-all duration-200 cursor-pointer whitespace-nowrap">
+                        
+                        <!-- 1. Added id="interestBtn" and disabled state styling -->
+                        <button id="interestBtn" onclick="submitInterest()"
+                            class="bg-stone-950 hover:bg-stone-800 disabled:bg-stone-700 disabled:cursor-not-allowed text-[#FAF9F5] font-medium px-4 py-2.5 rounded-xl text-xs tracking-[0.12em] uppercase transition-all duration-200 cursor-pointer whitespace-nowrap">
                             Claim Access
                         </button>
                     </div>
+                    
+                    <!-- 2. Updated text to reflect instant unlock instead of "You're on the list" -->
                     <div id="interestSuccess" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3 rounded-xl text-xs font-light flex items-center gap-2">
                         <span class="text-emerald-500 font-bold">✓</span>
-                        <span>You're on the list. We'll send you an invite when a spot opens.</span>
+                        <span>Access confirmed. Unlocking your dashboard...</span>
                     </div>
+                    
                     <div id="interestError" class="hidden bg-red-50/50 border border-red-200/50 text-red-700 p-3 rounded-xl text-xs font-light flex items-center gap-2">
                         <span>✕</span>
                         <span id="interestErrorText">Something went wrong.</span>
@@ -513,10 +518,13 @@
         }
 
         /* ── Submit interest (blocked users) ── */
-       async function submitInterest() {
+
+/* ── Submit interest (blocked users) ── */
+        async function submitInterest() {
             const email      = document.getElementById('interestEmail').value.trim();
             const successEl  = document.getElementById('interestSuccess');
             const errorEl    = document.getElementById('interestError');
+            const btn        = document.getElementById('interestBtn'); // 1. Get reference to button
 
             successEl.classList.add('hidden');
             errorEl.classList.add('hidden');
@@ -524,6 +532,12 @@
             if (!email || !EMAIL_REGEX.test(email)) {
                 document.getElementById('interestErrorText').innerText = 'Please enter a valid email address.';
                 errorEl.classList.remove('hidden'); return;
+            }
+
+            // 2. Disable button and change text immediately when clicked
+            if (btn) {
+                btn.disabled  = true;
+                btn.innerText = 'Granting access...';
             }
 
             try {
@@ -572,9 +586,14 @@
             } catch (err) {
                 document.getElementById('interestErrorText').innerText = err.message;
                 errorEl.classList.remove('hidden');
+                
+                // 3. Re-enable button and reset text if an error occurs so they can try again
+                if (btn) {
+                    btn.disabled  = false;
+                    btn.innerText = 'Claim Access';
+                }
             }
-        }
-        // Run on page load
+        }        // Run on page load
         initAccess();
 
         /* ── Send invite ── */
