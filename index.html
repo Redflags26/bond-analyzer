@@ -77,10 +77,10 @@
             <div id="gateBlocked" class="hidden space-y-4">
                 <div class="inline-flex items-center gap-1.5 bg-stone-950 text-[#FAF9F5] px-3 py-1 rounded-full text-[9px] tracking-[0.2em] font-medium uppercase">
                     <span class="w-1 h-1 rounded-full bg-stone-500 inline-block"></span>
-                    Invite only
+                    Members only 🔒
                 </div>
-                <h2 class="text-2xl font-normal text-stone-900 serif-font italic leading-snug">This is a private space.</h2>
-                <p class="text-sm text-stone-500 font-light leading-relaxed">Truvah is available by invitation only. Leave your email and we'll reach out when a spot opens up.</p>
+                <h2 class="text-2xl font-normal text-stone-900 serif-font italic leading-snug">Enter your email to claim free access!</h2>
+                <p class="text-sm text-stone-500 font-light leading-relaxed">Only a few slots remaining⚡</p>
                 <p id="gateError" class="text-xs text-red-500 font-light hidden"></p>
 
                 <!-- Interest capture form -->
@@ -90,7 +90,7 @@
                             class="flex-1 px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
                         <button onclick="submitInterest()"
                             class="bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium px-4 py-2.5 rounded-xl text-xs tracking-[0.12em] uppercase transition-all duration-200 cursor-pointer whitespace-nowrap">
-                            Notify me
+                            Claim Access
                         </button>
                     </div>
                     <div id="interestSuccess" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3 rounded-xl text-xs font-light flex items-center gap-2">
@@ -513,7 +513,7 @@
         }
 
         /* ── Submit interest (blocked users) ── */
-        async function submitInterest() {
+       async function submitInterest() {
             const email      = document.getElementById('interestEmail').value.trim();
             const successEl  = document.getElementById('interestSuccess');
             const errorEl    = document.getElementById('interestError');
@@ -527,23 +527,53 @@
             }
 
             try {
+                // ── NEW API CALL: Pointing to the new independent endpoint ──
+                const res  = await fetch('/api/request-without-invite', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ email })
+                });
+
+                /* ── OLD API CALL (Commented out for future reference) ──
                 const res  = await fetch('/api/request-access', {
                     method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body:    JSON.stringify({ email })
                 });
+                ──────────────────────────────────────────────────────── */
+
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Something went wrong.');
 
+                // Auto-verification routine using the returned token
+                if (data.token) {
+                    const result = await verifyAccess(data.token);
+                    if (result) {
+                        currentUserId      = result.userId;
+                        currentInviteCount = result.inviteCount || 0;
+                        sessionStorage.setItem('truvah_session', JSON.stringify({
+                            userId:      result.userId,
+                            inviteCount: result.inviteCount || 0
+                        }));
+                        grantAccess();
+                    } else {
+                        throw new Error('Access could not be verified automatically. Please refresh or try again.');
+                    }
+                } else {
+                    throw new Error('No access token received from the server.');
+                }
+
+                /* ── OLD WAITLIST UI HANDLER (Commented out for future reference) ──
                 successEl.classList.remove('hidden');
                 document.getElementById('interestForm').querySelector('input').value = '';
                 document.getElementById('interestForm').querySelector('button').disabled = true;
+                ─────────────────────────────────────────────────────────────────── */
+
             } catch (err) {
                 document.getElementById('interestErrorText').innerText = err.message;
                 errorEl.classList.remove('hidden');
             }
         }
-
         // Run on page load
         initAccess();
 
