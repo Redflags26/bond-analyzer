@@ -134,7 +134,7 @@ BOND STRENGTH: A single percentage reflecting the overall health and resilience 
 
 SUMMARY:
 
-Generate a Truvah Identity Card for the primary person reflected in the conversation.
+Generate a Truvah Identity Card for the impacted partner/consistent partner reflected in the conversation.
 
 Choose EXACTLY ONE stone from:
 
