@@ -134,7 +134,7 @@ BOND STRENGTH: A single percentage reflecting the overall health and resilience 
 
 SUMMARY:
 
-Generate a Truvah Identity Card for the impacted partner/consistent partner reflected in the conversation.
+Generate a Truvah Identity Card for the partner with better average scores reflected in the profiles.
 
 Choose EXACTLY ONE stone from:
 
@@ -164,7 +164,7 @@ Jade = Stability
 
 Return a SINGLE paragraph using EXACTLY this format:
 
-"You're a [STONE] — [4-8 word persona description]. Your superpower is [FIXED SUPERPOWER]. [1-2 sentences describing how this strength shows up based on the conversation.] Watch out: [1 sentence describing a likely blind spot.]"
+"[Name], You're a [STONE] — [4-8 word persona description]. Your superpower is [FIXED SUPERPOWER]. [1-2 sentences describing how this strength shows up based on the conversation.] Watch out: [1 sentence describing a likely blind spot.]"
 
 Rules:
 
