@@ -29,6 +29,23 @@
             animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
+        /* Delete toast — fixed overlay, auto-dismisses */
+        #deleteToast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(12px);
+            opacity: 0;
+            transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.16,1,0.3,1);
+            pointer-events: none;
+            z-index: 999;
+            white-space: nowrap;
+        }
+        #deleteToast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
         /* Smooth input row reveal */
         @keyframes inputSlideDown {
             0%   { opacity: 0; transform: translateY(-6px); max-height: 0; }
@@ -128,22 +145,54 @@
         <section class="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
             <div class="space-y-4">
                 <div class="inline-flex items-center gap-2 bg-white border border-stone-200/60 px-3 py-1 rounded-full text-stone-600 font-medium text-[9px] tracking-widest uppercase shadow-3xs">
-                    🔒 Safe & Private Space
+                    🔒 your chats are deleted instantly
                 </div>
                 <h2 class="text-3xl md:text-4xl font-normal text-stone-900 tracking-tight leading-[1.2] serif-font">
                     See clearly into your <br><span class="italic text-stone-500">conversations</span>.
                 </h2>
+                <!-- ── SUBLINE — edit text here only ── -->
                 <p class="text-stone-500 text-sm font-light leading-relaxed">
-                   Truvah helps you see beyond words — uncovering personalities, connection patterns, and warning signs to guide your next move.
+                    That conversation you keep replaying — find out what it actually means.
                 </p>
             </div>
 
             <div class="bg-white p-6 rounded-2xl border border-stone-200/60 shadow-xs space-y-5">
                 <div class="space-y-1.5">
-                    <p class="text-xs text-stone-500 font-light leading-relaxed">Paste a meaningful conversation or describe an interaction</p>
+                    <!-- ── INSTRUCTION LINE — edit text here only ── -->
+                    <p class="text-xs text-stone-500 font-light leading-relaxed">Copy messages from WhatsApp, Instagram, or any chat app — or describe what happened in your own words.</p>
                 </div>
             
                 
+                <!-- ── HOW-IT-WORKS STRIP ─────────────────────────────
+                     3 steps. Edit label text only. Do not change IDs.
+                     Strip sits between instruction line and textarea.
+                ──────────────────────────────────────────────────── -->
+                <div class="flex items-center gap-0 rounded-xl overflow-hidden border border-stone-200/50 bg-[#FAF9F5] text-[10px] text-stone-500 font-light divide-x divide-stone-200/50">
+
+                    <div class="flex items-center gap-2 px-3.5 py-2.5 flex-1 min-w-0">
+                        <!-- Step 1 icon: copy -->
+                        <svg class="shrink-0 text-stone-400" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        <!-- Step 1 label -->
+                        <span class="leading-snug">Copy messages from any chat</span>
+                    </div>
+
+                    <div class="flex items-center gap-2 px-3.5 py-2.5 flex-1 min-w-0">
+                        <!-- Step 2 icon: paste / edit -->
+                        <svg class="shrink-0 text-stone-400" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        <!-- Step 2 label -->
+                        <span class="leading-snug">Paste or type it below</span>
+                    </div>
+
+                    <div class="flex items-center gap-2 px-3.5 py-2.5 flex-1 min-w-0">
+                        <!-- Step 3 icon: spark -->
+                        <svg class="shrink-0 text-stone-400" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        <!-- Step 3 label -->
+                        <span class="leading-snug">See what's really going on</span>
+                    </div>
+
+                </div>
+                <!-- ── END HOW-IT-WORKS STRIP ── -->
+
                 <div class="relative">
                      <textarea id="chatInput" rows="8" placeholder="Examples:&#10;• A disagreement or argument&#10;• A difficult conversation&#10;• A recurring issue between you&#10;• An emotional or important moment&#10;&#10;The more context, thoughts, feelings, and reactions you include, the more meaningful your insights will be." class="w-full p-4 bg-[#FAF9F5] border border-stone-200/60 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-xs tracking-wide font-light placeholder-stone-300 shadow-2xs transition-all leading-relaxed"></textarea>
                     <div id="statusLabel" class="absolute bottom-3 right-3 text-[8px] uppercase tracking-wider text-stone-300 placeholder:italic font-mono bg-white/90 px-2 py-0.5 rounded border border-stone-200/40 flex items-center gap-1.5 shadow-3xs">
@@ -152,7 +201,7 @@
                 </div>
 
 
-                <div id="deleteSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                <div id="deleteSuccessBanner" class="hidden bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
                     <span class="text-emerald-600 font-bold">✓</span>
                     <span>Your text has been completely cleared and deleted from this session.</span>
                 </div>
@@ -410,6 +459,14 @@
             <p class="text-[11px] text-stone-400 font-light leading-relaxed mt-0.5">Your image was saved! Open Instagram to share it directly to your Stories, Post, or Messages.</p>
         </div>
     </div>
+
+    <!-- ── DELETE TOAST — fixed bottom overlay, shown after successful analysis ── -->
+    <div id="deleteToast" class="flex items-center gap-2 bg-stone-950 text-[#FAF9F5] text-xs font-light px-4 py-2.5 rounded-full shadow-lg">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+        <!-- Toast message — edit text here only -->
+        <span>Chat deleted. Nothing was stored.</span>
+    </div>
+    <!-- ── END DELETE TOAST ── -->
 
     <script>
         /* ── PostHog Initialization ── */
@@ -820,7 +877,12 @@
                 setTimeout(() => {
                     chatInputElem.value = '';
                     chatInputElem.classList.remove('animate-text-fade');
-                    deleteSuccessBanner.classList.remove('hidden');
+                    // Show fixed toast — visible regardless of scroll position
+                    const toast = document.getElementById('deleteToast');
+                    if (toast) {
+                        toast.classList.add('show');
+                        setTimeout(() => toast.classList.remove('show'), 3000);
+                    }
                 }, 800);
 
                 if (document.getElementById('modelNameText')) {
