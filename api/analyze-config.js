@@ -164,7 +164,7 @@ Jade = Stability
 
 Return a SINGLE paragraph using EXACTLY this format:
 
-"[Name], You're a [STONE] — [4-8 word persona description]. Your superpower is [FIXED SUPERPOWER]. [1-2 sentences describing how this strength shows up based on the conversation.] Watch out: [1 sentence describing a likely blind spot.]"
+"You're a [STONE] — [4-8 word persona description]. Your superpower is [FIXED SUPERPOWER]. [1-2 sentences describing how this strength shows up based on the conversation.] Watch out: [1 sentence describing a likely blind spot.]"
 
 Rules:
 
