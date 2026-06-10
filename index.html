@@ -29,23 +29,6 @@
             animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* Delete toast — fixed overlay, auto-dismisses */
-        #deleteToast {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%) translateY(12px);
-            opacity: 0;
-            transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.16,1,0.3,1);
-            pointer-events: none;
-            z-index: 999;
-            white-space: nowrap;
-        }
-        #deleteToast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
         /* Smooth input row reveal */
         @keyframes inputSlideDown {
             0%   { opacity: 0; transform: translateY(-6px); max-height: 0; }
@@ -94,10 +77,10 @@
             <div id="gateBlocked" class="hidden space-y-4">
                 <div class="inline-flex items-center gap-1.5 bg-stone-950 text-[#FAF9F5] px-3 py-1 rounded-full text-[9px] tracking-[0.2em] font-medium uppercase">
                     <span class="w-1 h-1 rounded-full bg-stone-500 inline-block"></span>
-                    Members only 🔒
+                    Safe, Secure, & a lot more🔒
                 </div>
                 <h2 class="text-2xl font-normal text-stone-900 serif-font italic leading-snug">Enter your email to claim free access!</h2>
-                <p class="text-sm text-stone-500 font-light leading-relaxed">Only a few early access slots remaining⚡</p>
+                <p class="text-sm text-stone-500 font-light leading-relaxed">Members Only - Few slots remaining⚡</p>
                 <p id="gateError" class="text-xs text-red-500 font-light hidden"></p>
 
                 <!-- Interest capture form -->
@@ -459,14 +442,6 @@
             <p class="text-[11px] text-stone-400 font-light leading-relaxed mt-0.5">Your image was saved! Open Instagram to share it directly to your Stories, Post, or Messages.</p>
         </div>
     </div>
-
-    <!-- ── DELETE TOAST — fixed bottom overlay, shown after successful analysis ── -->
-    <div id="deleteToast" class="flex items-center gap-2 bg-stone-950 text-[#FAF9F5] text-xs font-light px-4 py-2.5 rounded-full shadow-lg">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
-        <!-- Toast message — edit text here only -->
-        <span>Chat deleted. Nothing was stored.</span>
-    </div>
-    <!-- ── END DELETE TOAST ── -->
 
     <script>
         /* ── PostHog Initialization ── */
@@ -878,7 +853,7 @@
                     chatInputElem.value = '';
                     chatInputElem.classList.remove('animate-text-fade');
                     // Show fixed toast — visible regardless of scroll position
-                    const toast = document.getElementById('deleteToast');
+                    // const toast = document.getElementById('deleteToast');
                     if (toast) {
                         toast.classList.add('show');
                         setTimeout(() => toast.classList.remove('show'), 3000);
