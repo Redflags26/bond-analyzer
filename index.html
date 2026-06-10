@@ -184,7 +184,7 @@
                 </div>
 
 
-                <div id="deleteSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                <div id="deleteSuccessBanner" class="hidden bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
                     <span class="text-emerald-600 font-bold">✓</span>
                     <span>Your text has been completely cleared and deleted from this session.</span>
                 </div>
@@ -852,7 +852,10 @@
                 setTimeout(() => {
                     chatInputElem.value = '';
                     chatInputElem.classList.remove('animate-text-fade');
+                    deleteSuccessBanner.classList.remove('animate-banner-slide'); // reset animation
                     deleteSuccessBanner.classList.remove('hidden');
+                    void deleteSuccessBanner.offsetHeight;                          // force reflow
+                    deleteSuccessBanner.classList.add('animate-banner-slide');      // replay animation
                 }, 800);
 
                 if (document.getElementById('modelNameText')) {
