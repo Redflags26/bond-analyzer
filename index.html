@@ -29,17 +29,6 @@
             animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* Privacy ticker */
-        @keyframes tickerScroll {
-            0%   { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-        .ticker-track {
-            animation: tickerScroll 18s linear infinite;
-            width: max-content;
-        }
-        .ticker-track:hover { animation-play-state: paused; }
-
         /* Delete toast — fixed overlay, auto-dismisses */
         #deleteToast {
             position: fixed;
@@ -212,39 +201,17 @@
                 </div>
 
 
-                <!-- ── PRIVACY TICKER — always visible below textarea.
-                     Scrolling ticker before submission, swaps to
-                     confirmed state after successful analysis.
-                     Edit ticker messages in the span below. ── -->
-                <div id="privacyLine" class="flex items-center gap-1.5 overflow-hidden">
-
-                    <!-- Lock icon — turns green after submission -->
-                    <svg id="privacyIcon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 transition-all duration-500" style="min-width:11px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-
-                    <!-- Ticker track — scrolls before submission -->
-                    <div id="privacyDefault" class="overflow-hidden flex-1" style="mask-image:linear-gradient(to right,transparent,black 8%,black 92%,transparent)">
-                        <div class="ticker-track flex gap-10 text-[11px] text-stone-400 font-light whitespace-nowrap">
-                            <!-- Edit ticker messages here — duplicated for seamless loop -->
-                            <span>🔒 Chats deleted instantly after analysis</span>
-                            <span>·</span>
-                            <span>Nothing is stored or shared</span>
-                            <span>·</span>
-                            <span>Your conversation never leaves the session</span>
-                            <span>·</span>
-                            <span>🔒 Chats deleted instantly after analysis</span>
-                            <span>·</span>
-                            <span>Nothing is stored or shared</span>
-                            <span>·</span>
-                            <span>Your conversation never leaves the session</span>
-                            <span>·</span>
-                        </div>
-                    </div>
-
-                    <!-- Confirmed state — shown after successful submission -->
-                    <span id="privacyConfirmed" class="hidden text-[11px] text-emerald-600 font-light whitespace-nowrap">&#10003; Chat deleted. Nothing was stored.</span>
-
+                <!-- ── PRIVACY LINE — always visible below textarea.
+                     Text swaps after successful submission via JS.
+                     Edit default/confirmed text in the spans below. ── -->
+                <div id="privacyLine" class="flex items-center gap-1.5 text-[11px] text-stone-400 font-light px-0.5">
+                    <svg id="privacyIcon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 transition-all duration-300"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <!-- Default text — shown before submission -->
+                    <span id="privacyDefault">Chats are deleted instantly after analysis. Nothing is stored.</span>
+                    <!-- Confirmed text — shown after successful submission -->
+                    <span id="privacyConfirmed" class="hidden text-emerald-600">&#10003; Chat deleted. Nothing was stored.</span>
                 </div>
-                <!-- ── END PRIVACY TICKER ── -->
+                <!-- ── END PRIVACY LINE ── -->
 
                 <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3.5 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-3 text-xs tracking-[0.12em] uppercase shadow-xs">
                     Analyze Conversation
@@ -417,7 +384,7 @@
                         <div class="space-y-2 relative z-10">
                             <h4 class="text-[9px] text-stone-400 font-bold uppercase tracking-[0.25em]">Your Truvah ID Card</h4>
                             <p class="text-sm font-serif font-light leading-relaxed italic text-stone-200">
-                                "You're a Sunstone — a radiant source of consistent warmth. Your superpower is Warmth. You nurture the connection by actively acknowledging small gestures and expressing deep gratitude for the stability you share. Watch out: You might occasionally prioritize the comfort of others over your own needs during stressful times."
+                                "There's love here, and there's also a gap that keeps quietly widening. One of you keeps showing up; the other keeps arriving late but warm. The question isn't whether you care — it's whether the pattern changes before it becomes the relationship."
                             </p>
                         </div>
                         <div class="flex gap-2 pt-2 border-t border-stone-800 relative z-10 opacity-40">
