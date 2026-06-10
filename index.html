@@ -29,6 +29,23 @@
             animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
+        /* Delete toast — fixed overlay, auto-dismisses */
+        #deleteToast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(12px);
+            opacity: 0;
+            transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.16,1,0.3,1);
+            pointer-events: none;
+            z-index: 999;
+            white-space: nowrap;
+        }
+        #deleteToast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
         /* Smooth input row reveal */
         @keyframes inputSlideDown {
             0%   { opacity: 0; transform: translateY(-6px); max-height: 0; }
@@ -443,6 +460,14 @@
         </div>
     </div>
 
+    <!-- ── DELETE TOAST — fixed bottom overlay, shown after successful analysis ── -->
+    <div id="deleteToast" class="flex items-center gap-2 bg-stone-950 text-[#FAF9F5] text-xs font-light px-4 py-2.5 rounded-full shadow-lg">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+        <!-- Toast message — edit text here only -->
+        <span>Chat deleted. Nothing was stored.</span>
+    </div>
+    <!-- ── END DELETE TOAST ── -->
+
     <script>
         /* ── PostHog Initialization ── */
         !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+" (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
@@ -852,10 +877,12 @@
                 setTimeout(() => {
                     chatInputElem.value = '';
                     chatInputElem.classList.remove('animate-text-fade');
-                    deleteSuccessBanner.classList.remove('animate-banner-slide'); // reset animation
-                    deleteSuccessBanner.classList.remove('hidden');
-                    void deleteSuccessBanner.offsetHeight;                          // force reflow
-                    deleteSuccessBanner.classList.add('animate-banner-slide');      // replay animation
+                    // Show fixed toast — visible regardless of scroll position
+                    const toast = document.getElementById('deleteToast');
+                    if (toast) {
+                        toast.classList.add('show');
+                        setTimeout(() => toast.classList.remove('show'), 3000);
+                    }
                 }, 800);
 
                 if (document.getElementById('modelNameText')) {
