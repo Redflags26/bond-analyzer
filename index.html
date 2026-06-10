@@ -201,10 +201,17 @@
                 </div>
 
 
-                <div id="deleteSuccessBanner" class="hidden bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
-                    <span class="text-emerald-600 font-bold">✓</span>
-                    <span>Your text has been completely cleared and deleted from this session.</span>
+                <!-- ── PRIVACY LINE — always visible below textarea.
+                     Text swaps after successful submission via JS.
+                     Edit default/confirmed text in the spans below. ── -->
+                <div id="privacyLine" class="flex items-center gap-1.5 text-[11px] text-stone-400 font-light px-0.5">
+                    <svg id="privacyIcon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 transition-all duration-300"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <!-- Default text — shown before submission -->
+                    <span id="privacyDefault">Chats are deleted instantly after analysis. Nothing is stored.</span>
+                    <!-- Confirmed text — shown after successful submission -->
+                    <span id="privacyConfirmed" class="hidden text-emerald-600">&#10003; Chat deleted. Nothing was stored.</span>
                 </div>
+                <!-- ── END PRIVACY LINE ── -->
 
                 <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3.5 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-3 text-xs tracking-[0.12em] uppercase shadow-xs">
                     Analyze Conversation
@@ -228,11 +235,168 @@
 
         <section class="lg:col-span-7 w-full">
             
-            <div id="emptyState" class="bg-white border border-stone-200/40 rounded-2xl p-12 text-center text-stone-400 font-light text-sm shadow-xs flex flex-col items-center justify-center min-h-[350px]">
-                <div class="text-2xl mb-2">✨</div>
-                <p class="font-serif italic text-stone-500 text-base mb-1">Your Analysis Dashboard</p>
-                <p class="text-xs max-w-xs leading-relaxed">Paste your dialog blocks on the left panel to display overall scores, personal styles, and communication optimization options.</p>
+            <!-- ── EMPTY STATE — frosted sample preview ─────────────────
+                 Mirrors resultSection structure so users see what
+                 they'll get before submitting. All content is fake/
+                 blurred. Edit sample copy inside spans if needed.
+                 This entire block is hidden once resultSection shows.
+            ──────────────────────────────────────────────────────── -->
+            <div id="emptyState" class="relative rounded-2xl overflow-hidden select-none">
+
+                <!-- Frosted overlay with CTA — sits above everything -->
+                <div class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white/60 backdrop-blur-[6px] rounded-2xl">
+                    <span class="text-2xl">✨</span>
+                    <p class="font-serif italic text-stone-600 text-base">Your analysis appears here</p>
+                    <p class="text-xs text-stone-400 font-light max-w-[200px] text-center leading-relaxed">Paste your conversation on the left to unlock your results</p>
+                </div>
+
+                <!-- Sample result — blurred underneath the overlay -->
+                <div class="bg-white p-6 md:p-8 rounded-2xl border border-stone-200/60 shadow-xs space-y-8 pointer-events-none" aria-hidden="true">
+
+                    <!-- Sample: summary header -->
+                    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6 border-b border-stone-100 pb-8">
+                        <div class="space-y-3 max-w-xl">
+                            <span class="text-[9px] bg-stone-100 text-stone-600 font-bold tracking-widest uppercase px-2 py-0.5 rounded">Overall Summary</span>
+                            <p class="text-sm text-stone-600 leading-relaxed italic font-light font-serif">
+                                There's real warmth between these two, but one person is consistently carrying more of the emotional weight. The pattern of silences followed by warm reconnections suggests avoidance rather than disengagement — worth naming before it becomes a habit.
+                            </p>
+                        </div>
+                        <div class="flex flex-col items-center justify-center bg-[#FAF9F5] px-6 py-5 rounded-2xl border border-stone-200/50 min-w-[140px] text-center shadow-3xs self-center sm:self-start">
+                            <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Match Level</span>
+                            <span class="text-3xl font-serif font-light text-stone-950 tracking-tighter">67%</span>
+                        </div>
+                    </div>
+
+                    <!-- Sample: score cards -->
+                    <div class="space-y-4">
+                        <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">How well things went</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                            <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-medium text-stone-700 tracking-wide">General Warmth & Kindness</span>
+                                    <span class="text-xs font-mono text-stone-500">72%</span>
+                                </div>
+                                <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div class="bg-stone-800 h-full" style="width:72%"></div></div>
+                                <p class="text-[11px] text-stone-500 leading-relaxed font-light">Affection and care are present throughout, particularly in how they check in after longer silences.</p>
+                            </div>
+
+                            <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-medium text-stone-700 tracking-wide">Solving Problems Together</span>
+                                    <span class="text-xs font-mono text-stone-500">54%</span>
+                                </div>
+                                <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div class="bg-stone-800 h-full" style="width:54%"></div></div>
+                                <p class="text-[11px] text-stone-500 leading-relaxed font-light">Tension tends to dissolve without being fully addressed — issues get sidestepped more than resolved.</p>
+                            </div>
+
+                            <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-medium text-stone-700 tracking-wide">Comfortable Sharing Feelings</span>
+                                    <span class="text-xs font-mono text-stone-500">61%</span>
+                                </div>
+                                <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div class="bg-stone-800 h-full" style="width:61%"></div></div>
+                                <p class="text-[11px] text-stone-500 leading-relaxed font-light">One person opens up more freely; the other tends to deflect vulnerability with humour or subject changes.</p>
+                            </div>
+
+                            <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-medium text-stone-700 tracking-wide">Teamwork & Connection</span>
+                                    <span class="text-xs font-mono text-stone-500">69%</span>
+                                </div>
+                                <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div class="bg-stone-800 h-full" style="width:69%"></div></div>
+                                <p class="text-[11px] text-stone-500 leading-relaxed font-light">There's a genuine sense of being on the same team, even when communication breaks down temporarily.</p>
+                            </div>
+
+                            <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 md:col-span-2 space-y-2 shadow-3xs">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-medium text-stone-700 tracking-wide">Toxicity Level</span>
+                                    <span class="text-xs font-mono text-stone-500">12%</span>
+                                </div>
+                                <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div class="bg-stone-400 h-full" style="width:12%"></div></div>
+                                <p class="text-[11px] text-stone-500 leading-relaxed font-light">No significant toxic patterns detected. Frustration surfaces occasionally but doesn't escalate into contempt or hostility.</p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Sample: one profile card -->
+                    <div class="space-y-4 border-t border-stone-100 pt-6">
+                        <div class="space-y-0.5">
+                            <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Personal Communication Styles</h4>
+                            <p class="text-xs text-stone-500 font-light">See how each person handled the conversation and reacted during tense moments.</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-[#FAF9F5]/50 border border-stone-200/60 rounded-xl p-5 shadow-3xs space-y-4">
+                                <div class="border-b border-stone-200/40 pb-2">
+                                    <span class="text-[9px] uppercase font-bold tracking-widest text-stone-400 block">Personal Style</span>
+                                    <h5 class="text-base font-normal font-serif text-stone-900 mt-0.5">Person A</h5>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center text-xs"><span class="font-medium text-stone-700">Calmness & Security</span><span class="font-mono text-stone-500 text-[11px]">74%</span></div>
+                                        <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div class="bg-stone-950 h-full" style="width:74%"></div></div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center text-xs"><span class="font-medium text-stone-700">Emotional Steadiness</span><span class="font-mono text-stone-500 text-[11px]">58%</span></div>
+                                        <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div class="bg-stone-950 h-full" style="width:58%"></div></div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center text-xs"><span class="font-medium text-stone-700">Openness to Feedback</span><span class="font-mono text-stone-500 text-[11px]">66%</span></div>
+                                        <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div class="bg-stone-950 h-full" style="width:66%"></div></div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center text-xs"><span class="font-medium text-stone-700">Taking Responsibility</span><span class="font-mono text-stone-500 text-[11px]">61%</span></div>
+                                        <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div class="bg-stone-950 h-full" style="width:61%"></div></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-[#FAF9F5]/50 border border-stone-200/60 rounded-xl p-5 shadow-3xs space-y-4">
+                                <div class="border-b border-stone-200/40 pb-2">
+                                    <span class="text-[9px] uppercase font-bold tracking-widest text-stone-400 block">Personal Style</span>
+                                    <h5 class="text-base font-normal font-serif text-stone-900 mt-0.5">Person B</h5>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center text-xs"><span class="font-medium text-stone-700">Calmness & Security</span><span class="font-mono text-stone-500 text-[11px]">55%</span></div>
+                                        <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div class="bg-stone-950 h-full" style="width:55%"></div></div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center text-xs"><span class="font-medium text-stone-700">Emotional Steadiness</span><span class="font-mono text-stone-500 text-[11px]">48%</span></div>
+                                        <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div class="bg-stone-950 h-full" style="width:48%"></div></div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center text-xs"><span class="font-medium text-stone-700">Openness to Feedback</span><span class="font-mono text-stone-500 text-[11px]">71%</span></div>
+                                        <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div class="bg-stone-950 h-full" style="width:71%"></div></div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center text-xs"><span class="font-medium text-stone-700">Taking Responsibility</span><span class="font-mono text-stone-500 text-[11px]">44%</span></div>
+                                        <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div class="bg-stone-950 h-full" style="width:44%"></div></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sample: ID card -->
+                    <div class="bg-stone-950 text-[#FAF9F5] p-6 rounded-xl space-y-3 shadow-xs relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 text-stone-800 opacity-15 text-6xl serif-font pointer-events-none italic select-none">♥</div>
+                        <div class="space-y-2 relative z-10">
+                            <h4 class="text-[9px] text-stone-400 font-bold uppercase tracking-[0.25em]">Your Truvah ID Card</h4>
+                            <p class="text-sm font-serif font-light leading-relaxed italic text-stone-200">
+                                "There's love here, and there's also a gap that keeps quietly widening. One of you keeps showing up; the other keeps arriving late but warm. The question isn't whether you care — it's whether the pattern changes before it becomes the relationship."
+                            </p>
+                        </div>
+                        <div class="flex gap-2 pt-2 border-t border-stone-800 relative z-10 opacity-40">
+                            <div class="bg-white/10 text-[#FAF9F5] px-3 py-1.5 rounded-lg text-[10px] tracking-wider uppercase font-medium">Share Image</div>
+                            <div class="bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white px-3 py-1.5 rounded-lg text-[10px] tracking-wider uppercase font-bold">Instagram</div>
+                            <div class="bg-[#25D366] text-stone-950 px-3 py-1.5 rounded-lg text-[10px] tracking-wider uppercase font-bold">WhatsApp</div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
+            <!-- ── END EMPTY STATE ── -->
 
             <div id="resultSection" class="hidden bg-white p-6 md:p-8 rounded-2xl border border-stone-200/60 shadow-xs space-y-8">
                 
@@ -846,6 +1010,12 @@
             emptyState.classList.remove('hidden');
             modelBadge.classList.add('hidden');
             deleteSuccessBanner.classList.add('hidden');
+            // Reset privacy line to default state for re-runs
+            const _pd = document.getElementById('privacyDefault');
+            const _pc = document.getElementById('privacyConfirmed');
+            const _pi = document.getElementById('privacyIcon');
+            if (_pd && _pc) { _pd.classList.remove('hidden'); _pc.classList.add('hidden'); }
+            if (_pi) _pi.style.stroke = '';
             
             chatInputElem.classList.remove('animate-text-fade');
             profileContainer.innerHTML = '';
@@ -877,11 +1047,14 @@
                 setTimeout(() => {
                     chatInputElem.value = '';
                     chatInputElem.classList.remove('animate-text-fade');
-                    // Show fixed toast — visible regardless of scroll position
-                    const toast = document.getElementById('deleteToast');
-                    if (toast) {
-                        toast.classList.add('show');
-                        setTimeout(() => toast.classList.remove('show'), 3000);
+                    // Swap privacy line text to confirmed state
+                    const privacyDefault   = document.getElementById('privacyDefault');
+                    const privacyConfirmed = document.getElementById('privacyConfirmed');
+                    const privacyIcon      = document.getElementById('privacyIcon');
+                    if (privacyDefault && privacyConfirmed) {
+                        privacyDefault.classList.add('hidden');
+                        privacyConfirmed.classList.remove('hidden');
+                        if (privacyIcon) privacyIcon.style.stroke = '#16a34a'; // emerald
                     }
                 }, 800);
 
