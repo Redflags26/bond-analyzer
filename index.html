@@ -219,26 +219,20 @@
                     <!-- Lock icon — turns green after submission -->
                     <svg id="privacyIcon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 transition-all duration-500" style="min-width:11px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
 
-                    <!-- Ticker track — scrolls before submission -->
-                                  <!-- ── PRIVACY LINE — static state before submission, 
-                     swaps to green confirmed state after successful analysis. ── -->
-                <div id="privacyLine" class="flex items-center gap-1.5 min-h-[16px] select-none">
-
-                    <!-- Default State (Static, premium stone-450 neutral text) -->
-                    <div id="privacyDefault" class="flex items-center gap-1.5 text-[11px] text-stone-400 font-light whitespace-nowrap">
-                        <!-- Subtle Lock Icon -->
-                        <svg id="privacyIcon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 transition-all duration-300"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                        <span>Chats are deleted instantly after analysis. Nothing is stored.</span>
-                    </div>
-
-                    <!-- Confirmed State (Emerald green, shown post-submission) -->
-                    <span id="privacyConfirmed" class="hidden text-[11px] text-emerald-600 font-medium whitespace-nowrap flex items-center gap-1">
-                        <span>✓</span>
-                        <span>Chat deleted. Nothing was stored.</span>
-                    </span>
-
-                </div>  
-                    <!-- ── END PRIVACY TICKER ── -->
+                <!-- ── PRIVACY LINE — static state before submission, 
+                                     swaps to green confirmed state after successful analysis. ── -->
+                                <div id="privacyLine" class="flex items-center gap-1.5 min-h-[16px] select-none">
+                
+                                    <!-- Single Lock Icon (Turns green after successful submission) -->
+                                    <svg id="privacyIcon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-stone-400 transition-all duration-500" style="min-width:11px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                
+                                    <!-- Default Text (Static, neutral text-stone-400) -->
+                                    <span id="privacyDefault" class="text-[11px] text-stone-400 font-light leading-none">Chats are deleted instantly after analysis. Nothing is stored.</span>
+                
+                                    <!-- Confirmed Text (Shown after successful submission) -->
+                                    <span id="privacyConfirmed" class="hidden text-[11px] text-emerald-600 font-medium leading-none">Chat deleted. Nothing was stored.</span>
+                
+                                </div>
 
                 <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3.5 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-3 text-xs tracking-[0.12em] uppercase shadow-xs">
                     Analyze Conversation
