@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script defer src="/_vercel/insights/script.js"></script>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18234270852">
     </script>
@@ -10,7 +11,7 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    //gtag('config', 'AW-18234270852');
+    gtag('config', 'AW-18234270852');
     </script>
     <title>Truvah | Understanding Your Conversations</title>
     <link rel="icon" type="image/png" href="Trulogo.png">
@@ -87,7 +88,7 @@
                 <div class="inline-flex items-center gap-1.5 bg-stone-950 text-[#FAF9F5] px-3 py-1 rounded-full text-[9px] tracking-[0.2em] font-medium uppercase">
                     🔒Safe, Secure, & a lot more
                 </div>
-                <h2 class="text-2xl font-normal text-stone-900 serif-font italic leading-snug">Enter your email to claim early access!</h2>
+                <h2 class="text-2xl font-normal text-stone-900 serif-font italic leading-snug">Enter your email to claim free access!</h2>
                 <p class="text-sm text-stone-500 font-light leading-relaxed">Members Only - Few slots remaining⚡</p>
                 <p id="gateError" class="text-xs text-red-500 font-light hidden"></p>
 
@@ -141,7 +142,6 @@
                 <h2 class="text-3xl md:text-4xl font-normal text-stone-900 tracking-tight leading-[1.2] serif-font">
                     See clearly into your <br><span class="italic text-stone-500">conversations</span>.
                 </h2>
-                <!-- ── SUBLINE — edit text here only ── -->
                 <p class="text-stone-500 text-sm font-light leading-relaxed">
                     That conversation you keep replaying — find out what it actually means.
                 </p>
@@ -149,40 +149,23 @@
 
             <div class="bg-white p-6 rounded-2xl border border-stone-200/60 shadow-xs space-y-5">
                 <div class="space-y-1.5">
-                    <!-- ── INSTRUCTION LINE — edit text here only ── -->
                     <p class="text-xs text-stone-500 font-light leading-relaxed">Copy messages from WhatsApp, Instagram, or any chat app — or describe what happened in your own words.</p>
                 </div>
             
-                
-                <!-- ── HOW-IT-WORKS STRIP ─────────────────────────────
-                     3 steps. Edit label text only. Do not change IDs.
-                     Strip sits between instruction line and textarea.
-                ──────────────────────────────────────────────────── -->
                 <div class="flex items-center gap-0 rounded-xl overflow-hidden border border-stone-200/50 bg-[#FAF9F5] text-[10px] text-stone-500 font-light divide-x divide-stone-200/50">
-
                     <div class="flex items-center gap-2 px-3.5 py-2.5 flex-1 min-w-0">
-                        <!-- Step 1 icon: copy -->
                         <svg class="shrink-0 text-stone-400" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                        <!-- Step 1 label -->
                         <span class="leading-snug">Copy messages from any chat</span>
                     </div>
-
                     <div class="flex items-center gap-2 px-3.5 py-2.5 flex-1 min-w-0">
-                        <!-- Step 2 icon: paste / edit -->
                         <svg class="shrink-0 text-stone-400" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                        <!-- Step 2 label -->
                         <span class="leading-snug">Paste or type it below</span>
                     </div>
-
                     <div class="flex items-center gap-2 px-3.5 py-2.5 flex-1 min-w-0">
-                        <!-- Step 3 icon: spark -->
                         <svg class="shrink-0 text-stone-400" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                        <!-- Step 3 label -->
                         <span class="leading-snug">See what's really going on</span>
                     </div>
-
                 </div>
-                <!-- ── END HOW-IT-WORKS STRIP ── -->
 
                 <div class="relative">
                      <textarea id="chatInput" rows="8" placeholder="Examples:&#10;• A disagreement or argument&#10;• A difficult conversation&#10;• A recurring issue between you&#10;• An emotional or important moment&#10;&#10;The more context, thoughts, feelings, and reactions you include, the more meaningful your insights will be." class="w-full p-4 bg-[#FAF9F5] border border-stone-200/60 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-xs tracking-wide font-light placeholder-stone-300 shadow-2xs transition-all leading-relaxed"></textarea>
@@ -190,7 +173,6 @@
                         <span class="w-1 h-1 rounded-full bg-emerald-500"></span> Auto-Delete Enabled
                     </div>
                 </div>
-
 
                 <div id="deleteSuccessBanner" class="hidden bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
                     <span class="text-emerald-600 font-bold">✓</span>
@@ -201,7 +183,10 @@
                     Analyze Conversation
                 </button>
 
-                <!-- ── INLINE USAGE LIMIT AND ERROR BANNERS ── -->
+                <p class="text-[10px] text-stone-400 font-light text-center leading-relaxed">
+                    By submitting this conversation, you confirm that you have the consent of all parties involved to analyze its content.
+                </p>
+
                 <div id="analyzeLimitBanner" class="hidden animate-banner-slide bg-stone-100 border border-stone-200/60 text-stone-700 p-3.5 rounded-xl text-xs font-light flex items-start gap-2.5 mt-3">
                     <span class="text-stone-400 shrink-0">◎</span>
                     <div>
@@ -460,7 +445,21 @@
             autocapture: true,
             capture_pageview: true,
             capture_pageleave: true,
+            loaded: function(ph) {
+                // Fire a named event once PostHog has fully loaded so you can
+                // confirm in the dashboard that the snippet is executing.
+                ph.capture('ph_loaded');
+            }
         });
+
+        /* ── Tiny analytics helper — always safe to call ── */
+        function track(event, props) {
+            try {
+                if (typeof posthog !== 'undefined') {
+                    posthog.capture(event, props || {});
+                }
+            } catch(e) { /* never let analytics break the app */ }
+        }
 
         /* ── Constants ── */
         const PRIMARY_USER_ID = '093236df-7fb5-46ba-9188-c511145689ec';
@@ -471,6 +470,19 @@
         let activeRecipientOption = null;
         let currentUserId         = null;
         let currentInviteCount    = 0;
+
+        /* ── Track textarea engagement (typed vs pasted) ── */
+        const chatInput = document.getElementById('chatInput');
+        let textareaFocused = false;
+        chatInput.addEventListener('focus', function() {
+            if (!textareaFocused) {
+                textareaFocused = true;
+                track('textarea_focused');
+            }
+        });
+        chatInput.addEventListener('paste', function() {
+            track('textarea_pasted');
+        });
 
         /* ══════════════════════════════════════════════════════════════════
            ACCESS GATE — token verification on page load
@@ -503,6 +515,7 @@
                         currentUserId      = session.userId;
                         currentInviteCount = session.inviteCount || 0;
                         grantAccess();
+                        track('gate_passed', { method: 'session' });
                         return;
                     }
                 } catch { }
@@ -510,6 +523,7 @@
 
             const urlToken = getTokenFromUrl();
             if (urlToken) {
+                track('gate_token_found');
                 const result = await verifyAccess(urlToken);
                 if (result) {
                     currentUserId      = result.userId;
@@ -520,13 +534,16 @@
                     }));
                     window.history.replaceState({}, document.title, window.location.pathname);
                     grantAccess();
+                    track('gate_passed', { method: 'token' });
                     return;
                 } else {
                     showGateBlocked('This invite link is no longer valid. Ask someone to send you a new one.');
+                    track('gate_blocked', { reason: 'invalid_token' });
                     return;
                 }
             }
             showGateBlocked();
+            track('gate_blocked', { reason: 'no_token' });
         }
 
         function showGateBlocked(errorMsg) {
@@ -584,9 +601,13 @@
             successEl.classList.add('hidden');
             errorEl.classList.add('hidden');
 
+            track('gate_claim_access_clicked', { email_provided: !!email });
+
             if (!email || !EMAIL_REGEX.test(email)) {
                 document.getElementById('interestErrorText').innerText = 'Please enter a valid email address.';
-                errorEl.classList.remove('hidden'); return;
+                errorEl.classList.remove('hidden');
+                track('gate_claim_access_validation_failed');
+                return;
             }
 
             if (btn) {
@@ -613,6 +634,7 @@
                             userId:      result.userId,
                             inviteCount: result.inviteCount || 0
                         }));
+                        track('gate_claim_access_success');
                         grantAccess();
                     } else {
                         throw new Error('Access could not be verified automatically.');
@@ -623,6 +645,7 @@
             } catch (err) {
                 document.getElementById('interestErrorText').innerText = err.message;
                 errorEl.classList.remove('hidden');
+                track('gate_claim_access_error', { error: err.message });
                 if (btn) {
                     btn.disabled  = false;
                     btn.innerText = 'Claim Access';
@@ -642,6 +665,8 @@
             successBanner.classList.add('hidden');
             errorBanner.classList.add('hidden');
 
+            track('invite_send_clicked', { email_provided: !!inviteEmail });
+
             if (!inviteEmail) {
                 document.getElementById('inviteErrorText').innerText = 'Please enter an email address.';
                 errorBanner.classList.remove('hidden'); return;
@@ -657,6 +682,7 @@
             if (currentUserId !== PRIMARY_USER_ID && currentInviteCount >= 3) {
                 document.getElementById('inviteErrorText').innerText = "You've used all 3 of your invites.";
                 errorBanner.classList.remove('hidden');
+                track('invite_limit_reached');
                 return;
             }
 
@@ -671,6 +697,7 @@
                     if (result.error === 'INVITE_LIMIT_REACHED' && currentUserId !== PRIMARY_USER_ID) {
                         currentInviteCount = 3;
                         updateInviteCountUI();
+                        track('invite_limit_reached');
                         throw new Error("You've used all 3 of your invites.");
                     }
                     throw new Error(result.error || 'Invite could not be sent');
@@ -680,6 +707,8 @@
                 const stored = JSON.parse(sessionStorage.getItem('truvah_session') || '{}');
                 stored.inviteCount = currentInviteCount;
                 sessionStorage.setItem('truvah_session', JSON.stringify(stored));
+
+                track('invite_sent_success', { remaining_invites: result.remainingInvites || 0 });
 
                 document.getElementById('inviteSuccessText').innerText = `Invite sent to ${inviteEmail}. They'll hear from us shortly.`;
                 successBanner.classList.remove('hidden');
@@ -695,6 +724,7 @@
             } catch (err) {
                 document.getElementById('inviteErrorText').innerText = 'Could not send invite: ' + err.message;
                 errorBanner.classList.remove('hidden');
+                track('invite_send_error', { error: err.message });
                 btn.disabled  = false;
                 btn.innerText = 'Send Invite';
             }
@@ -710,6 +740,8 @@
             collapsed.onclick = null;
             expanded.classList.remove('hidden');
             chevron.style.transform = 'rotate(180deg)';
+
+            track('email_panel_expanded');
         }
 
         /* ── Recipient selector — compact pill style ── */
@@ -746,6 +778,8 @@
                 partnerWrap.classList.add('hidden');
                 document.getElementById('emailPartner').value = '';
             }
+
+            track('email_recipient_selected', { option });
         }
 
         /* ── Send email ── */
@@ -759,6 +793,8 @@
 
             successBanner.classList.add('hidden');
             errorBanner.classList.add('hidden');
+
+            track('email_report_send_clicked', { recipient_option: activeRecipientOption });
 
             if (!selfEmail && !partnerEmail) {
                 document.getElementById('emailErrorText').innerText = 'Please enter at least one email address.';
@@ -792,9 +828,15 @@
                 successBanner.classList.remove('hidden');
                 btn.innerText = '✓ Sent';
                 btn.classList.replace('bg-stone-950', 'bg-emerald-700');
+
+                track('email_report_sent_success', {
+                    recipient_count: recipients.length,
+                    recipient_option: activeRecipientOption
+                });
             } catch (err) {
                 document.getElementById('emailErrorText').innerText = 'Could not send: ' + err.message;
                 errorBanner.classList.remove('hidden');
+                track('email_report_send_error', { error: err.message });
                 btn.disabled = false;
                 btn.innerText = 'Send Report';
             }
@@ -820,8 +862,14 @@
             if (!chatLog) {
                 document.getElementById('analyzeErrorText').innerText = 'Please paste some text lines to analyze.';
                 errorBanner.classList.remove('hidden');
+                track('analyze_clicked_empty');
                 return;
             }
+
+            track('analyze_started', {
+                char_count: chatLog.length,
+                word_count: chatLog.split(/\s+/).filter(Boolean).length
+            });
 
             analyzeBtn.disabled  = true;
             analyzeBtn.innerText = 'Reading through your conversation...';
@@ -829,11 +877,12 @@
             emptyState.classList.remove('hidden');
             modelBadge.classList.add('hidden');
             deleteSuccessBanner.classList.add('hidden');
-            
+            document.querySelector('#analyzeBtn + p').classList.add('hidden');
             chatInputElem.classList.remove('animate-text-fade');
             profileContainer.innerHTML = '';
 
             let isLimitReached = false;
+            const analyzeStart = Date.now();
 
             try {
                 const response = await fetch("/api/analyze", {
@@ -850,18 +899,20 @@
                     document.getElementById('analyzeLimitText').innerText = data.message || "You've used all of your analyses.";
                     limitBanner.classList.remove('hidden');
                     emptyState.classList.remove('hidden');
+                    track('analyze_limit_reached');
                     return; 
                 }
 
                 if (!response.ok) throw new Error(data.error || 'Could not process text.');
+
+                const duration_ms = Date.now() - analyzeStart;
 
                 chatInputElem.classList.add('animate-text-fade');
                 
                 setTimeout(() => {
                     chatInputElem.value = '';
                     chatInputElem.classList.remove('animate-text-fade');
-                    // Show fixed toast — visible regardless of scroll position
-                    // const toast = document.getElementById('deleteToast');
+                    const toast = document.getElementById('deleteToast');
                     if (toast) {
                         toast.classList.add('show');
                         setTimeout(() => toast.classList.remove('show'), 3000);
@@ -875,6 +926,17 @@
 
                 const scores = data.analytics;
                 latestAnalytics = scores;
+
+                track('analyze_completed', {
+                    duration_ms,
+                    bond_strength:        scores.bond_strength,
+                    toxicity:             scores.toxicity,
+                    bond_positivity:      scores.bond_positivity,
+                    conflict_resolution:  scores.conflict_resolution,
+                    safety_trust:         scores.safety_trust,
+                    relationship_dynamics: scores.relationship_dynamics,
+                    profile_count:        (scores.profiles || []).length
+                });
 
                 /* Reset email panel for new report */
                 activeRecipientOption = null;
@@ -1035,6 +1097,7 @@
             } catch (err) {
                 document.getElementById('analyzeErrorText').innerText = err.message || 'Could not complete analysis right now.';
                 errorBanner.classList.remove('hidden');
+                track('analyze_error', { error: err.message });
             } finally {
                 if (!isLimitReached) {
                     analyzeBtn.disabled  = false;
@@ -1051,14 +1114,12 @@
         async function generateIdCardCanvas(summaryText) {
             const canvas = document.createElement('canvas');
             canvas.width = 1080;
-            canvas.height = 1350; // Standard 4:5 Portrait format
+            canvas.height = 1350;
             const ctx = canvas.getContext('2d');
 
-            // 1. Fill deep stone background (bg-stone-950)
             ctx.fillStyle = '#1c1917';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // 2. Add structural heart watermark
             ctx.save();
             ctx.translate(canvas.width - 220, 240);
             ctx.fillStyle = 'rgba(120, 113, 108, 0.08)'; 
@@ -1068,14 +1129,12 @@
             ctx.fillText('♥', 0, 0);
             ctx.restore();
 
-            // 3. Header branding
             ctx.fillStyle = '#a8a29e'; 
             ctx.font = '600 24px "Plus Jakarta Sans", sans-serif';
             ctx.letterSpacing = '10px';
             ctx.textAlign = 'center';
             ctx.fillText('YOUR TRUVAH ID CARD', canvas.width / 2, 210);
 
-            // Subtle separating rule
             ctx.strokeStyle = 'rgba(120, 113, 108, 0.15)';
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -1083,7 +1142,6 @@
             ctx.lineTo(canvas.width - 180, 280);
             ctx.stroke();
 
-            // 4. Set Font Sizes Dynamically to Prevent Overflowing Bottom
             const charCount = summaryText.length;
             let fontSize = 42;
             let lineHeight = 64;
@@ -1102,7 +1160,6 @@
             ctx.font = `italic 300 ${fontSize}px "Playfair Display", Georgia, serif`;
             ctx.textAlign = 'center';
 
-            // Wrap text lines dynamically
             const textMaxWidth = 760;
             const words = summaryText.replace(/^"|"$/g, '').split(' ');
             const lines = [];
@@ -1120,29 +1177,24 @@
             }
             lines.push(currentLine.trim());
 
-            // Center block vertically inside the available canvas field
             const totalTextHeight = lines.length * lineHeight;
             const areaMidpoint = 745;
             const yStart = areaMidpoint - (totalTextHeight / 2);
 
-            // Render opening quote mark
             ctx.fillStyle = '#78716c';
             ctx.font = 'italic 300 120px Georgia, serif';
-            ctx.fillText('“', canvas.width / 2, yStart - 30);
+            ctx.fillText('"', canvas.width / 2, yStart - 30);
 
-            // Render body lines
             ctx.fillStyle = '#faf9f5';
             ctx.font = `italic 300 ${fontSize}px "Playfair Display", Georgia, serif`;
             for (let i = 0; i < lines.length; i++) {
                 ctx.fillText(lines[i], canvas.width / 2, yStart + (i * lineHeight) + (lineHeight / 2));
             }
 
-            // Render closing quote mark
             ctx.fillStyle = '#78716c';
             ctx.font = 'italic 300 120px Georgia, serif';
-            ctx.fillText('”', canvas.width / 2, yStart + totalTextHeight + 90);
+            ctx.fillText('"', canvas.width / 2, yStart + totalTextHeight + 90);
 
-            // 5. Footer branding
             ctx.fillStyle = '#78716c'; 
             ctx.font = '600 20px "Plus Jakarta Sans", sans-serif';
             ctx.letterSpacing = '5px';
@@ -1155,6 +1207,8 @@
         async function shareAsImage() {
             const summaryText = document.getElementById('summaryText').innerText;
             if (!summaryText) return;
+
+            track('share_image_clicked');
 
             const canvas = await generateIdCardCanvas(summaryText);
 
@@ -1169,13 +1223,18 @@
                             title: 'My Truvah ID Card',
                             text: 'Yayy!'
                         });
+                        track('share_image_success', { method: 'native_share' });
                     } catch (shareErr) {
                         if (shareErr.name !== 'AbortError') {
                             downloadFallback(blob);
+                            track('share_image_success', { method: 'download_fallback' });
+                        } else {
+                            track('share_image_aborted');
                         }
                     }
                 } else {
                     downloadFallback(blob);
+                    track('share_image_success', { method: 'download_fallback' });
                 }
             }, 'image/png');
         }
@@ -1196,13 +1255,14 @@
             const summaryText = document.getElementById('summaryText').innerText;
             if (!summaryText) return;
 
+            track('share_instagram_clicked');
+
             const canvas = await generateIdCardCanvas(summaryText);
             
             canvas.toBlob(async (blob) => {
                 if (!blob) return;
                 const file = new File([blob], 'truvah-id-card.png', { type: 'image/png' });
 
-                // Native Web Share triggers Instagram's story/post/message selectors natively on mobile
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     try {
                         await navigator.share({
@@ -1210,14 +1270,19 @@
                             title: 'Here is my Truvah ID Card',
                             text: 'Get your ID card at asktruvah.com'
                         });
+                        track('share_instagram_success', { method: 'native_share' });
                     } catch (shareErr) {
                         if (shareErr.name !== 'AbortError') {
                             downloadFallback(blob);
+                            track('share_instagram_success', { method: 'download_fallback' });
+                        } else {
+                            track('share_instagram_aborted');
                         }
                     }
                 } else {
                     downloadFallback(blob);
                     showInstagramFallbackToast();
+                    track('share_instagram_success', { method: 'download_fallback_desktop' });
                 }
             }, 'image/png');
         }
@@ -1235,6 +1300,7 @@
         function shareToWhatsApp() {
             const summaryText = document.getElementById('summaryText').innerText;
             if (!summaryText) return;
+            track('share_whatsapp_clicked');
             const shareUrl = "https://asktruvah.com";
             const text = encodeURIComponent(`Here is my Truvah ID Card:\n\n${summaryText}\n\nUncover your truth here: ${shareUrl}`);
             window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
@@ -1244,8 +1310,10 @@
         function copyCardText() {
             const summaryText = document.getElementById('summaryText').innerText;
             if (!summaryText) return;
+            track('share_copy_text_clicked');
             navigator.clipboard.writeText(summaryText.replace(/^"|"$/g, ''))
                 .then(() => {
+                    track('share_copy_text_success');
                     const btn = document.getElementById('copyBtn');
                     const originalText = btn.innerHTML;
                     btn.innerHTML = 'Copied!';
