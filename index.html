@@ -4,253 +4,383 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script defer src="/_vercel/insights/script.js"></script>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18234270852">
-    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18234270852"></script>
     <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'AW-18234270852');
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'AW-18234270852');
     </script>
     <title>Truvah | Understanding Your Conversations</title>
     <link rel="icon" type="image/png" href="Trulogo.png">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght=0,300;0,400;0,500;0,600;0,700;1,300&family=Playfair+Display:ital,wght=0,400;0,500;1,400&display=swap');
-        
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .serif-font { font-family: 'Playfair Display', serif; }
         .custom-transition { transition: all 1.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes textFade { 0%{opacity:1;filter:blur(0)} 100%{opacity:0;filter:blur(2px)} }
+        .animate-text-fade { animation: textFade 0.8s ease-out forwards; }
+        @keyframes slideIn { 0%{opacity:0;transform:translateY(8px)} 100%{opacity:1;transform:translateY(0)} }
+        .animate-banner-slide { animation: slideIn 0.5s cubic-bezier(0.16,1,0.3,1) forwards; }
+        @keyframes inputSlideDown { 0%{opacity:0;transform:translateY(-6px);max-height:0} 100%{opacity:1;transform:translateY(0);max-height:120px} }
+        .input-reveal { animation: inputSlideDown 0.35s cubic-bezier(0.16,1,0.3,1) forwards; overflow:hidden; }
+        @keyframes inviteReveal { 0%{opacity:0;transform:translateY(12px)} 100%{opacity:1;transform:translateY(0)} }
+        .invite-reveal { animation: inviteReveal 0.6s cubic-bezier(0.16,1,0.3,1) forwards; }
 
-        @keyframes textFade {
-            0% { opacity: 1; filter: blur(0); }
-            100% { opacity: 0; filter: blur(2px); }
-        }
-        .animate-text-fade {
-            animation: textFade 0.8s ease-out forwards;
-        }
-
-        @keyframes slideIn {
-            0% { opacity: 0; transform: translateY(8px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-        .animate-banner-slide {
-            animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        /* Smooth input row reveal */
-        @keyframes inputSlideDown {
-            0%   { opacity: 0; transform: translateY(-6px); max-height: 0; }
-            100% { opacity: 1; transform: translateY(0);    max-height: 120px; }
-        }
-        .input-reveal { animation: inputSlideDown 0.35s cubic-bezier(0.16,1,0.3,1) forwards; overflow: hidden; }
-
-        /* Invite section reveal */
-        @keyframes inviteReveal {
-            0%   { opacity: 0; transform: translateY(12px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-        .invite-reveal { animation: inviteReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        /* Access gate wall — app hidden by default until access confirmed */
+        /* Gate */
         #gateWall { display:none; }
         body.gated #gateWall { display:flex; }
         body.gated main, body.gated footer { display:none; }
-        /* Before JS runs, keep content invisible but avoid layout shift */
-        main, footer { opacity: 0; }
-        body.ready main, body.ready footer { opacity: 1; transition: opacity 0.3s ease; }
+        main, footer { opacity:0; }
+        body.ready main, body.ready footer { opacity:1; transition:opacity 0.3s ease; }
 
+        /* Sample chips */
+        .sample-chip {
+            display:inline-flex; align-items:center; gap:0.375rem;
+            padding:0.35rem 0.75rem; background:white;
+            border:1px solid #e7e5e4; border-radius:9999px;
+            font-size:11px; color:#57534e; cursor:pointer;
+            transition:all 0.15s ease; white-space:nowrap;
+        }
+        .sample-chip:hover { border-color:#a8a29e; background:#faf9f5; color:#1c1917; }
+        .sample-chip:active { transform:scale(0.97); }
+
+        /* Preview bars */
+        .preview-bar-track { width:100%; background:rgba(214,211,209,0.4); height:2px; border-radius:9999px; overflow:hidden; }
+        .preview-bar-fill { height:100%; border-radius:9999px; background:#1c1917; }
+
+        /* Locked section blur */
+        .locked-section { position:relative; overflow:hidden; }
+        .locked-section .lock-blur { filter:blur(5px); pointer-events:none; user-select:none; }
+        .lock-overlay {
+            position:absolute; inset:0; display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            background:linear-gradient(to bottom, rgba(250,249,245,0.05) 0%, rgba(250,249,245,0.93) 38%);
+            z-index:10; padding:1.5rem; text-align:center;
+        }
     </style>
 </head>
 <body class="bg-[#FAF9F5] text-stone-800 min-h-screen flex flex-col justify-between selection:bg-stone-200 antialiased gated">
 
-    <!-- ── Access Gate Wall ─────────────────────────────────────────────── -->
-    <div id="gateWall" class="min-h-screen bg-[#FAF9F5] flex flex-col items-center justify-center px-6 text-center">
-        <div class="space-y-6 max-w-sm">
-            <div class="flex items-center justify-center gap-2.5 mb-2">
-                <span class="text-[10px] tracking-[0.2em] font-medium text-stone-400 uppercase">Ask</span>
-                <span class="text-2xl font-bold tracking-tight text-stone-900 serif-font italic">Truvah</span>
-            </div>
-
-            <!-- Checking state — shown while JS validates the token -->
-            <div id="gateChecking" class="space-y-3">
-                <div class="flex items-center justify-center gap-2 text-stone-400">
-                    <div class="relative flex h-2 w-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-stone-300 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-stone-400"></span>
-                    </div>
-                    <span class="text-xs font-light tracking-wide">Verifying your access…</span>
+<!-- ══ GATE WALL — only for explicitly invalid tokens ══ -->
+<div id="gateWall" class="min-h-screen bg-[#FAF9F5] flex flex-col items-center justify-center px-6 text-center">
+    <div class="space-y-6 max-w-sm">
+        <div class="flex items-center justify-center gap-2.5 mb-2">
+            <span class="text-[10px] tracking-[0.2em] font-medium text-stone-400 uppercase">Ask</span>
+            <span class="text-2xl font-bold tracking-tight text-stone-900 serif-font italic">Truvah</span>
+        </div>
+        <div id="gateChecking" class="space-y-3">
+            <div class="flex items-center justify-center gap-2 text-stone-400">
+                <div class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-stone-300 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-stone-400"></span>
                 </div>
+                <span class="text-xs font-light tracking-wide">Verifying your access…</span>
             </div>
-
-            <!-- Blocked state — shown only if token is missing or invalid -->
-            <div id="gateBlocked" class="hidden space-y-4">
-                <div class="inline-flex items-center gap-1.5 bg-stone-950 text-[#FAF9F5] px-3 py-1 rounded-full text-[9px] tracking-[0.2em] font-medium uppercase">
-                    🔒Safe, Secure, & a lot more
+        </div>
+        <div id="gateBlocked" class="hidden space-y-4">
+            <div class="inline-flex items-center gap-1.5 bg-stone-950 text-[#FAF9F5] px-3 py-1 rounded-full text-[9px] tracking-[0.2em] font-medium uppercase">🔒 Safe, Secure, & Private</div>
+            <h2 class="text-2xl font-normal text-stone-900 serif-font italic leading-snug">This link has expired.</h2>
+            <p class="text-sm text-stone-500 font-light leading-relaxed">Enter your email below to request access.</p>
+            <p id="gateError" class="text-xs text-red-500 font-light hidden"></p>
+            <div id="interestForm" class="space-y-2 pt-1">
+                <div class="flex gap-2">
+                    <input id="interestEmail" type="email" placeholder="your@email.com" class="flex-1 px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
+                    <button id="interestBtn" onclick="submitInterest()" class="bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium px-4 py-2.5 rounded-xl text-xs tracking-[0.12em] uppercase transition-all duration-200 cursor-pointer whitespace-nowrap">Request Access</button>
                 </div>
-                <h2 class="text-2xl font-normal text-stone-900 serif-font italic leading-snug">Enter your email to claim free access!</h2>
-                <p class="text-sm text-stone-500 font-light leading-relaxed">Members Only - Few slots remaining⚡</p>
-                <p id="gateError" class="text-xs text-red-500 font-light hidden"></p>
-
-                <!-- Interest capture form -->
-                <div id="interestForm" class="space-y-2 pt-1">
-                    <div class="flex gap-2">
-                        <input id="interestEmail" type="email" placeholder="your@email.com"
-                            class="flex-1 px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
-                        <button id="interestBtn" onclick="submitInterest()"
-                            class="bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium px-4 py-2.5 rounded-xl text-xs tracking-[0.12em] uppercase transition-all duration-200 cursor-pointer whitespace-nowrap">
-                            Claim Access
-                        </button>
-                    </div>
-                    <div id="interestSuccess" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3 rounded-xl text-xs font-light flex items-center gap-2">
-                        <span class="text-emerald-500 font-bold">✓</span>
-                        <span>Access confirmed. Unlocking your dashboard...</span>
-                    </div>
-                    <div id="interestError" class="hidden bg-red-50/50 border border-red-200/50 text-red-700 p-3 rounded-xl text-xs font-light flex items-center gap-2">
-                        <span>✕</span>
-                        <span id="interestErrorText">Something went wrong.</span>
-                    </div>
+                <div id="interestSuccess" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3 rounded-xl text-xs font-light flex items-center gap-2">
+                    <span class="text-emerald-500 font-bold">✓</span><span>Access confirmed. Unlocking your dashboard...</span>
+                </div>
+                <div id="interestError" class="hidden bg-red-50/50 border border-red-200/50 text-red-700 p-3 rounded-xl text-xs font-light flex items-center gap-2">
+                    <span>✕</span><span id="interestErrorText">Something went wrong.</span>
                 </div>
             </div>
         </div>
     </div>
-    <!-- ── End Gate Wall ─────────────────────────────────────────────────── -->
+</div>
 
-    <header class="bg-[#FAF9F5]/80 backdrop-blur-md sticky top-0 z-50 border-b border-stone-200/40 py-4 px-6 md:px-12">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2.5">
-                <div class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-stone-300 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-stone-800"></span>
-                </div>
-                <span class="text-[10px] tracking-[0.2em] font-medium text-stone-400 uppercase">Ask</span>
-                <span class="text-xl font-bold tracking-tight text-stone-900 serif-font italic">Truvah</span>
+<header class="bg-[#FAF9F5]/80 backdrop-blur-md sticky top-0 z-50 border-b border-stone-200/40 py-4 px-6 md:px-12">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <div class="flex items-center gap-2.5">
+            <div class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-stone-300 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-stone-800"></span>
             </div>
-            <div id="modelBadge" class="hidden text-[10px] bg-white text-stone-500 tracking-wider px-3 py-1 rounded border border-stone-200/60 shadow-3xs">
-                System Active: <span id="modelNameText" class="font-semibold text-stone-800">Online</span>
+            <span class="text-[10px] tracking-[0.2em] font-medium text-stone-400 uppercase">Ask</span>
+            <span class="text-xl font-bold tracking-tight text-stone-900 serif-font italic">Truvah</span>
+        </div>
+        <div id="modelBadge" class="hidden text-[10px] bg-white text-stone-500 tracking-wider px-3 py-1 rounded border border-stone-200/60 shadow-3xs">
+            System Active: <span id="modelNameText" class="font-semibold text-stone-800">Online</span>
+        </div>
+    </div>
+</header>
+
+<main class="max-w-7xl w-full mx-auto p-6 md:p-12 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+
+    <!-- ══ LEFT — Input ══ -->
+    <section class="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
+        <div class="space-y-3">
+            <div class="inline-flex items-center gap-2 bg-white border border-stone-200/60 px-3 py-1 rounded-full text-stone-600 font-medium text-[9px] tracking-widest uppercase shadow-3xs">
+                🔒 your chats are deleted instantly
+            </div>
+            <h2 class="text-3xl md:text-4xl font-normal text-stone-900 tracking-tight leading-[1.15] serif-font">
+                What is this relationship<br><span class="italic text-stone-500">really telling you?</span>
+            </h2>
+            <p class="text-stone-500 text-sm font-light leading-relaxed">
+                Paste the conversation that's been bothering you, or simply describe what happened in your own words.
+            </p>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-stone-200/60 shadow-xs space-y-4">
+
+            <!-- Sample chips -->
+            <div class="space-y-2">
+                <p class="text-[10px] text-stone-400 font-medium uppercase tracking-widest">Try an example</p>
+                <div class="flex flex-wrap gap-1.5">
+                    <button class="sample-chip" onclick="loadSample('argument')">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        Relationship Argument
+                    </button>
+                    <button class="sample-chip" onclick="loadSample('signals')">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+                        Mixed Signals
+                    </button>
+                    <button class="sample-chip" onclick="loadSample('distance')">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        Avoidant Partner
+                    </button>
+                    <button class="sample-chip" onclick="loadSample('trust')">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        Trust Issues
+                    </button>
+                    <button class="sample-chip" onclick="loadSample('recurring')">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+                        Recurring Conflict
+                    </button>
+                </div>
+            </div>
+
+            <div class="border-t border-stone-100 pt-1"></div>
+
+            <div class="relative">
+                <textarea id="chatInput" rows="9"
+                    placeholder="Examples:&#10;• We keep having the same argument.&#10;• She says she needs space.&#10;• He suddenly became distant.&#10;• I don't know if I'm overthinking this.&#10;&#10;You can paste actual messages or describe the situation in your own words — both work."
+                    class="w-full p-4 bg-[#FAF9F5] border border-stone-200/60 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-xs tracking-wide font-light placeholder-stone-300 shadow-2xs transition-all leading-relaxed"></textarea>
+                <div id="statusLabel" class="absolute bottom-3 right-3 text-[8px] uppercase tracking-wider text-stone-300 font-mono bg-white/90 px-2 py-0.5 rounded border border-stone-200/40 flex items-center gap-1.5 shadow-3xs">
+                    <span class="w-1 h-1 rounded-full bg-emerald-500"></span> Auto-Delete Enabled
+                </div>
+            </div>
+
+            <div id="deleteSuccessBanner" class="hidden bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                <span class="text-emerald-600 font-bold">✓</span>
+                <span>Your text has been completely cleared and deleted from this session.</span>
+            </div>
+
+            <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3.5 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-3 text-xs tracking-[0.12em] uppercase shadow-xs">
+                Analyze Conversation
+            </button>
+
+            <p id="consentLine" class="text-[10px] text-stone-400 font-light text-center leading-relaxed">
+                By submitting, you confirm you have consent of all parties to analyze this conversation.
+            </p>
+
+            <div id="analyzeLimitBanner" class="hidden animate-banner-slide bg-stone-100 border border-stone-200/60 text-stone-700 p-3.5 rounded-xl text-xs font-light flex items-start gap-2.5">
+                <span class="text-stone-400 shrink-0">◎</span>
+                <div>
+                    <span id="analyzeLimitText" class="font-medium block mb-0.5">Analysis Limit Reached.</span>
+                    <span class="text-stone-500">Each account has a limit of active analyses. Reach out to your inviter or contact us for more access.</span>
+                </div>
+            </div>
+
+            <div id="analyzeErrorBanner" class="hidden animate-banner-slide bg-red-50/50 border border-red-200/50 text-red-700 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                <span class="shrink-0">✕</span><span id="analyzeErrorText">Something went wrong. Please try again.</span>
             </div>
         </div>
-    </header>
+    </section>
 
-    <main class="max-w-7xl w-full mx-auto p-6 md:p-12 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-        
-        <section class="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
-            <div class="space-y-4">
-                <div class="inline-flex items-center gap-2 bg-white border border-stone-200/60 px-3 py-1 rounded-full text-stone-600 font-medium text-[9px] tracking-widest uppercase shadow-3xs">
-                    🔒 your chats are deleted instantly
+    <!-- ══ RIGHT — Results ══ -->
+    <section class="lg:col-span-7 w-full">
+
+        <!-- Empty state: example preview -->
+<div id="emptyState" class="bg-white border border-stone-200/40 rounded-2xl shadow-xs overflow-hidden">
+
+    <!-- Header row — mirrors real result -->
+    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6 p-6 md:p-8 border-b border-stone-100">
+        <div class="space-y-3 max-w-xl">
+            <span class="text-[9px] bg-stone-100 text-stone-600 font-bold tracking-widest uppercase px-2 py-0.5 rounded">Example Report</span>
+            <p class="text-sm md:text-base text-stone-600 leading-relaxed italic font-light font-serif mt-2">"One partner seeks reassurance while the other withdraws — a push-pull cycle that generates recurring friction without resolution."</p>
+        </div>
+        <div class="flex flex-col items-center justify-center bg-[#FAF9F5] px-6 py-5 rounded-2xl border border-stone-200/50 min-w-[140px] text-center shadow-3xs self-center sm:self-start">
+            <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Compatibility</span>
+            <span class="text-3xl font-serif font-light text-stone-950 tracking-tighter">42%</span>
+        </div>
+    </div>
+
+    <!-- Key Dynamic — mirrors real result -->
+    <div class="px-6 md:px-8 py-6 border-b border-stone-100 space-y-3">
+        <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Key Dynamic</p>
+        <div class="bg-[#FAF9F5] rounded-xl border border-stone-200/40 p-4 shadow-3xs">
+            <p class="text-[11px] text-stone-600 leading-relaxed font-light">One partner consistently initiates emotional conversations while the other deflects or minimises. This imbalance leaves needs unmet and builds quiet resentment over time.</p>
+        </div>
+    </div>
+
+    <!-- Locked lower half -->
+    <div class="locked-section">
+        <div class="lock-blur px-6 md:px-8 py-6 space-y-6">
+
+            <div class="space-y-3">
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Relationship Snapshot</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                        <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700">General Warmth & Kindness</span><span class="text-xs font-mono text-stone-500">61%</span></div>
+                        <div class="preview-bar-track"><div class="preview-bar-fill" style="width:61%"></div></div>
+                        <p class="text-[11px] text-stone-500 font-light">Moments of warmth exist but are overshadowed by unresolved tension.</p>
+                    </div>
+                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                        <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700">Solving Problems Together</span><span class="text-xs font-mono text-stone-500">38%</span></div>
+                        <div class="preview-bar-track"><div class="preview-bar-fill" style="width:38%"></div></div>
+                        <p class="text-[11px] text-stone-500 font-light">Conflict tends to stall rather than reach resolution.</p>
+                    </div>
+                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                        <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700">Comfortable Sharing Feelings</span><span class="text-xs font-mono text-stone-500">45%</span></div>
+                        <div class="preview-bar-track"><div class="preview-bar-fill" style="width:45%"></div></div>
+                        <p class="text-[11px] text-stone-500 font-light">One person holds back emotionally, making openness feel one-sided.</p>
+                    </div>
+                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                        <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700">Teamwork & Connection</span><span class="text-xs font-mono text-stone-500">52%</span></div>
+                        <div class="preview-bar-track"><div class="preview-bar-fill" style="width:52%"></div></div>
+                        <p class="text-[11px] text-stone-500 font-light">Some sense of partnership remains but feels strained under pressure.</p>
+                    </div>
+                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 md:col-span-2 space-y-2 shadow-3xs">
+                        <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700">Toxicity Level</span><span class="text-xs font-mono text-stone-500">28%</span></div>
+                        <div class="preview-bar-track"><div class="preview-bar-fill" style="width:28%"></div></div>
+                        <p class="text-[11px] text-stone-500 font-light">Low-to-moderate toxicity — no severe patterns, but tension is present.</p>
+                    </div>
                 </div>
-                <h2 class="text-3xl md:text-4xl font-normal text-stone-900 tracking-tight leading-[1.2] serif-font">
-                    See clearly into your <br><span class="italic text-stone-500">conversations</span>.
-                </h2>
-                <p class="text-stone-500 text-sm font-light leading-relaxed">
-                    That conversation you keep replaying — find out what it actually means.
-                </p>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl border border-stone-200/60 shadow-xs space-y-5">
+            <div class="space-y-3 border-t border-stone-100 pt-6">
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Personal Communication Styles</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-3 shadow-3xs">
+                        <p class="text-base font-serif text-stone-900">Person A</p>
+                        <div class="space-y-1"><div class="flex justify-between text-xs"><span class="text-stone-700">Calmness & Security</span><span class="font-mono text-stone-500">55%</span></div><div class="preview-bar-track"><div class="preview-bar-fill" style="width:55%"></div></div></div>
+                        <div class="space-y-1"><div class="flex justify-between text-xs"><span class="text-stone-700">Willingness to Listen</span><span class="font-mono text-stone-500">72%</span></div><div class="preview-bar-track"><div class="preview-bar-fill" style="width:72%"></div></div></div>
+                        <div class="space-y-1"><div class="flex justify-between text-xs"><span class="text-stone-700">Managing Frustration</span><span class="font-mono text-stone-500">60%</span></div><div class="preview-bar-track"><div class="preview-bar-fill" style="width:60%"></div></div></div>
+                        <div class="space-y-1"><div class="flex justify-between text-xs"><span class="text-stone-700">Owning Personal Errors</span><span class="font-mono text-stone-500">48%</span></div><div class="preview-bar-track"><div class="preview-bar-fill" style="width:48%"></div></div></div>
+                    </div>
+                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-3 shadow-3xs">
+                        <p class="text-base font-serif text-stone-900">Person B</p>
+                        <div class="space-y-1"><div class="flex justify-between text-xs"><span class="text-stone-700">Calmness & Security</span><span class="font-mono text-stone-500">40%</span></div><div class="preview-bar-track"><div class="preview-bar-fill" style="width:40%"></div></div></div>
+                        <div class="space-y-1"><div class="flex justify-between text-xs"><span class="text-stone-700">Willingness to Listen</span><span class="font-mono text-stone-500">48%</span></div><div class="preview-bar-track"><div class="preview-bar-fill" style="width:48%"></div></div></div>
+                        <div class="space-y-1"><div class="flex justify-between text-xs"><span class="text-stone-700">Managing Frustration</span><span class="font-mono text-stone-500">35%</span></div><div class="preview-bar-track"><div class="preview-bar-fill" style="width:35%"></div></div></div>
+                        <div class="space-y-1"><div class="flex justify-between text-xs"><span class="text-stone-700">Owning Personal Errors</span><span class="font-mono text-stone-500">42%</span></div><div class="preview-bar-track"><div class="preview-bar-fill" style="width:42%"></div></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-stone-100 pt-6">
+                <div class="bg-stone-950 text-stone-200 p-6 rounded-xl text-sm font-serif font-light leading-relaxed italic">
+                    "Your Truvah ID Card and personalised next steps will appear here based on your actual conversation."
+                </div>
+            </div>
+
+        </div>
+        <div class="lock-overlay">
+            <div class="bg-white/95 border border-stone-200/60 rounded-2xl shadow-sm px-6 py-5 max-w-xs w-full space-y-3">
+                <div class="w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center mx-auto">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="text-stone-500"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <p class="text-xs font-semibold text-stone-800 text-center">Paste your conversation to unlock your full report</p>
+                <p class="text-[11px] text-stone-400 font-light text-center leading-relaxed">Relationship snapshot, personal styles, future outlook, and your Truvah ID Card.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="px-6 py-4 text-center border-t border-stone-100">
+        <p class="text-[10px] text-stone-300 font-light">This is an example. Your real analysis will reflect your actual conversation.</p>
+    </div>
+</div>
+
+        <!-- Real result section -->
+        <div id="resultSection" class="hidden bg-white p-6 md:p-8 rounded-2xl border border-stone-200/60 shadow-xs space-y-8">
+
+            <!-- UNLOCKED: Summary + Score -->
+            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6 border-b border-stone-100 pb-8">
+                <div class="space-y-3 max-w-xl">
+                    <span class="text-[9px] bg-stone-100 text-stone-600 font-bold tracking-widest uppercase px-2 py-0.5 rounded">Overall Summary</span>
+                    <p id="bondStrengthReason" class="text-sm md:text-base text-stone-600 leading-relaxed italic font-light font-serif mt-2"></p>
+                </div>
+                <div class="flex flex-col items-center justify-center bg-[#FAF9F5] px-6 py-5 rounded-2xl border border-stone-200/50 min-w-[140px] text-center shadow-3xs self-center sm:self-start">
+                    <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Compatibility</span>
+                    <span id="bondStrengthMeter" class="text-3xl font-serif font-light text-stone-950 tracking-tighter">0%</span>
+                </div>
+            </div>
+
+            <!-- UNLOCKED: Key Dynamic -->
+            <div class="space-y-3 border-b border-stone-100 pb-8">
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Key Dynamic</p>
+                <div class="bg-[#FAF9F5] rounded-xl border border-stone-200/40 p-4 shadow-3xs">
+                    <p id="keyDynamicText" class="text-[11px] text-stone-600 leading-relaxed font-light"></p>
+                </div>
+            </div>
+
+            <!-- Email Unlock Wall -->
+            <div id="emailUnlockWall" class="space-y-5 border border-stone-200/60 rounded-2xl p-6 bg-white shadow-xs">
                 <div class="space-y-1.5">
-                    <p class="text-xs text-stone-500 font-light leading-relaxed">Copy messages from WhatsApp, Instagram, or any chat app — or describe what happened in your own words.</p>
+                    <p class="text-sm font-semibold text-stone-800 tracking-tight">Unlock Your Full Analysis</p>
+                    <p class="text-[11px] text-stone-400 font-light leading-relaxed">Enter your email to access the complete report.</p>
                 </div>
-            
-                <div class="flex items-center gap-0 rounded-xl overflow-hidden border border-stone-200/50 bg-[#FAF9F5] text-[10px] text-stone-500 font-light divide-x divide-stone-200/50">
-                    <div class="flex items-center gap-2 px-3.5 py-2.5 flex-1 min-w-0">
-                        <svg class="shrink-0 text-stone-400" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                        <span class="leading-snug">Copy messages from any chat</span>
+                <ul class="space-y-1.5">
+                    <li class="flex items-center gap-2 text-[11px] text-stone-600 font-light"><span class="text-emerald-500 font-bold text-xs">✓</span> Relationship Snapshot</li>
+                    <li class="flex items-center gap-2 text-[11px] text-stone-600 font-light"><span class="text-emerald-500 font-bold text-xs">✓</span> Behavioural Breakdown</li>
+                    <li class="flex items-center gap-2 text-[11px] text-stone-600 font-light"><span class="text-emerald-500 font-bold text-xs">✓</span> Personal Communication Styles</li>
+                    <li class="flex items-center gap-2 text-[11px] text-stone-600 font-light"><span class="text-emerald-500 font-bold text-xs">✓</span> Future Outlook</li>
+                    <li class="flex items-center gap-2 text-[11px] text-stone-600 font-light"><span class="text-emerald-500 font-bold text-xs">✓</span> Truvah ID Card</li>
+                    <li class="flex items-center gap-2 text-[11px] text-stone-600 font-light"><span class="text-emerald-500 font-bold text-xs">✓</span> Actionable Next Steps</li>
+                </ul>
+                <div class="space-y-2">
+                    <div class="flex gap-2">
+                        <input id="unlockEmail" type="email" placeholder="your@email.com" class="flex-1 px-4 py-2.5 text-sm bg-[#FAF9F5] border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
+                        <button id="unlockBtn" onclick="unlockReport()" class="bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium px-5 py-2.5 rounded-xl text-xs tracking-[0.12em] uppercase transition-all duration-200 cursor-pointer whitespace-nowrap shadow-xs">Unlock</button>
                     </div>
-                    <div class="flex items-center gap-2 px-3.5 py-2.5 flex-1 min-w-0">
-                        <svg class="shrink-0 text-stone-400" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                        <span class="leading-snug">Paste or type it below</span>
-                    </div>
-                    <div class="flex items-center gap-2 px-3.5 py-2.5 flex-1 min-w-0">
-                        <svg class="shrink-0 text-stone-400" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                        <span class="leading-snug">See what's really going on</span>
-                    </div>
-                </div>
-
-                <div class="relative">
-                     <textarea id="chatInput" rows="8" placeholder="Examples:&#10;• A disagreement or argument&#10;• A difficult conversation&#10;• A recurring issue between you&#10;• An emotional or important moment&#10;&#10;The more context, thoughts, feelings, and reactions you include, the more meaningful your insights will be." class="w-full p-4 bg-[#FAF9F5] border border-stone-200/60 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-xs tracking-wide font-light placeholder-stone-300 shadow-2xs transition-all leading-relaxed"></textarea>
-                    <div id="statusLabel" class="absolute bottom-3 right-3 text-[8px] uppercase tracking-wider text-stone-300 placeholder:italic font-mono bg-white/90 px-2 py-0.5 rounded border border-stone-200/40 flex items-center gap-1.5 shadow-3xs">
-                        <span class="w-1 h-1 rounded-full bg-emerald-500"></span> Auto-Delete Enabled
+                    <div id="unlockError" class="hidden bg-red-50/50 border border-red-200/50 text-red-700 p-3 rounded-xl text-xs font-light flex items-center gap-2">
+                        <span>✕</span><span id="unlockErrorText">Something went wrong.</span>
                     </div>
                 </div>
-
-                <div id="deleteSuccessBanner" class="hidden bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
-                    <span class="text-emerald-600 font-bold">✓</span>
-                    <span>Your text has been completely cleared and deleted from this session.</span>
-                </div>
-
-                <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3.5 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-3 text-xs tracking-[0.12em] uppercase shadow-xs">
-                    Analyze Conversation
-                </button>
-
-                <p class="text-[10px] text-stone-400 font-light text-center leading-relaxed">
-                    By submitting this conversation, you confirm that you have the consent of all parties involved to analyze its content.
-                </p>
-
-                <div id="analyzeLimitBanner" class="hidden animate-banner-slide bg-stone-100 border border-stone-200/60 text-stone-700 p-3.5 rounded-xl text-xs font-light flex items-start gap-2.5 mt-3">
-                    <span class="text-stone-400 shrink-0">◎</span>
-                    <div>
-                        <span id="analyzeLimitText" class="font-medium block mb-0.5">Analysis Limit Reached.</span>
-                        <span class="text-stone-500">Each account has a limit of active analyses. Reach out to your inviter or contact us for more access.</span>
-                    </div>
-                </div>
-
-                <div id="analyzeErrorBanner" class="hidden animate-banner-slide bg-red-50/50 border border-red-200/50 text-red-700 p-3.5 rounded-xl text-xs font-light flex items-center gap-2 mt-3">
-                    <span class="shrink-0">✕</span>
-                    <span id="analyzeErrorText">Something went wrong. Please try again.</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="lg:col-span-7 w-full">
-            
-            <div id="emptyState" class="bg-white border border-stone-200/40 rounded-2xl p-12 text-center text-stone-400 font-light text-sm shadow-xs flex flex-col items-center justify-center min-h-[350px]">
-                <div class="text-2xl mb-2">✨</div>
-                <p class="font-serif italic text-stone-500 text-base mb-1">Your Analysis Dashboard</p>
-                <p class="text-xs max-w-xs leading-relaxed">Paste your dialog blocks on the left panel to display overall scores, personal styles, and communication optimization options.</p>
+                <p class="text-[10px] text-stone-300 font-light text-center">Your email is used only to send your report. No spam, ever.</p>
             </div>
 
-            <div id="resultSection" class="hidden bg-white p-6 md:p-8 rounded-2xl border border-stone-200/60 shadow-xs space-y-8">
-                
-                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6 border-b border-stone-100 pb-8">
-                    <div class="space-y-3 max-w-xl">
-                        <div>
-                            <span class="text-[9px] bg-stone-100 text-stone-600 font-bold tracking-widest uppercase px-2 py-0.5 rounded">Overall Summary</span>
-                        </div>
-                        <p id="bondStrengthReason" class="text-sm md:text-base text-stone-600 leading-relaxed italic font-light font-serif"></p>
-                    </div>
-                    <div class="flex flex-col items-center justify-center bg-[#FAF9F5] px-6 py-5 rounded-2xl border border-stone-200/50 min-w-[140px] text-center shadow-3xs self-center sm:self-start">
-                        <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Match Level</span>
-                        <span id="bondStrengthMeter" class="text-3xl font-serif font-light text-stone-950 tracking-tighter">0%</span>
-                    </div>
-                </div>
+            <!-- LOCKED: full report (hidden until email unlock) -->
+            <div id="lockedContent" class="hidden space-y-8">
 
                 <div class="space-y-4">
-                    <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">How well things went</h4>
+                    <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Relationship Snapshot</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
                             <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">General Warmth & Kindness</span><span id="positivityVal" class="text-xs font-mono text-stone-500">--</span></div>
-                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="positivityBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="positivityBar" class="custom-transition bg-stone-800 h-full" style="width:0%"></div></div>
                             <p id="positivityReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
                         </div>
                         <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
                             <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Solving Problems Together</span><span id="conflictVal" class="text-xs font-mono text-stone-500">--</span></div>
-                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="conflictBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="conflictBar" class="custom-transition bg-stone-800 h-full" style="width:0%"></div></div>
                             <p id="conflictReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
                         </div>
                         <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
                             <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Comfortable Sharing Feelings</span><span id="safetyVal" class="text-xs font-mono text-stone-500">--</span></div>
-                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="safetyBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="safetyBar" class="custom-transition bg-stone-800 h-full" style="width:0%"></div></div>
                             <p id="safetyReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
                         </div>
                         <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
                             <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Teamwork & Connection</span><span id="dynamicsVal" class="text-xs font-mono text-stone-500">--</span></div>
-                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="dynamicsBar" class="custom-transition bg-stone-800 h-full" style="width: 0%"></div></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="dynamicsBar" class="custom-transition bg-stone-800 h-full" style="width:0%"></div></div>
                             <p id="dynamicsReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
                         </div>
                         <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 md:col-span-2 space-y-2 shadow-3xs">
                             <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Toxicity Level</span><span id="toxicityVal" class="text-xs font-mono text-stone-500">--</span></div>
-                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="toxicityBar" class="custom-transition bg-stone-400 h-full" style="width: 0%"></div></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="toxicityBar" class="custom-transition bg-stone-400 h-full" style="width:0%"></div></div>
                             <p id="toxicityReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
                         </div>
                     </div>
@@ -261,18 +391,16 @@
                         <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Personal Communication Styles</h4>
                         <p class="text-xs text-stone-500 font-light">See how each person handled the conversation and reacted during tense moments.</p>
                     </div>
-                    <div id="profileContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    </div>
+                    <div id="profileContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 </div>
 
-                <!-- ── TRUVAH ID CARD CONTAINER WITH NATIVE INSTANT SHARING ── -->
+                <!-- Truvah ID Card -->
                 <div id="idCardContainer" class="bg-stone-950 text-[#FAF9F5] p-6 rounded-xl space-y-4 shadow-xs relative overflow-hidden">
                     <div class="absolute top-0 right-0 p-4 text-stone-800 opacity-15 text-6xl serif-font pointer-events-none italic select-none">♥</div>
                     <div class="space-y-2.5 relative z-10">
                         <h4 class="text-[9px] text-stone-400 font-bold uppercase tracking-[0.25em]">Your Truvah ID Card</h4>
                         <p id="summaryText" class="text-sm font-serif font-light leading-relaxed italic text-stone-200"></p>
                     </div>
-
                     <div class="flex flex-wrap items-center gap-2 pt-3 border-t border-stone-800 relative z-10">
                         <button onclick="shareAsImage()" class="flex items-center gap-1.5 bg-white/10 hover:bg-white/15 text-[#FAF9F5] px-3 py-1.5 rounded-lg text-[10px] tracking-wider uppercase font-medium transition-all duration-200 cursor-pointer">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
@@ -286,1040 +414,450 @@
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.022-.08-.124-.22-.363-.34-.24-.12-1.418-.7-1.638-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-.992-.367-1.893-1.167-.701-.624-1.175-1.396-1.313-1.637-.14-.24-.015-.37.106-.49.11-.11.242-.28.363-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.195-.47-.393-.41-.54-.41-.14 0-.31-.02-.47-.02-.16 0-.42.06-.64.3-.22.24-.82.8-1.02.98-.2.18-.32.3-.5.3-.18 0-1.22-.39-2.33-1.39-.86-.77-1.44-1.73-1.61-2-.17-.27-.02-.42.11-.54.12-.12.242-.28.363-.42.04-.04.08-.08.12-.12.08-.08.12-.16.18-.24.06-.08.03-.16-.01-.24-.04-.08-.36-.88-.5-1.21-.13-.32-.27-.28-.38-.28-.1 0-.22-.02-.34-.02-.12 0-.32.04-.49.22-.17.18-.65.64-.65 1.56s.67 1.81.76 1.94c.09.13 1.3 2 3.16 2.8 1.86.8 1.86.53 2.19.5.33-.03 1.05-.43 1.2-.85.15-.42.15-.78.1-.85-.05-.07-.18-.11-.42-.23zM12 2C6.48 2 2 6.48 2 12c0 2.17.69 4.19 1.86 5.86L2.5 21.5l3.77-1.23C7.87 21.37 9.87 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
                             WhatsApp
                         </button>
-                        <button id="copyBtn" onclick="copyCardText()" class="flex items-center gap-1.5 bg-stone-900 hover:bg-stone-850 text-stone-300 px-3 py-1.5 rounded-lg text-[10px] tracking-wider uppercase font-medium transition-all duration-200 cursor-pointer">
-                            Copy text
-                        </button>
+                        <button id="copyBtn" onclick="copyCardText()" class="flex items-center gap-1.5 bg-stone-900 text-stone-300 px-3 py-1.5 rounded-lg text-[10px] tracking-wider uppercase font-medium transition-all duration-200 cursor-pointer">Copy text</button>
                     </div>
                 </div>
 
-                <!-- Email CTA -->
+                <!-- Email report panel -->
                 <div id="emailPanel">
-
-                    <!-- Collapsed / static card -->
-                    <div id="emailCollapsed" onclick="expandEmailPanel()"
-                        class="group flex items-center justify-between px-5 py-4 bg-white border border-stone-200/60 rounded-xl shadow-xs cursor-pointer transition-all duration-200 hover:border-stone-300 hover:shadow-sm">
+                    <div id="emailCollapsed" onclick="expandEmailPanel()" class="group flex items-center justify-between px-5 py-4 bg-white border border-stone-200/60 rounded-xl shadow-xs cursor-pointer transition-all duration-200 hover:border-stone-300 hover:shadow-sm">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 group-hover:bg-stone-200 transition-colors">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-stone-500">
-                                    <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
-                                </svg>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-stone-500"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                             </div>
                             <div>
                                 <p class="text-xs font-semibold text-stone-700 tracking-wide">Get this report on email!</p>
                                 <p class="text-[11px] text-stone-400 font-light">Share it with yourself or your partner now</p>
                             </div>
                         </div>
-                        <svg id="emailChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-stone-300 transition-all duration-300 shrink-0 ml-3">
-                            <path d="m6 9 6 6 6-6"/>
-                        </svg>
+                        <svg id="emailChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-stone-300 transition-all duration-300 shrink-0 ml-3"><path d="m6 9 6 6 6-6"/></svg>
                     </div>
-
-                    <!-- Expanded state -->
                     <div id="emailExpanded" class="hidden">
                         <div class="bg-white border border-stone-200/60 border-t-0 rounded-b-xl px-5 pb-5 pt-4 space-y-4 shadow-xs">
-
-                            <!-- Compact inline recipient toggle -->
                             <div class="flex items-center gap-2">
                                 <span class="text-[10px] text-stone-400 uppercase tracking-widest font-medium shrink-0">Send to</span>
                                 <div class="flex gap-1">
-                                    <button type="button" id="optMe" onclick="selectOpt('me')"
-                                        class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-200 text-stone-500 bg-transparent hover:border-stone-400 transition-all cursor-pointer">
-                                        me
-                                    </button>
-                                    <button type="button" id="optPartner" onclick="selectOpt('partner')"
-                                        class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-200 text-stone-500 bg-transparent hover:border-stone-400 transition-all cursor-pointer">
-                                        partner
-                                    </button>
-                                    <button type="button" id="optBoth" onclick="selectOpt('both')"
-                                        class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-200 text-stone-500 bg-transparent hover:border-stone-400 transition-all cursor-pointer">
-                                        both
-                                    </button>
+                                    <button type="button" id="optMe" onclick="selectOpt('me')" class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-200 text-stone-500 bg-transparent hover:border-stone-400 transition-all cursor-pointer">me</button>
+                                    <button type="button" id="optPartner" onclick="selectOpt('partner')" class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-200 text-stone-500 bg-transparent hover:border-stone-400 transition-all cursor-pointer">partner</button>
+                                    <button type="button" id="optBoth" onclick="selectOpt('both')" class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-200 text-stone-500 bg-transparent hover:border-stone-400 transition-all cursor-pointer">both</button>
                                 </div>
                             </div>
-
-                            <!-- Inline input(s) — compact, no labels needed -->
                             <div id="emailInputs" class="hidden space-y-2">
                                 <div id="selfInputWrap" class="hidden">
-                                    <input id="emailSelf" type="email" placeholder="your@email.com"
-                                        class="w-full px-4 py-2.5 text-sm bg-[#FAF9F5] border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
+                                    <input id="emailSelf" type="email" placeholder="your@email.com" class="w-full px-4 py-2.5 text-sm bg-[#FAF9F5] border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
                                 </div>
                                 <div id="partnerInputWrap" class="hidden input-reveal">
-                                    <input id="emailPartner" type="email" placeholder="partner@email.com"
-                                        class="w-full px-4 py-2.5 text-sm bg-[#FAF9F5] border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
+                                    <input id="emailPartner" type="email" placeholder="partner@email.com" class="w-full px-4 py-2.5 text-sm bg-[#FAF9F5] border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
                                 </div>
-
-                                <button id="emailReportBtn" onclick="emailReport()"
-                                    class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs">
-                                    Send Report
-                                </button>
+                                <button id="emailReportBtn" onclick="emailReport()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs">Send Report</button>
                             </div>
-
                             <div id="emailSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
-                                <span class="text-emerald-500">✓</span>
-                                <span id="emailSuccessText">Report sent!</span>
+                                <span class="text-emerald-500">✓</span><span id="emailSuccessText">Report sent!</span>
                             </div>
                             <div id="emailErrorBanner" class="hidden bg-red-50/50 border border-red-200/50 text-red-700 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
-                                <span>✕</span>
-                                <span id="emailErrorText">Something went wrong.</span>
+                                <span>✕</span><span id="emailErrorText">Something went wrong.</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-            </div>
-        </section>
-    </main>
+            </div><!-- end lockedContent -->
+        </div><!-- end resultSection -->
 
-    <footer class="border-t border-stone-200/40 bg-white/30">
+    </section>
+</main>
 
-        <!-- Invite CTA — revealed after first analysis -->
-        <div id="inviteSection" class="hidden max-w-7xl mx-auto px-6 md:px-12 py-10 md:py-14">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 md:gap-12">
-
-                <!-- Left: copy -->
-                <div class="space-y-2 max-w-md">
-                    <div class="inline-flex items-center gap-1.5 bg-stone-950 text-[#FAF9F5] px-2.5 py-0.5 rounded-full text-[9px] tracking-[0.2em] font-medium uppercase">
-                        <span class="w-1 h-1 rounded-full bg-stone-400 inline-block"></span>
-                        Invite only
-                    </div>
-                    <h3 class="text-xl md:text-2xl font-normal text-stone-900 tracking-tight leading-snug serif-font">
-                        Know someone who needs <span class="italic text-stone-500">clarity</span>?
-                    </h3>
-                    <p class="text-sm text-stone-500 font-light leading-relaxed">
-                        Truvah is exclusive — only members can invite. Send someone access and help them understand their conversations the way you just did.
-                    </p>
+<footer class="border-t border-stone-200/40 bg-white/30">
+    <div id="inviteSection" class="hidden max-w-7xl mx-auto px-6 md:px-12 py-10 md:py-14">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 md:gap-12">
+            <div class="space-y-2 max-w-md">
+                <div class="inline-flex items-center gap-1.5 bg-stone-950 text-[#FAF9F5] px-2.5 py-0.5 rounded-full text-[9px] tracking-[0.2em] font-medium uppercase">
+                    <span class="w-1 h-1 rounded-full bg-stone-400 inline-block"></span> Invite only
                 </div>
-
-                <!-- Right: invite form -->
-                <div class="w-full md:w-auto md:min-w-[340px] space-y-3">
-                    <!-- Invite limit exhausted state -->
-                    <div id="inviteLimitMsg" class="hidden bg-stone-100 border border-stone-200/60 rounded-xl px-5 py-4 space-y-1">
-                        <p class="text-xs font-semibold text-stone-700">You've used all 3 invites.</p>
-                        <p class="text-[11px] text-stone-500 font-light leading-relaxed">Each member gets 3 invitations. You've sent yours — thank you for growing the community.</p>
-                    </div>
-                    <!-- Active invite form -->
-                    <div id="inviteForm">
-                        <div class="flex gap-2">
-                            <input id="inviteEmail" type="email" placeholder="friend@example.com"
-                                class="flex-1 px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all shadow-xs" />
-                            <button id="inviteBtn" onclick="sendInvite()"
-                                class="bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium px-5 py-2.5 rounded-xl transition-all duration-200 cursor-pointer text-xs tracking-[0.12em] uppercase shadow-xs whitespace-nowrap">
-                                Send Invite
-                            </button>
-                        </div>
-                        <p id="inviteCountNote" class="text-[10px] text-stone-400 font-light mt-2">They'll receive a personal invitation. <span id="inviteCountText" class="font-medium text-stone-500"></span></p>
-                    </div>
-                    <div id="inviteSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3 rounded-xl text-xs font-light flex items-center gap-2">
-                        <span class="text-emerald-500 font-bold">✓</span>
-                        <span id="inviteSuccessText">Invite sent. They'll hear from us shortly.</span>
-                    </div>
-                    <div id="inviteErrorBanner" class="hidden bg-red-50/50 border border-red-200/50 text-red-700 p-3 rounded-xl text-xs font-light flex items-center gap-2">
-                        <span>✕</span>
-                        <span id="inviteErrorText">Something went wrong. Try again.</span>
-                    </div>
-                </div>
-
+                <h3 class="text-xl md:text-2xl font-normal text-stone-900 tracking-tight leading-snug serif-font">Know someone who needs <span class="italic text-stone-500">clarity</span>?</h3>
+                <p class="text-sm text-stone-500 font-light leading-relaxed">Truvah is exclusive — only members can invite. Send someone access and help them understand their conversations the way you just did.</p>
             </div>
-        </div>
-
-        <div class="text-center pb-6 text-[10px] text-stone-400 tracking-[0.15em] font-light border-t border-stone-200/40 pt-5">
-            TRUVAH • DISCUSSIONS MADE SIMPLER
-        </div>
-    </footer>
-
-    <!-- ── TOAST NOTIFICATION FOR INSTAGRAM COMPATIBILITY ON DESKTOP ── -->
-    <div id="toastNotification" class="hidden fixed bottom-6 right-6 z-50 animate-banner-slide bg-stone-900 text-stone-200 border border-stone-800 px-5 py-4 rounded-xl shadow-lg max-w-sm flex gap-3 items-start">
-        <span class="text-emerald-500 font-bold">✓</span>
-        <div>
-            <p class="text-xs font-semibold text-[#FAF9F5]">ID Card Saved</p>
-            <p class="text-[11px] text-stone-400 font-light leading-relaxed mt-0.5">Your image was saved! Open Instagram to share it directly to your Stories, Post, or Messages.</p>
+            <div class="w-full md:w-auto md:min-w-[340px] space-y-3">
+                <div id="inviteLimitMsg" class="hidden bg-stone-100 border border-stone-200/60 rounded-xl px-5 py-4 space-y-1">
+                    <p class="text-xs font-semibold text-stone-700">You've used all 3 invites.</p>
+                    <p class="text-[11px] text-stone-500 font-light leading-relaxed">Each member gets 3 invitations. You've sent yours — thank you for growing the community.</p>
+                </div>
+                <div id="inviteForm">
+                    <div class="flex gap-2">
+                        <input id="inviteEmail" type="email" placeholder="friend@example.com" class="flex-1 px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all shadow-xs" />
+                        <button id="inviteBtn" onclick="sendInvite()" class="bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium px-5 py-2.5 rounded-xl transition-all duration-200 cursor-pointer text-xs tracking-[0.12em] uppercase shadow-xs whitespace-nowrap">Send Invite</button>
+                    </div>
+                    <p id="inviteCountNote" class="text-[10px] text-stone-400 font-light mt-2">They'll receive a personal invitation. <span id="inviteCountText" class="font-medium text-stone-500"></span></p>
+                </div>
+                <div id="inviteSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3 rounded-xl text-xs font-light flex items-center gap-2">
+                    <span class="text-emerald-500 font-bold">✓</span><span id="inviteSuccessText">Invite sent. They'll hear from us shortly.</span>
+                </div>
+                <div id="inviteErrorBanner" class="hidden bg-red-50/50 border border-red-200/50 text-red-700 p-3 rounded-xl text-xs font-light flex items-center gap-2">
+                    <span>✕</span><span id="inviteErrorText">Something went wrong. Try again.</span>
+                </div>
+            </div>
         </div>
     </div>
+    <div class="text-center pb-6 text-[10px] text-stone-400 tracking-[0.15em] font-light border-t border-stone-200/40 pt-5">TRUVAH • DISCUSSIONS MADE SIMPLER</div>
+</footer>
 
-    <script>
-        /* ── PostHog Initialization ── */
-        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+" (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-        
-        posthog.init('phx_KDPamGQm9JUsNgSeAgBr6YVL9VNcm7xRQqYcN7ZUA66hxxHz', {
-            api_host: 'https://app.posthog.com',
-            autocapture: true,
-            capture_pageview: true,
-            capture_pageleave: true,
-            loaded: function(ph) {
-                // Fire a named event once PostHog has fully loaded so you can
-                // confirm in the dashboard that the snippet is executing.
-                ph.capture('ph_loaded');
+<div id="toastNotification" class="hidden fixed bottom-6 right-6 z-50 animate-banner-slide bg-stone-900 text-stone-200 border border-stone-800 px-5 py-4 rounded-xl shadow-lg max-w-sm flex gap-3 items-start">
+    <span class="text-emerald-500 font-bold">✓</span>
+    <div>
+        <p class="text-xs font-semibold text-[#FAF9F5]">ID Card Saved</p>
+        <p class="text-[11px] text-stone-400 font-light leading-relaxed mt-0.5">Open Instagram to share it directly to your Stories, Post, or Messages.</p>
+    </div>
+</div>
+
+<script>
+/* ══ PostHog ══ */
+!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+" (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+posthog.init('phx_KDPamGQm9JUsNgSeAgBr6YVL9VNcm7xRQqYcN7ZUA66hxxHz',{
+    api_host:'https://app.posthog.com',autocapture:true,capture_pageview:true,capture_pageleave:true,
+    loaded:function(ph){
+        ph.capture('ph_loaded');
+        try{ const s=JSON.parse(sessionStorage.getItem('truvah_session')||'{}'); if(s.userId) ph.identify(s.userId); }catch(e){}
+    }
+});
+function track(ev,p){try{if(typeof posthog!=='undefined')posthog.capture(ev,p||{});}catch(e){}}
+
+/* ══ Constants & State ══ */
+const PRIMARY_USER_ID='093236df-7fb5-46ba-9188-c511145689ec';
+const EMAIL_REGEX=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+let latestAnalytics=null,activeRecipientOption=null,currentUserId=null,currentInviteCount=0,reportUnlocked=false;
+
+/* Textarea tracking */
+const chatInputEl=document.getElementById('chatInput');
+let tfFocused=false;
+chatInputEl.addEventListener('focus',()=>{if(!tfFocused){tfFocused=true;track('textarea_focused');}});
+chatInputEl.addEventListener('paste',()=>track('textarea_pasted'));
+
+/* ══ SAMPLES ══ */
+const SAMPLES={
+    argument:`Me: I can't believe you did that again. We've talked about this so many times.\nPartner: I forgot, okay? It wasn't intentional.\nMe: That's what you always say. It feels like I'm not a priority to you.\nPartner: That's not fair. I do a lot for this relationship.\nMe: Then why does it always fall on me to remind you about things that matter to me?\nPartner: I'm trying. Can you stop making me feel like I'm constantly failing?\nMe: I'm not trying to make you feel that way. I just need you to actually follow through.\nPartner: Fine. I'll try harder. But I need you to stop keeping score.`,
+    signals:`Me: Hey, you've been a bit quiet lately. Everything okay?\nPartner: Yeah just busy with work stuff.\nMe: Okay... you seemed off the other night too.\nPartner: I'm fine, don't overthink it.\nMe: I'm not overthinking, I just noticed a change.\nPartner: There's no change. You always do this.\nMe: Do what? Try to talk to you?\nPartner: Make everything into something bigger than it is.\nMe: I just miss you. That's all.\nPartner: I'm right here.`,
+    distance:`Me: Can we talk tonight?\nPartner: About what?\nMe: I feel like we haven't really connected in a while.\nPartner: I've just had a lot on my mind.\nMe: Can you share what's going on?\nPartner: Not really, it's nothing.\nMe: It doesn't feel like nothing. You seem distant.\nPartner: I just need some space to process things.\nMe: How long have you needed space?\nPartner: I don't know. I'll let you know when I figure it out.\nMe: Okay. I just want you to know I'm here.\nPartner: I know.`,
+    trust:`Me: I saw that you were texting late last night.\nPartner: It was just a friend.\nMe: Which friend?\nPartner: Why are you checking up on me?\nMe: I'm not checking up, I'm asking because you were secretive about it.\nPartner: I'm allowed to have private conversations.\nMe: Of course you are. But the way you hid your phone felt off.\nPartner: I didn't hide it, I just don't need to share everything.\nMe: When did we stop being open with each other?\nPartner: I don't know what you want from me.`,
+    recurring:`Me: This is the third time this month we've had this exact fight.\nPartner: Because you keep bringing it up.\nMe: I bring it up because nothing changes.\nPartner: I've been trying!\nMe: It doesn't feel that way from where I'm standing.\nPartner: What more do you want me to do?\nMe: I want you to actually hear me when I tell you something bothers me.\nPartner: I do hear you.\nMe: Then why are we here again?\nPartner: Maybe because you're never satisfied.\nMe: That's not fair and you know it.\nPartner: Fine. What do you want me to say?`
+};
+function loadSample(key){
+    if(!SAMPLES[key])return;
+    chatInputEl.value=SAMPLES[key];
+    chatInputEl.focus();
+    track('sample_loaded',{sample:key});
+    document.getElementById('analyzeBtn').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+/* ══ ACCESS GATE ══ */
+function getTokenFromUrl(){ return new URLSearchParams(window.location.search).get('token')||null; }
+async function verifyAccess(token){
+    try{
+        const res=await fetch('/api/verify-token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token})});
+        const data=await res.json();
+        if(!res.ok||!data.valid)return null;
+        return data;
+    }catch{return null;}
+}
+async function initAccess(){
+    const stored=sessionStorage.getItem('truvah_session');
+    if(stored){try{const s=JSON.parse(stored);if(s.userId){currentUserId=s.userId;currentInviteCount=s.inviteCount||0;grantAccess();track('gate_passed',{method:'session'});return;}}catch{}}
+    const urlToken=getTokenFromUrl();
+    if(urlToken){
+        track('gate_token_found');
+        const result=await verifyAccess(urlToken);
+        if(result){
+            currentUserId=result.userId;currentInviteCount=result.inviteCount||0;
+            sessionStorage.setItem('truvah_session',JSON.stringify({userId:result.userId,inviteCount:result.inviteCount||0}));
+            window.history.replaceState({},document.title,window.location.pathname);
+            grantAccess();track('gate_passed',{method:'token'});return;
+        }else{
+            showGateBlocked('This invite link is no longer valid.');
+            track('gate_blocked',{reason:'invalid_token'});return;
+        }
+    }
+    /* No session, no token → open access for new visitors */
+    grantAccess();track('gate_passed',{method:'open'});
+}
+function showGateBlocked(msg){
+    document.getElementById('gateChecking').classList.add('hidden');
+    document.getElementById('gateBlocked').classList.remove('hidden');
+    document.body.classList.add('ready');
+    if(msg){const e=document.getElementById('gateError');e.innerText=msg;e.classList.remove('hidden');}
+}
+function grantAccess(){
+    document.body.classList.remove('gated');document.body.classList.add('ready');
+    updateInviteCountUI();
+    if(typeof posthog!=='undefined'&&currentUserId)posthog.identify(currentUserId);
+}
+function updateInviteCountUI(){
+    const remaining=3-currentInviteCount;
+    const ct=document.getElementById('inviteCountText'),lm=document.getElementById('inviteLimitMsg'),fm=document.getElementById('inviteForm');
+    if(!ct)return;
+    if(currentUserId===PRIMARY_USER_ID){lm&&lm.classList.add('hidden');fm&&fm.classList.remove('hidden');ct.innerText='';return;}
+    if(remaining<=0){lm&&lm.classList.remove('hidden');fm&&fm.classList.add('hidden');}
+    else{lm&&lm.classList.add('hidden');fm&&fm.classList.remove('hidden');ct.innerText=remaining===1?'1 invite remaining.':`${remaining} invites remaining.`;}
+}
+async function submitInterest(){
+    const email=document.getElementById('interestEmail').value.trim();
+    const se=document.getElementById('interestSuccess'),ee=document.getElementById('interestError'),btn=document.getElementById('interestBtn');
+    se.classList.add('hidden');ee.classList.add('hidden');
+    track('gate_claim_access_clicked',{email_provided:!!email});
+    if(!email||!EMAIL_REGEX.test(email)){document.getElementById('interestErrorText').innerText='Please enter a valid email address.';ee.classList.remove('hidden');track('gate_claim_access_validation_failed');return;}
+    btn.disabled=true;btn.innerText='Granting access...';
+    try{
+        const res=await fetch('/api/request-without-invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+        const data=await res.json();
+        if(!res.ok)throw new Error(data.error||'Something went wrong.');
+        if(data.token){
+            const result=await verifyAccess(data.token);
+            if(result){
+                currentUserId=result.userId;currentInviteCount=result.inviteCount||0;
+                sessionStorage.setItem('truvah_session',JSON.stringify({userId:result.userId,inviteCount:result.inviteCount||0}));
+                track('gate_claim_access_success');grantAccess();
+            }else throw new Error('Access could not be verified.');
+        }else throw new Error('No access token received.');
+    }catch(err){
+        document.getElementById('interestErrorText').innerText=err.message;ee.classList.remove('hidden');
+        track('gate_claim_access_error',{error:err.message});
+        btn.disabled=false;btn.innerText='Request Access';
+    }
+}
+initAccess();
+
+/* ══ REPORT UNLOCK ══ */
+async function unlockReport(){
+    const email=document.getElementById('unlockEmail').value.trim();
+    const errDiv=document.getElementById('unlockError'),btn=document.getElementById('unlockBtn');
+    errDiv.classList.add('hidden');
+    track('unlock_report_clicked',{email_provided:!!email});
+    if(!email||!EMAIL_REGEX.test(email)){document.getElementById('unlockErrorText').innerText='Please enter a valid email address.';errDiv.classList.remove('hidden');track('unlock_report_validation_failed');return;}
+    btn.disabled=true;btn.innerText='Unlocking...';
+    try{
+        const res=await fetch('/api/request-without-invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+        const data=await res.json();
+        if(data.token){
+            const result=await verifyAccess(data.token);
+            if(result){
+                currentUserId=result.userId;currentInviteCount=result.inviteCount||0;
+                sessionStorage.setItem('truvah_session',JSON.stringify({userId:result.userId,inviteCount:result.inviteCount||0}));
+                if(typeof posthog!=='undefined')posthog.identify(currentUserId);
             }
+        }
+        track('unlock_report_success',{had_userId:!!currentUserId});
+        revealLockedContent();
+    }catch(err){
+        track('unlock_report_api_error',{error:err.message});
+        revealLockedContent(); // still unlock — don't penalise user for backend error
+    }
+}
+function revealLockedContent(){
+    reportUnlocked=true;
+    document.getElementById('emailUnlockWall').classList.add('hidden');
+    document.getElementById('lockedContent').classList.remove('hidden');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        if(!latestAnalytics)return;
+        const s=latestAnalytics;
+        const sw=(id,v)=>{const el=document.getElementById(id);if(el)el.style.width=(parseInt(v)||0)+'%';};
+        sw('positivityBar',s.bond_positivity);sw('conflictBar',s.conflict_resolution);
+        sw('safetyBar',s.safety_trust);sw('dynamicsBar',s.relationship_dynamics);sw('toxicityBar',s.toxicity);
+        // profile bars
+        document.querySelectorAll('#profileContainer > div[data-attach-id]').forEach(card=>{
+            sw(card.dataset.attachId,card.dataset.attachVal);sw(card.dataset.regId,card.dataset.regVal);
+            sw(card.dataset.recepId,card.dataset.recepVal);sw(card.dataset.accId,card.dataset.accVal);
         });
+    }));
+    document.getElementById('lockedContent').scrollIntoView({behavior:'smooth',block:'start'});
+    track('locked_content_revealed');
+}
 
-        /* ── Tiny analytics helper — always safe to call ── */
-        function track(event, props) {
-            try {
-                if (typeof posthog !== 'undefined') {
-                    posthog.capture(event, props || {});
-                }
-            } catch(e) { /* never let analytics break the app */ }
+/* ══ INVITE ══ */
+async function sendInvite(){
+    const ie=document.getElementById('inviteEmail').value.trim();
+    const sb=document.getElementById('inviteSuccessBanner'),eb=document.getElementById('inviteErrorBanner'),btn=document.getElementById('inviteBtn');
+    sb.classList.add('hidden');eb.classList.add('hidden');
+    track('invite_send_clicked',{email_provided:!!ie});
+    if(!ie){document.getElementById('inviteErrorText').innerText='Please enter an email address.';eb.classList.remove('hidden');return;}
+    if(!EMAIL_REGEX.test(ie)){document.getElementById('inviteErrorText').innerText="That email doesn't look right.";eb.classList.remove('hidden');return;}
+    btn.disabled=true;btn.innerText='Sending...';
+    if(currentUserId!==PRIMARY_USER_ID&&currentInviteCount>=3){document.getElementById('inviteErrorText').innerText="You've used all 3 of your invites.";eb.classList.remove('hidden');track('invite_limit_reached');btn.disabled=false;btn.innerText='Send Invite';return;}
+    try{
+        const res=await fetch('/api/send-invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({inviteeEmail:ie,inviterUserId:currentUserId})});
+        const result=await res.json();
+        if(!res.ok){if(result.error==='INVITE_LIMIT_REACHED'&&currentUserId!==PRIMARY_USER_ID){currentInviteCount=3;updateInviteCountUI();track('invite_limit_reached');throw new Error("You've used all 3 of your invites.");}throw new Error(result.error||'Invite could not be sent');}
+        currentInviteCount=3-(result.remainingInvites||0);
+        const st=JSON.parse(sessionStorage.getItem('truvah_session')||'{}');st.inviteCount=currentInviteCount;sessionStorage.setItem('truvah_session',JSON.stringify(st));
+        track('invite_sent_success',{remaining_invites:result.remainingInvites||0});
+        document.getElementById('inviteSuccessText').innerText=`Invite sent to ${ie}. They'll hear from us shortly.`;
+        sb.classList.remove('hidden');document.getElementById('inviteEmail').value='';
+        btn.innerText='\u2713 Sent';btn.classList.replace('bg-stone-950','bg-emerald-700');
+        setTimeout(()=>{btn.disabled=false;btn.innerText='Send Invite';btn.classList.replace('bg-emerald-700','bg-stone-950');updateInviteCountUI();},3000);
+    }catch(err){document.getElementById('inviteErrorText').innerText='Could not send invite: '+err.message;eb.classList.remove('hidden');track('invite_send_error',{error:err.message});btn.disabled=false;btn.innerText='Send Invite';}
+}
+
+/* ══ EMAIL PANEL ══ */
+function expandEmailPanel(){
+    const c=document.getElementById('emailCollapsed'),x=document.getElementById('emailExpanded'),ch=document.getElementById('emailChevron');
+    c.classList.add('rounded-b-none');c.onclick=null;x.classList.remove('hidden');ch.style.transform='rotate(180deg)';
+    track('email_panel_expanded');
+}
+function selectOpt(option){
+    activeRecipientOption=option;
+    ['me','partner','both'].forEach(o=>{
+        const el=document.getElementById('opt'+o.charAt(0).toUpperCase()+o.slice(1));el.style.cssText='';
+        if(o===option){el.style.borderColor='#1c1917';el.style.background='#1c1917';el.style.color='#fafaf9';el.style.fontWeight='600';}
+    });
+    const iw=document.getElementById('emailInputs'),sw=document.getElementById('selfInputWrap'),pw=document.getElementById('partnerInputWrap');
+    iw.classList.remove('hidden');
+    if(option==='me'||option==='both'){sw.classList.remove('hidden');sw.classList.add('input-reveal');}else{sw.classList.add('hidden');document.getElementById('emailSelf').value='';}
+    if(option==='partner'||option==='both'){pw.classList.remove('hidden');pw.classList.add('input-reveal');}else{pw.classList.add('hidden');document.getElementById('emailPartner').value='';}
+    track('email_recipient_selected',{option});
+}
+async function emailReport(){
+    if(!latestAnalytics)return;
+    const se=document.getElementById('emailSelf').value.trim(),pe=document.getElementById('emailPartner').value.trim();
+    const sb=document.getElementById('emailSuccessBanner'),eb=document.getElementById('emailErrorBanner');
+    sb.classList.add('hidden');eb.classList.add('hidden');
+    track('email_report_send_clicked',{recipient_option:activeRecipientOption});
+    if(!se&&!pe){document.getElementById('emailErrorText').innerText='Please enter at least one email address.';eb.classList.remove('hidden');return;}
+    if(se&&!EMAIL_REGEX.test(se)){document.getElementById('emailErrorText').innerText='Your email looks invalid.';eb.classList.remove('hidden');return;}
+    if(pe&&!EMAIL_REGEX.test(pe)){document.getElementById('emailErrorText').innerText="Your partner's email looks invalid.";eb.classList.remove('hidden');return;}
+    const recipients=[se,pe].filter(Boolean);
+    const btn=document.getElementById('emailReportBtn');btn.disabled=true;btn.innerText='Sending...';
+    try{
+        const res=await fetch('/api/send-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipients,analytics:latestAnalytics})});
+        const result=await res.json();if(!res.ok)throw new Error(result.error||'Email sending failed');
+        document.getElementById('emailSuccessText').innerText=recipients.length===2?'Sent to both of you.':'Report sent to your inbox.';
+        sb.classList.remove('hidden');btn.innerText='✓ Sent';btn.classList.replace('bg-stone-950','bg-emerald-700');
+        track('email_report_sent_success',{recipient_count:recipients.length,recipient_option:activeRecipientOption});
+    }catch(err){
+        document.getElementById('emailErrorText').innerText='Could not send: '+err.message;eb.classList.remove('hidden');
+        track('email_report_send_error',{error:err.message});btn.disabled=false;btn.innerText='Send Report';
+    }
+}
+
+/* ══ ANALYZE ══ */
+async function analyzeChat(){
+    const cie=document.getElementById('chatInput'),chatLog=cie.value.trim();
+    const ab=document.getElementById('analyzeBtn'),rs=document.getElementById('resultSection'),es=document.getElementById('emptyState');
+    const mb=document.getElementById('modelBadge'),pc=document.getElementById('profileContainer');
+    const lb=document.getElementById('analyzeLimitBanner'),eb=document.getElementById('analyzeErrorBanner');
+    lb.classList.add('hidden');eb.classList.add('hidden');
+    if(!chatLog){document.getElementById('analyzeErrorText').innerText='Please paste some text or describe the situation first.';eb.classList.remove('hidden');track('analyze_clicked_empty');return;}
+    track('analyze_started',{char_count:chatLog.length,word_count:chatLog.split(/\s+/).filter(Boolean).length});
+    ab.disabled=true;ab.innerText='Reading through your conversation...';
+    rs.classList.add('hidden');es.classList.remove('hidden');mb.classList.add('hidden');
+    document.getElementById('deleteSuccessBanner').classList.add('hidden');
+    document.getElementById('consentLine').classList.add('hidden');
+    cie.classList.remove('animate-text-fade');pc.innerHTML='';
+    /* Reset unlock state */
+    reportUnlocked=false;
+    document.getElementById('emailUnlockWall').classList.remove('hidden');
+    document.getElementById('lockedContent').classList.add('hidden');
+    document.getElementById('unlockEmail').value='';
+    document.getElementById('unlockError').classList.add('hidden');
+    const ub=document.getElementById('unlockBtn');ub.disabled=false;ub.innerText='Unlock';ub.className='bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium px-5 py-2.5 rounded-xl text-xs tracking-[0.12em] uppercase transition-all duration-200 cursor-pointer whitespace-nowrap shadow-xs';
+    let isLimitReached=false;const t0=Date.now();
+    try{
+        const response=await fetch("/api/analyze",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chatLog,userId:currentUserId})});
+        const data=await response.json();
+        if(response.status===403&&data.error==='usage_limit_reached'){
+            isLimitReached=true;document.getElementById('analyzeLimitText').innerText=data.message||"You've used all of your analyses.";
+            lb.classList.remove('hidden');es.classList.remove('hidden');track('analyze_limit_reached');return;
         }
-
-        /* ── Constants ── */
-        const PRIMARY_USER_ID = '093236df-7fb5-46ba-9188-c511145689ec';
-        const EMAIL_REGEX     = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-        /* ── State ── */
-        let latestAnalytics       = null;
-        let activeRecipientOption = null;
-        let currentUserId         = null;
-        let currentInviteCount    = 0;
-
-        /* ── Track textarea engagement (typed vs pasted) ── */
-        const chatInput = document.getElementById('chatInput');
-        let textareaFocused = false;
-        chatInput.addEventListener('focus', function() {
-            if (!textareaFocused) {
-                textareaFocused = true;
-                track('textarea_focused');
-            }
-        });
-        chatInput.addEventListener('paste', function() {
-            track('textarea_pasted');
-        });
-
-        /* ══════════════════════════════════════════════════════════════════
-           ACCESS GATE — token verification on page load
-        ══════════════════════════════════════════════════════════════════ */
-
-        function getTokenFromUrl() {
-            const params = new URLSearchParams(window.location.search);
-            return params.get('token') || null;
-        }
-
-        async function verifyAccess(token) {
-            try {
-                const res  = await fetch('/api/verify-token', {
-                    method:  'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify({ token })
-                });
-                const data = await res.json();
-                if (!res.ok || !data.valid) return null;
-                return data; 
-            } catch { return null; }
-        }
-
-        async function initAccess() {
-            const storedSession = sessionStorage.getItem('truvah_session');
-            if (storedSession) {
-                try {
-                    const session = JSON.parse(storedSession);
-                    if (session.userId) {
-                        currentUserId      = session.userId;
-                        currentInviteCount = session.inviteCount || 0;
-                        grantAccess();
-                        track('gate_passed', { method: 'session' });
-                        return;
-                    }
-                } catch { }
-            }
-
-            const urlToken = getTokenFromUrl();
-            if (urlToken) {
-                track('gate_token_found');
-                const result = await verifyAccess(urlToken);
-                if (result) {
-                    currentUserId      = result.userId;
-                    currentInviteCount = result.inviteCount || 0;
-                    sessionStorage.setItem('truvah_session', JSON.stringify({
-                        userId:      result.userId,
-                        inviteCount: result.inviteCount || 0
-                    }));
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                    grantAccess();
-                    track('gate_passed', { method: 'token' });
-                    return;
-                } else {
-                    showGateBlocked('This invite link is no longer valid. Ask someone to send you a new one.');
-                    track('gate_blocked', { reason: 'invalid_token' });
-                    return;
-                }
-            }
-            showGateBlocked();
-            track('gate_blocked', { reason: 'no_token' });
-        }
-
-        function showGateBlocked(errorMsg) {
-            document.getElementById('gateChecking').classList.add('hidden');
-            document.getElementById('gateBlocked').classList.remove('hidden');
-            document.body.classList.add('ready');
-            if (errorMsg) {
-                const errEl = document.getElementById('gateError');
-                errEl.innerText = errorMsg;
-                errEl.classList.remove('hidden');
-            }
-        }
-
-        function grantAccess() {
-            document.body.classList.remove('gated');
-            document.body.classList.add('ready');
-            updateInviteCountUI();
-            
-            // PostHog Identify
-            if (typeof posthog !== 'undefined' && currentUserId) {
-                posthog.identify(currentUserId);
-            }
-        }
-
-        function updateInviteCountUI() {
-            const remaining = 3 - currentInviteCount;
-            const countText = document.getElementById('inviteCountText');
-            const limitMsg  = document.getElementById('inviteLimitMsg');
-            const form      = document.getElementById('inviteForm');
-            if (!countText) return;
-            if (currentUserId === PRIMARY_USER_ID) {
-                limitMsg && limitMsg.classList.add('hidden');
-                form     && form.classList.remove('hidden');
-                countText.innerText = '';
-                return;
-            }
-            if (remaining <= 0) {
-                limitMsg && limitMsg.classList.remove('hidden');
-                form     && form.classList.add('hidden');
-            } else {
-                limitMsg && limitMsg.classList.add('hidden');
-                form     && form.classList.remove('hidden');
-                countText.innerText = remaining === 1
-                    ? '1 invite remaining.'
-                    : `${remaining} invites remaining.`;
-            }
-        }
-
-        async function submitInterest() {
-            const email      = document.getElementById('interestEmail').value.trim();
-            const successEl  = document.getElementById('interestSuccess');
-            const errorEl    = document.getElementById('interestError');
-            const btn        = document.getElementById('interestBtn');
-
-            successEl.classList.add('hidden');
-            errorEl.classList.add('hidden');
-
-            track('gate_claim_access_clicked', { email_provided: !!email });
-
-            if (!email || !EMAIL_REGEX.test(email)) {
-                document.getElementById('interestErrorText').innerText = 'Please enter a valid email address.';
-                errorEl.classList.remove('hidden');
-                track('gate_claim_access_validation_failed');
-                return;
-            }
-
-            if (btn) {
-                btn.disabled  = true;
-                btn.innerText = 'Granting access...';
-            }
-
-            try {
-                const res  = await fetch('/api/request-without-invite', {
-                    method:  'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify({ email })
-                });
-
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Something went wrong.');
-
-                if (data.token) {
-                    const result = await verifyAccess(data.token);
-                    if (result) {
-                        currentUserId      = result.userId;
-                        currentInviteCount = result.inviteCount || 0;
-                        sessionStorage.setItem('truvah_session', JSON.stringify({
-                            userId:      result.userId,
-                            inviteCount: result.inviteCount || 0
-                        }));
-                        track('gate_claim_access_success');
-                        grantAccess();
-                    } else {
-                        throw new Error('Access could not be verified automatically.');
-                    }
-                } else {
-                    throw new Error('No access token received.');
-                }
-            } catch (err) {
-                document.getElementById('interestErrorText').innerText = err.message;
-                errorEl.classList.remove('hidden');
-                track('gate_claim_access_error', { error: err.message });
-                if (btn) {
-                    btn.disabled  = false;
-                    btn.innerText = 'Claim Access';
-                }
-            }
-        }
-
-        initAccess();
-
-        /* ── Send invite ── */
-        async function sendInvite() {
-            const inviteEmail   = document.getElementById('inviteEmail').value.trim();
-            const successBanner = document.getElementById('inviteSuccessBanner');
-            const errorBanner   = document.getElementById('inviteErrorBanner');
-            const btn           = document.getElementById('inviteBtn');
-
-            successBanner.classList.add('hidden');
-            errorBanner.classList.add('hidden');
-
-            track('invite_send_clicked', { email_provided: !!inviteEmail });
-
-            if (!inviteEmail) {
-                document.getElementById('inviteErrorText').innerText = 'Please enter an email address.';
-                errorBanner.classList.remove('hidden'); return;
-            }
-            if (!EMAIL_REGEX.test(inviteEmail)) {
-                document.getElementById('inviteErrorText').innerText = 'That email address doesn\'t look right.';
-                errorBanner.classList.remove('hidden'); return;
-            }
-
-            btn.disabled  = true;
-            btn.innerText = 'Sending...';
-
-            if (currentUserId !== PRIMARY_USER_ID && currentInviteCount >= 3) {
-                document.getElementById('inviteErrorText').innerText = "You've used all 3 of your invites.";
-                errorBanner.classList.remove('hidden');
-                track('invite_limit_reached');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/send-invite', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ inviteeEmail: inviteEmail, inviterUserId: currentUserId })
-                });
-                const result = await response.json();
-                if (!response.ok) {
-                    if (result.error === 'INVITE_LIMIT_REACHED' && currentUserId !== PRIMARY_USER_ID) {
-                        currentInviteCount = 3;
-                        updateInviteCountUI();
-                        track('invite_limit_reached');
-                        throw new Error("You've used all 3 of your invites.");
-                    }
-                    throw new Error(result.error || 'Invite could not be sent');
-                }
-
-                currentInviteCount = 3 - (result.remainingInvites || 0);
-                const stored = JSON.parse(sessionStorage.getItem('truvah_session') || '{}');
-                stored.inviteCount = currentInviteCount;
-                sessionStorage.setItem('truvah_session', JSON.stringify(stored));
-
-                track('invite_sent_success', { remaining_invites: result.remainingInvites || 0 });
-
-                document.getElementById('inviteSuccessText').innerText = `Invite sent to ${inviteEmail}. They'll hear from us shortly.`;
-                successBanner.classList.remove('hidden');
-                document.getElementById('inviteEmail').value = '';
-                btn.innerText = '\u2713 Sent';
-                btn.classList.replace('bg-stone-950', 'bg-emerald-700');
-                setTimeout(() => {
-                    btn.disabled  = false;
-                    btn.innerText = 'Send Invite';
-                    btn.classList.replace('bg-emerald-700', 'bg-stone-950');
-                    updateInviteCountUI();
-                }, 3000);
-            } catch (err) {
-                document.getElementById('inviteErrorText').innerText = 'Could not send invite: ' + err.message;
-                errorBanner.classList.remove('hidden');
-                track('invite_send_error', { error: err.message });
-                btn.disabled  = false;
-                btn.innerText = 'Send Invite';
-            }
-        }
-
-        /* ── Email panel expand/collapse ── */
-        function expandEmailPanel() {
-            const collapsed = document.getElementById('emailCollapsed');
-            const expanded  = document.getElementById('emailExpanded');
-            const chevron   = document.getElementById('emailChevron');
-
-            collapsed.classList.add('rounded-b-none');
-            collapsed.onclick = null;
-            expanded.classList.remove('hidden');
-            chevron.style.transform = 'rotate(180deg)';
-
-            track('email_panel_expanded');
-        }
-
-        /* ── Recipient selector — compact pill style ── */
-        function selectOpt(option) {
-            activeRecipientOption = option;
-            ['me', 'partner', 'both'].forEach(o => {
-                const el = document.getElementById('opt' + o.charAt(0).toUpperCase() + o.slice(1));
-                el.style.cssText = '';
-                if (o === option) {
-                    el.style.borderColor  = '#1c1917';
-                    el.style.background   = '#1c1917';
-                    el.style.color        = '#fafaf9';
-                    el.style.fontWeight   = '600';
-                }
+        if(!response.ok)throw new Error(data.error||'Could not process text.');
+        track('analyze_completed',{duration_ms:Date.now()-t0,bond_strength:data.analytics.bond_strength,toxicity:data.analytics.toxicity,profile_count:(data.analytics.profiles||[]).length});
+        cie.classList.add('animate-text-fade');
+        setTimeout(()=>{cie.value='';cie.classList.remove('animate-text-fade');},800);
+        if(document.getElementById('modelNameText'))document.getElementById('modelNameText').innerText="Active Connection";
+        mb.classList.remove('hidden');
+        const scores=data.analytics;latestAnalytics=scores;
+        /* Unlocked sections */
+        document.getElementById('bondStrengthMeter').innerText=scores.bond_strength||'0%';
+        document.getElementById('bondStrengthReason').innerText=scores.bond_strength_reason?`"${scores.bond_strength_reason}"`:'' ;
+        document.getElementById('keyDynamicText').innerText=scores.conflict_resolution_reason||scores.bond_strength_reason||'';
+        /* Locked section values (bars animate on unlock) */
+        document.getElementById('positivityVal').innerText=scores.bond_positivity||'--';document.getElementById('positivityReason').innerText=scores.bond_positivity_reason||'';
+        document.getElementById('conflictVal').innerText=scores.conflict_resolution||'--';document.getElementById('conflictReason').innerText=scores.conflict_resolution_reason||'';
+        document.getElementById('safetyVal').innerText=scores.safety_trust||'--';document.getElementById('safetyReason').innerText=scores.safety_trust_reason||'';
+        document.getElementById('dynamicsVal').innerText=scores.relationship_dynamics||'--';document.getElementById('dynamicsReason').innerText=scores.relationship_dynamics_reason||'';
+        document.getElementById('toxicityVal').innerText=scores.toxicity||'--';document.getElementById('toxicityReason').innerText=scores.toxicity_reason||'';
+        document.getElementById('summaryText').innerText=scores.summary?`"${scores.summary}"`:'' ;
+        /* Reset email panel */
+        activeRecipientOption=null;
+        ['Me','Partner','Both'].forEach(o=>{const el=document.getElementById('opt'+o);if(el)el.style.cssText='';});
+        ['emailInputs','selfInputWrap','partnerInputWrap'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+        document.getElementById('emailSelf').value='';document.getElementById('emailPartner').value='';
+        document.getElementById('emailSuccessBanner').classList.add('hidden');document.getElementById('emailErrorBanner').classList.add('hidden');
+        const ec=document.getElementById('emailCollapsed'),ex=document.getElementById('emailExpanded'),ech=document.getElementById('emailChevron');
+        ec.classList.remove('rounded-b-none');ec.onclick=expandEmailPanel;ex.classList.add('hidden');ech.style.transform='';
+        const erb=document.getElementById('emailReportBtn');if(erb){erb.disabled=false;erb.innerText='Send Report';erb.style.cssText='';erb.className='w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs';}
+        /* Profile cards */
+        if(scores.profiles&&Array.isArray(scores.profiles)){
+            scores.profiles.forEach((user,idx)=>{
+                const card=document.createElement('div');
+                card.className="bg-[#FAF9F5]/50 border border-stone-200/60 rounded-xl p-5 shadow-3xs flex flex-col justify-between space-y-4";
+                const rid=Date.now()+idx;
+                const aid=`p${idx}-a-${rid}`,rgid=`p${idx}-r-${rid}`,rcid=`p${idx}-rc-${rid}`,acid=`p${idx}-ac-${rid}`;
+                card.dataset.attachId=aid;card.dataset.regId=rgid;card.dataset.recepId=rcid;card.dataset.accId=acid;
+                card.dataset.attachVal=user.attachment_security;card.dataset.regVal=user.emotional_regulation;card.dataset.recepVal=user.receptivity;card.dataset.accVal=user.accountability;
+                const ah=(user.actionables||[]).map(a=>`<li class="flex items-start gap-2.5 text-xs text-stone-600 bg-white p-2.5 rounded border border-stone-200/40 font-light shadow-3xs"><span class="text-stone-400 font-mono mt-0.5">→</span><span>${a}</span></li>`).join('');
+                card.innerHTML=`<div class="space-y-4"><div class="border-b border-stone-200/40 pb-2"><span class="text-[9px] uppercase font-bold tracking-widest text-stone-400 block">Personal Style</span><h5 class="text-base font-normal font-serif text-stone-900 mt-0.5">${user.name}</h5></div><div class="space-y-4"><div class="space-y-1"><div class="flex justify-between items-center text-xs"><span class="font-medium text-stone-700 tracking-wide">Calmness & Security</span><span class="font-mono text-stone-500 font-medium text-[11px]">${user.attachment_security||'0%'}</span></div><div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="${aid}" class="custom-transition bg-stone-950 h-full" style="width:0%"></div></div><p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.attachment_security_reason||''}</p></div><div class="space-y-1"><div class="flex justify-between items-center text-xs"><span class="font-medium text-stone-700 tracking-wide">Managing Frustration</span><span class="font-mono text-stone-500 font-medium text-[11px]">${user.emotional_regulation||'0%'}</span></div><div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="${rgid}" class="custom-transition bg-stone-950 h-full" style="width:0%"></div></div><p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.emotional_regulation_reason||''}</p></div><div class="space-y-1"><div class="flex justify-between items-center text-xs"><span class="font-medium text-stone-700 tracking-wide">Willingness to Listen</span><span class="font-mono text-stone-500 font-medium text-[11px]">${user.receptivity||'0%'}</span></div><div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="${rcid}" class="custom-transition bg-stone-950 h-full" style="width:0%"></div></div><p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.receptivity_reason||''}</p></div><div class="space-y-1"><div class="flex justify-between items-center text-xs"><span class="font-medium text-stone-700 tracking-wide">Owning Personal Errors</span><span class="font-mono text-stone-500 font-medium text-[11px]">${user.accountability||'0%'}</span></div><div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="${acid}" class="custom-transition bg-stone-950 h-full" style="width:0%"></div></div><p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.accountability_reason||''}</p></div></div></div><div class="space-y-2 pt-3 border-t border-stone-200/40"><span class="text-[10px] uppercase font-bold tracking-wider text-stone-400 block">Easy Next Steps</span><ul class="space-y-1.5">${ah}</ul></div>`;
+                pc.appendChild(card);
             });
-
-            const inputsWrap   = document.getElementById('emailInputs');
-            const selfWrap     = document.getElementById('selfInputWrap');
-            const partnerWrap  = document.getElementById('partnerInputWrap');
-
-            inputsWrap.classList.remove('hidden');
-
-            if (option === 'me' || option === 'both') {
-                selfWrap.classList.remove('hidden');
-                selfWrap.classList.add('input-reveal');
-            } else {
-                selfWrap.classList.add('hidden');
-                document.getElementById('emailSelf').value = '';
-            }
-            if (option === 'partner' || option === 'both') {
-                partnerWrap.classList.remove('hidden');
-                partnerWrap.classList.add('input-reveal');
-            } else {
-                partnerWrap.classList.add('hidden');
-                document.getElementById('emailPartner').value = '';
-            }
-
-            track('email_recipient_selected', { option });
         }
+        es.classList.add('hidden');rs.classList.remove('hidden');rs.scrollIntoView({behavior:'smooth',block:'start'});
+        const inv=document.getElementById('inviteSection');inv.classList.remove('hidden');inv.classList.add('invite-reveal');
+    }catch(err){
+        document.getElementById('analyzeErrorText').innerText=err.message||'Could not complete analysis right now.';
+        eb.classList.remove('hidden');track('analyze_error',{error:err.message});
+    }finally{
+        if(!isLimitReached){ab.disabled=false;ab.innerText='Analyze Conversation';}
+        else{ab.disabled=true;ab.innerText='Analysis Limit Reached';ab.className='w-full bg-stone-300 text-stone-500 font-medium py-3.5 px-6 rounded-xl cursor-not-allowed text-xs tracking-[0.12em] uppercase shadow-xs';}
+    }
+}
 
-        /* ── Send email ── */
-        async function emailReport() {
-            if (!latestAnalytics) return;
-
-            const selfEmail     = document.getElementById('emailSelf').value.trim();
-            const partnerEmail  = document.getElementById('emailPartner').value.trim();
-            const successBanner = document.getElementById('emailSuccessBanner');
-            const errorBanner   = document.getElementById('emailErrorBanner');
-
-            successBanner.classList.add('hidden');
-            errorBanner.classList.add('hidden');
-
-            track('email_report_send_clicked', { recipient_option: activeRecipientOption });
-
-            if (!selfEmail && !partnerEmail) {
-                document.getElementById('emailErrorText').innerText = 'Please enter at least one email address.';
-                errorBanner.classList.remove('hidden'); return;
-            }
-            if (selfEmail && !EMAIL_REGEX.test(selfEmail)) {
-                document.getElementById('emailErrorText').innerText = 'Your email address looks invalid.';
-                errorBanner.classList.remove('hidden'); return;
-            }
-            if (partnerEmail && !EMAIL_REGEX.test(partnerEmail)) {
-                document.getElementById('emailErrorText').innerText = "Your partner's email looks invalid.";
-                errorBanner.classList.remove('hidden'); return;
-            }
-
-            const recipients = [selfEmail, partnerEmail].filter(Boolean);
-            const btn = document.getElementById('emailReportBtn');
-            btn.disabled = true;
-            btn.innerText = 'Sending...';
-
-            try {
-                const response = await fetch('/api/send-email', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ recipients, analytics: latestAnalytics })
-                });
-                const result = await response.json();
-                if (!response.ok) throw new Error(result.error || 'Email sending failed');
-
-                document.getElementById('emailSuccessText').innerText =
-                    recipients.length === 2 ? 'Sent to both of you.' : 'Report sent to your inbox.';
-                successBanner.classList.remove('hidden');
-                btn.innerText = '✓ Sent';
-                btn.classList.replace('bg-stone-950', 'bg-emerald-700');
-
-                track('email_report_sent_success', {
-                    recipient_count: recipients.length,
-                    recipient_option: activeRecipientOption
-                });
-            } catch (err) {
-                document.getElementById('emailErrorText').innerText = 'Could not send: ' + err.message;
-                errorBanner.classList.remove('hidden');
-                track('email_report_send_error', { error: err.message });
-                btn.disabled = false;
-                btn.innerText = 'Send Report';
-            }
-        }
-
-        /* ── Main analysis ── */
-        async function analyzeChat() {
-            const chatInputElem       = document.getElementById('chatInput');
-            const deleteSuccessBanner = document.getElementById('deleteSuccessBanner');
-            const chatLog             = chatInputElem.value.trim();
-            const analyzeBtn          = document.getElementById('analyzeBtn');
-            const resultSection       = document.getElementById('resultSection');
-            const emptyState          = document.getElementById('emptyState');
-            const modelBadge          = document.getElementById('modelBadge');
-            const profileContainer    = document.getElementById('profileContainer');
-            const limitBanner         = document.getElementById('analyzeLimitBanner');
-            const errorBanner         = document.getElementById('analyzeErrorBanner');
-            
-            // Clear previous notification state
-            limitBanner.classList.add('hidden');
-            errorBanner.classList.add('hidden');
-
-            if (!chatLog) {
-                document.getElementById('analyzeErrorText').innerText = 'Please paste some text lines to analyze.';
-                errorBanner.classList.remove('hidden');
-                track('analyze_clicked_empty');
-                return;
-            }
-
-            track('analyze_started', {
-                char_count: chatLog.length,
-                word_count: chatLog.split(/\s+/).filter(Boolean).length
-            });
-
-            analyzeBtn.disabled  = true;
-            analyzeBtn.innerText = 'Reading through your conversation...';
-            resultSection.classList.add('hidden');
-            emptyState.classList.remove('hidden');
-            modelBadge.classList.add('hidden');
-            deleteSuccessBanner.classList.add('hidden');
-            document.querySelector('#analyzeBtn + p').classList.add('hidden');
-            chatInputElem.classList.remove('animate-text-fade');
-            profileContainer.innerHTML = '';
-
-            let isLimitReached = false;
-            const analyzeStart = Date.now();
-
-            try {
-                const response = await fetch("/api/analyze", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ chatLog, userId: currentUserId })
-                });
-
-                const data = await response.json();
-
-                // Graceful inline limit handling
-                if (response.status === 403 && data.error === 'usage_limit_reached') {
-                    isLimitReached = true;
-                    document.getElementById('analyzeLimitText').innerText = data.message || "You've used all of your analyses.";
-                    limitBanner.classList.remove('hidden');
-                    emptyState.classList.remove('hidden');
-                    track('analyze_limit_reached');
-                    return; 
-                }
-
-                if (!response.ok) throw new Error(data.error || 'Could not process text.');
-
-                const duration_ms = Date.now() - analyzeStart;
-
-                chatInputElem.classList.add('animate-text-fade');
-                
-                setTimeout(() => {
-                    chatInputElem.value = '';
-                    chatInputElem.classList.remove('animate-text-fade');
-                    const toast = document.getElementById('deleteToast');
-                    if (toast) {
-                        toast.classList.add('show');
-                        setTimeout(() => toast.classList.remove('show'), 3000);
-                    }
-                }, 800);
-
-                if (document.getElementById('modelNameText')) {
-                    document.getElementById('modelNameText').innerText = "Active Connection";
-                }
-                modelBadge.classList.remove('hidden');
-
-                const scores = data.analytics;
-                latestAnalytics = scores;
-
-                track('analyze_completed', {
-                    duration_ms,
-                    bond_strength:        scores.bond_strength,
-                    toxicity:             scores.toxicity,
-                    bond_positivity:      scores.bond_positivity,
-                    conflict_resolution:  scores.conflict_resolution,
-                    safety_trust:         scores.safety_trust,
-                    relationship_dynamics: scores.relationship_dynamics,
-                    profile_count:        (scores.profiles || []).length
-                });
-
-                /* Reset email panel for new report */
-                activeRecipientOption = null;
-                ['Me', 'Partner', 'Both'].forEach(o => {
-                    const el = document.getElementById('opt' + o);
-                    if (el) { el.style.cssText = ''; }
-                });
-                document.getElementById('emailInputs').classList.add('hidden');
-                document.getElementById('selfInputWrap').classList.add('hidden');
-                document.getElementById('partnerInputWrap').classList.add('hidden');
-                document.getElementById('emailSelf').value    = '';
-                document.getElementById('emailPartner').value = '';
-                document.getElementById('emailSuccessBanner').classList.add('hidden');
-                document.getElementById('emailErrorBanner').classList.add('hidden');
-
-                const collapsed = document.getElementById('emailCollapsed');
-                const expanded  = document.getElementById('emailExpanded');
-                const chevron   = document.getElementById('emailChevron');
-                collapsed.classList.remove('rounded-b-none');
-                collapsed.onclick = expandEmailPanel;
-                expanded.classList.add('hidden');
-                chevron.style.transform = '';
-
-                const emailBtn = document.getElementById('emailReportBtn');
-                if (emailBtn) {
-                    emailBtn.disabled    = false;
-                    emailBtn.innerText   = 'Send Report';
-                    emailBtn.style.cssText = '';
-                    emailBtn.className   = 'w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs';
-                }
-                
-                document.getElementById('bondStrengthMeter').innerText = scores.bond_strength || '0%';
-                document.getElementById('bondStrengthReason').innerText = scores.bond_strength_reason ? `"${scores.bond_strength_reason}"` : '';
-                document.getElementById('positivityVal').innerText   = scores.bond_positivity || '--';
-                document.getElementById('positivityReason').innerText = scores.bond_positivity_reason || '';
-                document.getElementById('conflictVal').innerText     = scores.conflict_resolution || '--';
-                document.getElementById('conflictReason').innerText  = scores.conflict_resolution_reason || '';
-                document.getElementById('safetyVal').innerText       = scores.safety_trust || '--';
-                document.getElementById('safetyReason').innerText    = scores.safety_trust_reason || '';
-                document.getElementById('dynamicsVal').innerText     = scores.relationship_dynamics || '--';
-                document.getElementById('dynamicsReason').innerText  = scores.relationship_dynamics_reason || '';
-                document.getElementById('toxicityVal').innerText     = scores.toxicity || '--';
-                document.getElementById('toxicityReason').innerText  = scores.toxicity_reason || '';
-                document.getElementById('summaryText').innerText     = scores.summary ? `"${scores.summary}"` : '';
-                
-                // Unified reliable animation trigger for Macro bars
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        const setMacroWidth = (id, val) => {
-                            const el = document.getElementById(id);
-                            if (el) el.style.width = (parseInt(val) || 0) + '%';
-                        };
-                        setMacroWidth('positivityBar', scores.bond_positivity);
-                        setMacroWidth('conflictBar',   scores.conflict_resolution);
-                        setMacroWidth('safetyBar',     scores.safety_trust);
-                        setMacroWidth('dynamicsBar',   scores.relationship_dynamics);
-                        setMacroWidth('toxicityBar',   scores.toxicity);
-                    });
-                });
-
-                if (scores.profiles && Array.isArray(scores.profiles)) {
-                    scores.profiles.forEach((user, idx) => {
-                        const profileCard = document.createElement('div');
-                        profileCard.className = "bg-[#FAF9F5]/50 border border-stone-200/60 rounded-xl p-5 shadow-3xs flex flex-col justify-between space-y-4";
-                        
-                        const runId = Date.now();
-                        const attachId = `p${idx}-attach-${runId}`;
-                        const regId    = `p${idx}-reg-${runId}`;
-                        const recepId  = `p${idx}-recep-${runId}`;
-                        const accId    = `p${idx}-acc-${runId}`;
-
-                        const actionsHtml = (user.actionables || []).map(action => `
-                            <li class="flex items-start gap-2.5 text-xs text-stone-600 bg-white p-2.5 rounded border border-stone-200/40 font-light shadow-3xs">
-                                <span class="text-stone-400 font-mono mt-0.5">→</span>
-                                <span>${action}</span>
-                            </li>
-                        `).join('');
-
-                        profileCard.innerHTML = `
-                            <div class="space-y-4">
-                                <div class="border-b border-stone-200/40 pb-2">
-                                    <span class="text-[9px] uppercase font-bold tracking-widest text-stone-400 block">Personal Style</span>
-                                    <h5 class="text-base font-normal font-serif text-stone-900 mt-0.5">${user.name}</h5>
-                                </div>
-                                <div class="space-y-4">
-                                    <div class="space-y-1">
-                                        <div class="flex justify-between items-center text-xs">
-                                            <span class="font-medium text-stone-700 tracking-wide">Calmness & Security</span>
-                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.attachment_security || '0%'}</span>
-                                        </div>
-                                        <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden">
-                                            <div id="${attachId}" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
-                                        </div>
-                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.attachment_security_reason || ''}</p>
-                                    </div>
-                                    <div class="space-y-1">
-                                        <div class="flex justify-between items-center text-xs">
-                                            <span class="font-medium text-stone-700 tracking-wide">Managing Frustration</span>
-                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.emotional_regulation || '0%'}</span>
-                                        </div>
-                                        <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden">
-                                            <div id="${regId}" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
-                                        </div>
-                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.emotional_regulation_reason || ''}</p>
-                                    </div>
-                                    <div class="space-y-1">
-                                        <div class="flex justify-between items-center text-xs">
-                                            <span class="font-medium text-stone-700 tracking-wide">Willingness to Listen</span>
-                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.receptivity || '0%'}</span>
-                                        </div>
-                                        <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden">
-                                            <div id="${recepId}" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
-                                        </div>
-                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.receptivity_reason || ''}</p>
-                                    </div>
-                                    <div class="space-y-1">
-                                        <div class="flex justify-between items-center text-xs">
-                                            <span class="font-medium text-stone-700 tracking-wide">Owning Personal Errors</span>
-                                            <span class="font-mono text-stone-500 font-medium text-[11px]">${user.accountability || '0%'}</span>
-                                        </div>
-                                        <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden">
-                                            <div id="${accId}" class="custom-transition bg-stone-950 h-full" style="width: 0%"></div>
-                                        </div>
-                                        <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.accountability_reason || ''}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="space-y-2 pt-3 border-t border-stone-200/40">
-                                <span class="text-[10px] uppercase font-bold tracking-wider text-stone-400 block">Easy Next Steps</span>
-                                <ul class="space-y-1.5">${actionsHtml}</ul>
-                            </div>
-                        `;
-                        profileContainer.appendChild(profileCard);
-
-                        requestAnimationFrame(() => {
-                            requestAnimationFrame(() => {
-                                const setWidth = (id, val) => {
-                                    const el = document.getElementById(id);
-                                    if (el) el.style.width = (parseInt(val) || 0) + '%';
-                                };
-                                setWidth(attachId, user.attachment_security);
-                                setWidth(regId,    user.emotional_regulation);
-                                setWidth(recepId,  user.receptivity);
-                                setWidth(accId,    user.accountability);
-                            });
-                        });
-                    });
-                }
-
-                emptyState.classList.add('hidden');
-                resultSection.classList.remove('hidden');
-                resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-                const inviteSection = document.getElementById('inviteSection');
-                inviteSection.classList.remove('hidden');
-                inviteSection.classList.add('invite-reveal');
-
-            } catch (err) {
-                document.getElementById('analyzeErrorText').innerText = err.message || 'Could not complete analysis right now.';
-                errorBanner.classList.remove('hidden');
-                track('analyze_error', { error: err.message });
-            } finally {
-                if (!isLimitReached) {
-                    analyzeBtn.disabled  = false;
-                    analyzeBtn.innerText = 'Analyze Conversation';
-                } else {
-                    analyzeBtn.disabled  = true;
-                    analyzeBtn.innerText = 'Analysis Limit Reached';
-                    analyzeBtn.className = 'w-full bg-stone-300 text-stone-500 font-medium py-3.5 px-6 rounded-xl cursor-not-allowed text-xs tracking-[0.12em] uppercase shadow-xs';
-                }
-            }
-        }
-
-        /* ── Canvas Generation Helper (Self-Correcting Text Wrapping) ── */
-        async function generateIdCardCanvas(summaryText) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 1080;
-            canvas.height = 1350;
-            const ctx = canvas.getContext('2d');
-
-            ctx.fillStyle = '#1c1917';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.save();
-            ctx.translate(canvas.width - 220, 240);
-            ctx.fillStyle = 'rgba(120, 113, 108, 0.08)'; 
-            ctx.font = 'italic 380px Georgia, serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('♥', 0, 0);
-            ctx.restore();
-
-            ctx.fillStyle = '#a8a29e'; 
-            ctx.font = '600 24px "Plus Jakarta Sans", sans-serif';
-            ctx.letterSpacing = '10px';
-            ctx.textAlign = 'center';
-            ctx.fillText('YOUR TRUVAH ID CARD', canvas.width / 2, 210);
-
-            ctx.strokeStyle = 'rgba(120, 113, 108, 0.15)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(180, 280);
-            ctx.lineTo(canvas.width - 180, 280);
-            ctx.stroke();
-
-            const charCount = summaryText.length;
-            let fontSize = 42;
-            let lineHeight = 64;
-
-            if (charCount > 450) {
-                fontSize = 28;
-                lineHeight = 44;
-            } else if (charCount > 300) {
-                fontSize = 32;
-                lineHeight = 50;
-            } else if (charCount > 200) {
-                fontSize = 36;
-                lineHeight = 56;
-            }
-
-            ctx.font = `italic 300 ${fontSize}px "Playfair Display", Georgia, serif`;
-            ctx.textAlign = 'center';
-
-            const textMaxWidth = 760;
-            const words = summaryText.replace(/^"|"$/g, '').split(' ');
-            const lines = [];
-            let currentLine = '';
-
-            for (let n = 0; n < words.length; n++) {
-                let testLine = currentLine + words[n] + ' ';
-                let metrics = ctx.measureText(testLine);
-                if (metrics.width > textMaxWidth && n > 0) {
-                    lines.push(currentLine.trim());
-                    currentLine = words[n] + ' ';
-                } else {
-                    currentLine = testLine;
-                }
-            }
-            lines.push(currentLine.trim());
-
-            const totalTextHeight = lines.length * lineHeight;
-            const areaMidpoint = 745;
-            const yStart = areaMidpoint - (totalTextHeight / 2);
-
-            ctx.fillStyle = '#78716c';
-            ctx.font = 'italic 300 120px Georgia, serif';
-            ctx.fillText('"', canvas.width / 2, yStart - 30);
-
-            ctx.fillStyle = '#faf9f5';
-            ctx.font = `italic 300 ${fontSize}px "Playfair Display", Georgia, serif`;
-            for (let i = 0; i < lines.length; i++) {
-                ctx.fillText(lines[i], canvas.width / 2, yStart + (i * lineHeight) + (lineHeight / 2));
-            }
-
-            ctx.fillStyle = '#78716c';
-            ctx.font = 'italic 300 120px Georgia, serif';
-            ctx.fillText('"', canvas.width / 2, yStart + totalTextHeight + 90);
-
-            ctx.fillStyle = '#78716c'; 
-            ctx.font = '600 20px "Plus Jakarta Sans", sans-serif';
-            ctx.letterSpacing = '5px';
-            ctx.fillText('GET YOUR ID CARD ON ASKTRUVAH.COM', canvas.width / 2, canvas.height - 120);
-
-            return canvas;
-        }
-
-        /* ── Share Truvah ID Card as Image ── */
-        async function shareAsImage() {
-            const summaryText = document.getElementById('summaryText').innerText;
-            if (!summaryText) return;
-
-            track('share_image_clicked');
-
-            const canvas = await generateIdCardCanvas(summaryText);
-
-            canvas.toBlob(async (blob) => {
-                if (!blob) return;
-                const file = new File([blob], 'truvah-id-card.png', { type: 'image/png' });
-
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try {
-                        await navigator.share({
-                            files: [file],
-                            title: 'My Truvah ID Card',
-                            text: 'Yayy!'
-                        });
-                        track('share_image_success', { method: 'native_share' });
-                    } catch (shareErr) {
-                        if (shareErr.name !== 'AbortError') {
-                            downloadFallback(blob);
-                            track('share_image_success', { method: 'download_fallback' });
-                        } else {
-                            track('share_image_aborted');
-                        }
-                    }
-                } else {
-                    downloadFallback(blob);
-                    track('share_image_success', { method: 'download_fallback' });
-                }
-            }, 'image/png');
-        }
-
-        function downloadFallback(blob) {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'truvah-id-card.png';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        /* ── Share to Instagram (Direct Image Web Share) ── */
-        async function shareToInstagram() {
-            const summaryText = document.getElementById('summaryText').innerText;
-            if (!summaryText) return;
-
-            track('share_instagram_clicked');
-
-            const canvas = await generateIdCardCanvas(summaryText);
-            
-            canvas.toBlob(async (blob) => {
-                if (!blob) return;
-                const file = new File([blob], 'truvah-id-card.png', { type: 'image/png' });
-
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try {
-                        await navigator.share({
-                            files: [file],
-                            title: 'Here is my Truvah ID Card',
-                            text: 'Get your ID card at asktruvah.com'
-                        });
-                        track('share_instagram_success', { method: 'native_share' });
-                    } catch (shareErr) {
-                        if (shareErr.name !== 'AbortError') {
-                            downloadFallback(blob);
-                            track('share_instagram_success', { method: 'download_fallback' });
-                        } else {
-                            track('share_instagram_aborted');
-                        }
-                    }
-                } else {
-                    downloadFallback(blob);
-                    showInstagramFallbackToast();
-                    track('share_instagram_success', { method: 'download_fallback_desktop' });
-                }
-            }, 'image/png');
-        }
-
-        function showInstagramFallbackToast() {
-            const toast = document.getElementById('toastNotification');
-            if (!toast) return;
-            toast.classList.remove('hidden');
-            setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 6000);
-        }
-
-        /* ── Share Direct to WhatsApp ── */
-        function shareToWhatsApp() {
-            const summaryText = document.getElementById('summaryText').innerText;
-            if (!summaryText) return;
-            track('share_whatsapp_clicked');
-            const shareUrl = "https://asktruvah.com";
-            const text = encodeURIComponent(`Here is my Truvah ID Card:\n\n${summaryText}\n\nUncover your truth here: ${shareUrl}`);
-            window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
-        }
-
-        /* ── Copy Truvah ID Card Text ── */
-        function copyCardText() {
-            const summaryText = document.getElementById('summaryText').innerText;
-            if (!summaryText) return;
-            track('share_copy_text_clicked');
-            navigator.clipboard.writeText(summaryText.replace(/^"|"$/g, ''))
-                .then(() => {
-                    track('share_copy_text_success');
-                    const btn = document.getElementById('copyBtn');
-                    const originalText = btn.innerHTML;
-                    btn.innerHTML = 'Copied!';
-                    setTimeout(() => { btn.innerHTML = originalText; }, 2000);
-                });
-        }
-    </script>
+/* ══ CANVAS / SHARE — unchanged ══ */
+async function generateIdCardCanvas(summaryText){
+    const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1350;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#1c1917';ctx.fillRect(0,0,1080,1350);
+    ctx.save();ctx.translate(860,240);ctx.fillStyle='rgba(120,113,108,0.08)';ctx.font='italic 380px Georgia,serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('♥',0,0);ctx.restore();
+    ctx.fillStyle='#a8a29e';ctx.font='600 24px "Plus Jakarta Sans",sans-serif';ctx.letterSpacing='10px';ctx.textAlign='center';ctx.fillText('YOUR TRUVAH ID CARD',540,210);
+    ctx.strokeStyle='rgba(120,113,108,0.15)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(180,280);ctx.lineTo(900,280);ctx.stroke();
+    const cc=summaryText.length;let fs=42,lh=64;
+    if(cc>450){fs=28;lh=44;}else if(cc>300){fs=32;lh=50;}else if(cc>200){fs=36;lh=56;}
+    ctx.font=`italic 300 ${fs}px "Playfair Display",Georgia,serif`;ctx.textAlign='center';
+    const words=summaryText.replace(/^"|"$/g,'').split(' ');const lines=[];let cl='';
+    for(let n=0;n<words.length;n++){let tl=cl+words[n]+' ';if(ctx.measureText(tl).width>760&&n>0){lines.push(cl.trim());cl=words[n]+' ';}else cl=tl;}
+    lines.push(cl.trim());
+    const th=lines.length*lh,ys=745-(th/2);
+    ctx.fillStyle='#78716c';ctx.font='italic 300 120px Georgia,serif';ctx.fillText('"',540,ys-30);
+    ctx.fillStyle='#faf9f5';ctx.font=`italic 300 ${fs}px "Playfair Display",Georgia,serif`;
+    for(let i=0;i<lines.length;i++)ctx.fillText(lines[i],540,ys+(i*lh)+(lh/2));
+    ctx.fillStyle='#78716c';ctx.font='italic 300 120px Georgia,serif';ctx.fillText('"',540,ys+th+90);
+    ctx.fillStyle='#78716c';ctx.font='600 20px "Plus Jakarta Sans",sans-serif';ctx.letterSpacing='5px';ctx.fillText('GET YOUR ID CARD ON ASKTRUVAH.COM',540,1230);
+    return canvas;
+}
+async function shareAsImage(){
+    const st=document.getElementById('summaryText').innerText;if(!st)return;track('share_image_clicked');
+    const canvas=await generateIdCardCanvas(st);
+    canvas.toBlob(async(blob)=>{if(!blob)return;const file=new File([blob],'truvah-id-card.png',{type:'image/png'});
+        if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:'My Truvah ID Card',text:'Yayy!'});track('share_image_success',{method:'native_share'});}catch(e){if(e.name!=='AbortError'){downloadFallback(blob);track('share_image_success',{method:'download_fallback'});}else track('share_image_aborted');}}
+        else{downloadFallback(blob);track('share_image_success',{method:'download_fallback'});}
+    },'image/png');
+}
+function downloadFallback(blob){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='truvah-id-card.png';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
+async function shareToInstagram(){
+    const st=document.getElementById('summaryText').innerText;if(!st)return;track('share_instagram_clicked');
+    const canvas=await generateIdCardCanvas(st);
+    canvas.toBlob(async(blob)=>{if(!blob)return;const file=new File([blob],'truvah-id-card.png',{type:'image/png'});
+        if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:'Here is my Truvah ID Card',text:'Get your ID card at asktruvah.com'});track('share_instagram_success',{method:'native_share'});}catch(e){if(e.name!=='AbortError'){downloadFallback(blob);track('share_instagram_success',{method:'download_fallback'});}else track('share_instagram_aborted');}}
+        else{downloadFallback(blob);showInstagramFallbackToast();track('share_instagram_success',{method:'download_fallback_desktop'});}
+    },'image/png');
+}
+function showInstagramFallbackToast(){const t=document.getElementById('toastNotification');if(!t)return;t.classList.remove('hidden');setTimeout(()=>t.classList.add('hidden'),6000);}
+function shareToWhatsApp(){const st=document.getElementById('summaryText').innerText;if(!st)return;track('share_whatsapp_clicked');const tx=encodeURIComponent(`Here is my Truvah ID Card:\n\n${st}\n\nUncover your truth here: https://asktruvah.com`);window.open(`https://api.whatsapp.com/send?text=${tx}`,'_blank');}
+function copyCardText(){const st=document.getElementById('summaryText').innerText;if(!st)return;track('share_copy_text_clicked');navigator.clipboard.writeText(st.replace(/^"|"$/g,'')).then(()=>{track('share_copy_text_success');const btn=document.getElementById('copyBtn');const orig=btn.innerHTML;btn.innerHTML='Copied!';setTimeout(()=>{btn.innerHTML=orig;},2000);});}
+</script>
 </body>
 </html>
