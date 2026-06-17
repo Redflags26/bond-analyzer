@@ -112,7 +112,7 @@
                 🔒 your chats are deleted instantly
             </div>
             <h2 class="text-3xl md:text-4xl font-normal text-stone-900 tracking-tight leading-[1.15] serif-font">
-                What is your conversation<br><span class="italic text-stone-500">really telling you?</span>
+                What is this relationship<br><span class="italic text-stone-500">really telling you?</span>
             </h2>
             <p class="text-stone-500 text-sm font-light leading-relaxed">
                 Paste the conversation that's been bothering you, or simply describe what happened in your own words.
@@ -161,7 +161,7 @@
 
             <div class="flex items-start gap-2 bg-emerald-50/40 border border-emerald-200/40 rounded-xl px-3.5 py-2.5">
                 <span class="text-emerald-600 text-xs mt-0.5">🔒</span>
-                <p class="text-[11px] text-stone-600 font-light leading-relaxed">Conversations are deleted instantly — nothing is stored.</p>
+                <p class="text-[11px] text-stone-600 font-light leading-relaxed">Every conversation is deleted immediately after your snapshot is generated — nothing is stored, nothing is kept.</p>
             </div>
 
             <div id="deleteSuccessBanner" class="hidden bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
@@ -198,7 +198,7 @@
         <div id="emptyState" class="bg-white border border-stone-200/40 rounded-2xl p-12 text-center text-stone-400 font-light text-sm shadow-xs flex flex-col items-center justify-center flex-1 min-h-[350px]">
             <div class="text-2xl mb-2">✨</div>
             <p class="font-serif italic text-stone-500 text-base mb-1">Your Analysis Will Appear Here</p>
-            <p class="text-xs max-w-xs leading-relaxed">Paste your conversation on the left, or try one of the examples above, to see your full analysis.</p>
+            <p class="text-xs max-w-xs leading-relaxed">Paste your conversation on the left, or try one of the examples above, to see your full relationship breakdown.</p>
         </div>
 
         <!-- Real result section -->
@@ -228,7 +228,7 @@
             <div id="lockedContent" class="space-y-8">
 
                 <div class="space-y-4">
-                    <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Interpersonal Snapshot</h4>
+                    <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Relationship Snapshot</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
                             <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">General Warmth & Kindness</span><span id="positivityVal" class="text-xs font-mono text-stone-500">--</span></div>
@@ -260,7 +260,7 @@
 
                 <div class="space-y-4 border-t border-stone-100 pt-6">
                     <div class="space-y-0.5">
-                        <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Personality Breakdown</h4>
+                        <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Personal Communication Styles</h4>
                         <p class="text-xs text-stone-500 font-light">See how each person handled the conversation and reacted during tense moments.</p>
                     </div>
                     <div id="profileContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
@@ -318,12 +318,12 @@
                                 <div id="partnerInputWrap" class="hidden input-reveal">
                                     <input id="emailPartner" type="email" placeholder="partner@email.com" class="w-full px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
                                 </div>
-                                <button id="emailReportBtn" onclick="emailReport()" class="w-full bg-[#FAF9F5] hover:bg-white text-stone-950 font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs">Send Report</button>
+                                <button id="emailReportBtn" onclick="emailReport()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs">Send Report</button>
                             </div>
-                            <div id="emailSuccessBanner" class="hidden animate-banner-slide bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
-                                <span class="text-emerald-400">✓</span><span id="emailSuccessText">Report sent!</span>
+                            <div id="emailSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                                <span class="text-emerald-500">✓</span><span id="emailSuccessText">Report sent!</span>
                             </div>
-                            <div id="emailErrorBanner" class="hidden bg-red-500/10 border border-red-500/30 text-red-300 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                            <div id="emailErrorBanner" class="hidden bg-red-50/50 border border-red-200/50 text-red-700 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
                                 <span>✕</span><span id="emailErrorText">Something went wrong.</span>
                             </div>
                         </div>
@@ -537,7 +537,7 @@ function selectOpt(option){
     activeRecipientOption=option;
     ['me','partner','both'].forEach(o=>{
         const el=document.getElementById('opt'+o.charAt(0).toUpperCase()+o.slice(1));el.style.cssText='';
-        if(o===option){el.style.borderColor='#fafaf9';el.style.background='#fafaf9';el.style.color='#1c1917';el.style.fontWeight='600';}
+        if(o===option){el.style.borderColor='#1c1917';el.style.background='#1c1917';el.style.color='#fafaf9';el.style.fontWeight='600';}
     });
     const iw=document.getElementById('emailInputs'),sw=document.getElementById('selfInputWrap'),pw=document.getElementById('partnerInputWrap');
     iw.classList.remove('hidden');
@@ -556,6 +556,9 @@ async function emailReport(){
     if(pe&&!EMAIL_REGEX.test(pe)){document.getElementById('emailErrorText').innerText="Your partner's email looks invalid.";eb.classList.remove('hidden');return;}
     const recipients=[se,pe].filter(Boolean);
     const btn=document.getElementById('emailReportBtn');btn.disabled=true;btn.innerText='Sending...';
+    recipients.forEach(r=>{
+        fetch('/api/request-without-invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:r})}).catch(()=>{});
+    });
     try{
         const res=await fetch('/api/send-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipients,analytics:latestAnalytics})});
         const result=await res.json();if(!res.ok)throw new Error(result.error||'Email sending failed');
