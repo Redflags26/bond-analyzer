@@ -169,6 +169,19 @@
                 <span>Your text has been completely cleared and deleted from this session.</span>
             </div>
 
+            <!-- ══ Inline email-gate step (shown before 2nd analysis) ══ -->
+            <div id="emailGateStep" class="hidden space-y-3 bg-stone-50 border border-stone-200/60 rounded-xl p-4">
+                <div class="flex items-start gap-2.5">
+                    <span class="text-stone-500 text-sm mt-0.5">✉️</span>
+                    <div>
+                        <p class="text-xs font-medium text-stone-700 leading-relaxed">One quick thing before your next analysis</p>
+                        <p class="text-[11px] text-stone-500 font-light leading-relaxed mt-0.5">Share your email so we can keep your experience personalized — we'll use it to let you know as we roll out more access.</p>
+                    </div>
+                </div>
+                <input id="gateAnalyzeEmail" type="email" placeholder="your@email.com" class="w-full px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
+                <p id="gateAnalyzeError" class="hidden text-[11px] text-red-500 font-light"></p>
+            </div>
+
             <button id="analyzeBtn" onclick="analyzeChat()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3.5 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-3 text-xs tracking-[0.12em] uppercase shadow-xs">
                 Analyze Conversation
             </button>
@@ -387,6 +400,7 @@ const EMAIL_REGEX=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 let latestAnalytics=null,activeRecipientOption=null,currentUserId=null,currentInviteCount=0;
 const MAX_SESSION_ANALYSES=2;
 let sessionAnalysisCount=parseInt(sessionStorage.getItem('truvah_analysis_count')||'0',10);
+let emailGateSatisfied=sessionStorage.getItem('truvah_gate_email_done')==='1';
 
 /* Textarea tracking */
 const chatInputEl=document.getElementById('chatInput');
@@ -570,27 +584,59 @@ async function analyzeChat(){
     const ab=document.getElementById('analyzeBtn'),rs=document.getElementById('resultSection'),es=document.getElementById('emptyState');
     const mb=document.getElementById('modelBadge'),pc=document.getElementById('profileContainer');
     const lb=document.getElementById('analyzeLimitBanner'),eb=document.getElementById('analyzeErrorBanner');
-    lb.classList.add('hidden');eb.classList.add('hidden');
+    const gateStep=document.getElementById('emailGateStep'),gateInput=document.getElementById('gateAnalyzeEmail'),gateErr=document.getElementById('gateAnalyzeError');
+    lb.classList.add('hidden');eb.classList.add('hidden');gateErr.classList.add('hidden');
+
     if(sessionAnalysisCount>=MAX_SESSION_ANALYSES){
-        document.getElementById('analyzeLimitText').innerText="You've used both of your analyses for this session.";
+        document.getElementById('analyzeLimitText').innerText="Analysis limit reached for now.";
+        document.getElementById('analyzeLimitBanner').querySelector('span.text-stone-500').innerText="This is a limited-use tool right now — we're increasing the limit soon and will let you know. Come back soon!";
         lb.classList.remove('hidden');es.classList.remove('hidden');track('analyze_blocked_client_limit');return;
     }
     if(!chatLog){document.getElementById('analyzeErrorText').innerText='Please paste some text or describe the situation first.';eb.classList.remove('hidden');track('analyze_clicked_empty');return;}
+
+    /* On the 2nd analysis, require email first (once per session) before proceeding */
+    let gateEmail=null;
+    if(sessionAnalysisCount===1&&!emailGateSatisfied){
+        if(gateStep.classList.contains('hidden')){
+            gateStep.classList.remove('hidden');gateStep.classList.add('input-reveal');
+            ab.innerText='Submit & Generate';
+            gateInput.focus();
+            track('analyze_email_gate_shown');
+            return;
+        }
+        gateEmail=gateInput.value.trim();
+        if(!gateEmail||!EMAIL_REGEX.test(gateEmail)){
+            gateErr.innerText='Please enter a valid email address to continue.';gateErr.classList.remove('hidden');
+            track('analyze_email_gate_validation_failed');return;
+        }
+        track('analyze_email_gate_submitted');
+    }
+
     track('analyze_started',{char_count:chatLog.length,word_count:chatLog.split(/\s+/).filter(Boolean).length});
     ab.disabled=true;ab.innerText='Reading through your conversation...';
     rs.classList.add('hidden');es.classList.remove('hidden');mb.classList.add('hidden');
     document.getElementById('deleteSuccessBanner').classList.add('hidden');
     cie.classList.remove('animate-text-fade');pc.innerHTML='';
+
+    /* Fire-and-forget email registration (does not send an email, just records it) */
+    if(gateEmail){
+        fetch('/api/request-without-invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:gateEmail})}).catch(()=>{});
+    }
+
     let isLimitReached=false;const t0=Date.now();
     try{
         const response=await fetch("/api/analyze",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chatLog,userId:currentUserId})});
         const data=await response.json();
         if(response.status===403&&data.error==='usage_limit_reached'){
-            isLimitReached=true;document.getElementById('analyzeLimitText').innerText=data.message||"You've used all of your analyses.";
+            isLimitReached=true;
+            document.getElementById('analyzeLimitText').innerText="Analysis limit reached for now.";
+            document.getElementById('analyzeLimitBanner').querySelector('span.text-stone-500').innerText=data.message||"This is a limited-use tool right now — we're increasing the limit soon and will let you know. Come back soon!";
             lb.classList.remove('hidden');es.classList.remove('hidden');track('analyze_limit_reached');return;
         }
         if(!response.ok)throw new Error(data.error||'Could not process text.');
         sessionAnalysisCount++;sessionStorage.setItem('truvah_analysis_count',String(sessionAnalysisCount));
+        if(gateEmail){emailGateSatisfied=true;sessionStorage.setItem('truvah_gate_email_done','1');}
+        gateStep.classList.add('hidden');gateInput.value='';
         track('analyze_completed',{duration_ms:Date.now()-t0,bond_strength:data.analytics.bond_strength,toxicity:data.analytics.toxicity,profile_count:(data.analytics.profiles||[]).length});
         cie.classList.add('animate-text-fade');
         setTimeout(()=>{cie.value='';cie.classList.remove('animate-text-fade');},800);
@@ -635,7 +681,10 @@ async function analyzeChat(){
         document.getElementById('analyzeErrorText').innerText=err.message||'Could not complete analysis right now.';
         eb.classList.remove('hidden');track('analyze_error',{error:err.message});
     }finally{
-        if(!isLimitReached){ab.disabled=false;ab.innerText='Analyze Conversation';}
+        if(!isLimitReached){
+            ab.disabled=false;
+            ab.innerText=(sessionAnalysisCount>=1&&sessionAnalysisCount<MAX_SESSION_ANALYSES&&!emailGateSatisfied)?'Analyze Conversation':'Analyze Conversation';
+        }
         else{ab.disabled=true;ab.innerText='Analysis Limit Reached';ab.className='w-full bg-stone-300 text-stone-500 font-medium py-3.5 px-6 rounded-xl cursor-not-allowed text-xs tracking-[0.12em] uppercase shadow-xs';}
     }
 }
