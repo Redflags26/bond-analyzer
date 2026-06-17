@@ -318,12 +318,12 @@
                                 <div id="partnerInputWrap" class="hidden input-reveal">
                                     <input id="emailPartner" type="email" placeholder="partner@email.com" class="w-full px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
                                 </div>
-                                <button id="emailReportBtn" onclick="emailReport()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs">Send Report</button>
+                                <button id="emailReportBtn" onclick="emailReport()" class="w-full bg-[#FAF9F5] hover:bg-white text-stone-950 font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs">Send Report</button>
                             </div>
-                            <div id="emailSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
-                                <span class="text-emerald-500">✓</span><span id="emailSuccessText">Report sent!</span>
+                            <div id="emailSuccessBanner" class="hidden animate-banner-slide bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                                <span class="text-emerald-400">✓</span><span id="emailSuccessText">Report sent!</span>
                             </div>
-                            <div id="emailErrorBanner" class="hidden bg-red-50/50 border border-red-200/50 text-red-700 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                            <div id="emailErrorBanner" class="hidden bg-red-500/10 border border-red-500/30 text-red-300 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
                                 <span>✕</span><span id="emailErrorText">Something went wrong.</span>
                             </div>
                         </div>
@@ -537,7 +537,7 @@ function selectOpt(option){
     activeRecipientOption=option;
     ['me','partner','both'].forEach(o=>{
         const el=document.getElementById('opt'+o.charAt(0).toUpperCase()+o.slice(1));el.style.cssText='';
-        if(o===option){el.style.borderColor='#1c1917';el.style.background='#1c1917';el.style.color='#fafaf9';el.style.fontWeight='600';}
+        if(o===option){el.style.borderColor='#fafaf9';el.style.background='#fafaf9';el.style.color='#1c1917';el.style.fontWeight='600';}
     });
     const iw=document.getElementById('emailInputs'),sw=document.getElementById('selfInputWrap'),pw=document.getElementById('partnerInputWrap');
     iw.classList.remove('hidden');
