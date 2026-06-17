@@ -161,7 +161,7 @@
 
             <div class="flex items-start gap-2 bg-emerald-50/40 border border-emerald-200/40 rounded-xl px-3.5 py-2.5">
                 <span class="text-emerald-600 text-xs mt-0.5">🔒</span>
-                <p class="text-[11px] text-stone-600 font-light leading-relaxed">Conversations are deleted immediately — nothing is stored.</p>
+                <p class="text-[11px] text-stone-600 font-light leading-relaxed">Conversations are deleted instantly — nothing is stored.</p>
             </div>
 
             <div id="deleteSuccessBanner" class="hidden bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
@@ -228,7 +228,7 @@
             <div id="lockedContent" class="space-y-8">
 
                 <div class="space-y-4">
-                    <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Relationship Snapshot</h4>
+                    <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Interpersonal Snapshot</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
                             <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">General Warmth & Kindness</span><span id="positivityVal" class="text-xs font-mono text-stone-500">--</span></div>
@@ -260,7 +260,7 @@
 
                 <div class="space-y-4 border-t border-stone-100 pt-6">
                     <div class="space-y-0.5">
-                        <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Personal Communication Styles</h4>
+                        <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Personality Breakdown</h4>
                         <p class="text-xs text-stone-500 font-light">See how each person handled the conversation and reacted during tense moments.</p>
                     </div>
                     <div id="profileContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
@@ -403,11 +403,11 @@ chatInputEl.addEventListener('paste',()=>track('textarea_pasted'));
 
 /* ══ SAMPLES ══ */
 const SAMPLES={
-    argument:`Ankit: I can't believe you did that again. We've talked about this so many times.\nAnkita: I forgot, okay? It wasn't intentional.\nAnkit: That's what you always say. It feels like I'm not a priority to you.\nAnkita: That's not fair. I do a lot for this relationship.\nAnkit: Then why does it always fall on me to remind you about things that matter to me?\nAnkita: I'm trying. Can you stop making me feel like I'm constantly failing?\nAnkit: I'm not trying to make you feel that way. I just need you to actually follow through.\nAnkita: Fine. I'll try harder. But I need you to stop keeping score.`,
-    signals:`Ankit: Hey, you've been a bit quiet lately. Everything okay?\nAnkita: Yeah just busy with work stuff.\nAnkit: Okay... you seemed off the other night too.\nAnkita: I'm fine, don't overthink it.\nAnkit: I'm not overthinking, I just noticed a change.\nAnkita: There's no change. You always do this.\nAnkit: Do what? Try to talk to you?\nAnkita: Make everything into something bigger than it is.\nAnkit: I just miss you. That's all.\nAnkita: I'm right here.`,
-    distance:`Ankit: Can we talk tonight?\nAnkita: About what?\nAnkit: I feel like we haven't really connected in a while.\nAnkita: I've just had a lot on my mind.\nAnkit: Can you share what's going on?\nAnkita: Not really, it's nothing.\nAnkit: It doesn't feel like nothing. You seem distant.\nAnkita: I just need some space to process things.\nAnkit: How long have you needed space?\nAnkita: I don't know. I'll let you know when I figure it out.\nAnkit: Okay. I just want you to know I'm here.\nAnkita: I know.`,
-    trust:`Ankit: I saw that you were texting late last night.\nAnkita: It was just a friend.\nAnkit: Which friend?\nAnkita: Why are you checking up on me?\nAnkit: I'm not checking up, I'm asking because you were secretive about it.\nAnkita: I'm allowed to have private conversations.\nAnkit: Of course you are. But the way you hid your phone felt off.\nAnkita: I didn't hide it, I just don't need to share everything.\nAnkit: When did we stop being open with each other?\nAnkita: I don't know what you want from me.`,
-    recurring:`Ankit: This is the third time this month we've had this exact fight.\nAnkita: Because you keep bringing it up.\nAnkit: I bring it up because nothing changes.\nAnkita: I've been trying!\nAnkit: It doesn't feel that way from where I'm standing.\nAnkita: What more do you want me to do?\nAnkit: I want you to actually hear me when I tell you something bothers me.\nAnkita: I do hear you.\nAnkit: Then why are we here again?\nAnkita: Maybe because you're never satisfied.\nAnkit: That's not fair and you know it.\nAnkita: Fine. What do you want me to say?`
+    argument:`[12/06, 8:14 pm] Ankit: I can't believe you did that again. We've talked about this so many times.\n[12/06, 8:14 pm] Ankita: I forgot, okay? It wasn't intentional.\n[12/06, 8:15 pm] Ankit: That's what you always say. It feels like I'm not a priority to you.\n[12/06, 8:15 pm] Ankita: That's not fair. I do a lot for this relationship.\n[12/06, 8:16 pm] Ankit: Then why does it always fall on me to remind you about things that matter to me?\n[12/06, 8:16 pm] Ankita: I'm trying. Can you stop making me feel like I'm constantly failing?\n[12/06, 8:17 pm] Ankit: I'm not trying to make you feel that way. I just need you to actually follow through.\n[12/06, 8:17 pm] Ankita: Fine. I'll try harder. But I need you to stop keeping score.`,
+    signals:`[12/06, 9:02 pm] Ankit: Hey, you've been a bit quiet lately. Everything okay?\n[12/06, 9:03 pm] Ankita: Yeah just busy with work stuff.\n[12/06, 9:04 pm] Ankit: Okay... you seemed off the other night too.\n[12/06, 9:04 pm] Ankita: I'm fine, don't overthink it.\n[12/06, 9:05 pm] Ankit: I'm not overthinking, I just noticed a change.\n[12/06, 9:05 pm] Ankita: There's no change. You always do this.\n[12/06, 9:06 pm] Ankit: Do what? Try to talk to you?\n[12/06, 9:06 pm] Ankita: Make everything into something bigger than it is.\n[12/06, 9:07 pm] Ankit: I just miss you. That's all.\n[12/06, 9:07 pm] Ankita: I'm right here.`,
+    distance:`[13/06, 7:40 pm] Ankit: Can we talk tonight?\n[13/06, 7:40 pm] Ankita: About what?\n[13/06, 7:41 pm] Ankit: I feel like we haven't really connected in a while.\n[13/06, 7:42 pm] Ankita: I've just had a lot on my mind.\n[13/06, 7:42 pm] Ankit: Can you share what's going on?\n[13/06, 7:43 pm] Ankita: Not really, it's nothing.\n[13/06, 7:43 pm] Ankit: It doesn't feel like nothing. You seem distant.\n[13/06, 7:44 pm] Ankita: I just need some space to process things.\n[13/06, 7:44 pm] Ankit: How long have you needed space?\n[13/06, 7:45 pm] Ankita: I don't know. I'll let you know when I figure it out.\n[13/06, 7:45 pm] Ankit: Okay. I just want you to know I'm here.\n[13/06, 7:46 pm] Ankita: I know.`,
+    trust:`[14/06, 11:32 pm] Ankit: I saw that you were texting late last night.\n[14/06, 11:33 pm] Ankita: It was just a friend.\n[14/06, 11:33 pm] Ankit: Which friend?\n[14/06, 11:34 pm] Ankita: Why are you checking up on me?\n[14/06, 11:34 pm] Ankit: I'm not checking up, I'm asking because you were secretive about it.\n[14/06, 11:35 pm] Ankita: I'm allowed to have private conversations.\n[14/06, 11:35 pm] Ankit: Of course you are. But the way you hid your phone felt off.\n[14/06, 11:36 pm] Ankita: I didn't hide it, I just don't need to share everything.\n[14/06, 11:36 pm] Ankit: When did we stop being open with each other?\n[14/06, 11:37 pm] Ankita: I don't know what you want from me.`,
+    recurring:`[15/06, 6:05 pm] Ankit: This is the third time this month we've had this exact fight.\n[15/06, 6:05 pm] Ankita: Because you keep bringing it up.\n[15/06, 6:06 pm] Ankit: I bring it up because nothing changes.\n[15/06, 6:06 pm] Ankita: I've been trying!\n[15/06, 6:07 pm] Ankit: It doesn't feel that way from where I'm standing.\n[15/06, 6:07 pm] Ankita: What more do you want me to do?\n[15/06, 6:08 pm] Ankit: I want you to actually hear me when I tell you something bothers me.\n[15/06, 6:08 pm] Ankita: I do hear you.\n[15/06, 6:09 pm] Ankit: Then why are we here again?\n[15/06, 6:09 pm] Ankita: Maybe because you're never satisfied.\n[15/06, 6:10 pm] Ankit: That's not fair and you know it.\n[15/06, 6:10 pm] Ankita: Fine. What do you want me to say?`
 };
 function loadSample(key){
     if(!SAMPLES[key])return;
