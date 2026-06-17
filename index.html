@@ -50,15 +50,6 @@
         .preview-bar-track { width:100%; background:rgba(214,211,209,0.4); height:2px; border-radius:9999px; overflow:hidden; }
         .preview-bar-fill { height:100%; border-radius:9999px; background:#1c1917; }
 
-        /* Locked section blur */
-        .locked-section { position:relative; overflow:hidden; }
-        .locked-section .lock-blur { filter:blur(5px); pointer-events:none; user-select:none; }
-        .lock-overlay {
-            position:absolute; inset:0; display:flex; flex-direction:column;
-            align-items:center; justify-content:center;
-            background:linear-gradient(to bottom, rgba(250,249,245,0.05) 0%, rgba(250,249,245,0.93) 38%);
-            z-index:10; padding:1.5rem; text-align:center;
-        }
     </style>
 </head>
 <body class="bg-[#FAF9F5] text-stone-800 min-h-screen flex flex-col justify-between selection:bg-stone-200 antialiased gated">
@@ -181,7 +172,7 @@
                 Analyze Conversation
             </button>
 
-            <p id="consentLine" class="text-[10px] text-stone-400 font-light text-center leading-relaxed">
+            <p class="text-[10px] text-stone-400 font-light text-center leading-relaxed">
                 By submitting, you confirm you have consent of all parties to analyze this conversation.
             </p>
 
@@ -203,105 +194,80 @@
     <section class="lg:col-span-7 w-full">
 
         <!-- Empty state: example preview -->
-<div id="emptyState" class="bg-white border border-stone-200/40 rounded-2xl shadow-xs overflow-hidden">
-
-    <!-- Header row — mirrors real result -->
-    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6 p-6 md:p-8 border-b border-stone-100">
-        <div class="space-y-3 max-w-xl">
-            <span class="text-[9px] bg-stone-100 text-stone-600 font-bold tracking-widest uppercase px-2 py-0.5 rounded">Example Report</span>
-            <p class="text-sm md:text-base text-stone-600 leading-relaxed italic font-light font-serif mt-2">"One partner seeks reassurance while the other withdraws — a push-pull cycle that generates recurring friction without resolution."</p>
-        </div>
-        <div class="flex flex-col items-center justify-center bg-[#FAF9F5] px-6 py-5 rounded-2xl border border-stone-200/50 min-w-[140px] text-center shadow-3xs self-center sm:self-start">
-            <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Compatibility</span>
-            <span class="text-3xl font-serif font-light text-stone-950 tracking-tighter">42%</span>
-        </div>
-    </div>
-
-    <!-- Key Dynamic — mirrors real result -->
-    <div class="px-6 md:px-8 py-6 border-b border-stone-100 space-y-3">
-        <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Key Dynamic</p>
-        <div class="bg-[#FAF9F5] rounded-xl border border-stone-200/40 p-4 shadow-3xs">
-            <p class="text-[11px] text-stone-600 leading-relaxed font-light">One partner consistently initiates emotional conversations while the other deflects or minimises. This imbalance leaves needs unmet and builds quiet resentment over time.</p>
-        </div>
-    </div>
-
-    <!-- Locked lower half -->
-    <div class="locked-section">
-        <div class="lock-blur px-6 md:px-8 py-6 space-y-6">
-
-            <div class="space-y-3">
-                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Relationship Snapshot</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
-                        <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700">General Warmth & Kindness</span><span class="text-xs font-mono text-stone-500">61%</span></div>
-                        <div class="preview-bar-track"><div class="preview-bar-fill" style="width:61%"></div></div>
-                        <p class="text-[11px] text-stone-500 font-light">Moments of warmth exist but are overshadowed by unresolved tension.</p>
+        <div id="emptyState" class="bg-white border border-stone-200/40 rounded-2xl shadow-xs overflow-hidden">
+            <div class="px-6 pt-6 pb-4 border-b border-stone-100 flex items-center justify-between">
+                <div>
+                    <span class="text-[9px] bg-stone-100 text-stone-500 font-bold tracking-widest uppercase px-2 py-0.5 rounded">Example Report</span>
+                    <p class="text-[11px] text-stone-400 font-light mt-1.5">Here's what your analysis will look like.</p>
+                </div>
+                <div class="flex flex-col items-center justify-center bg-[#FAF9F5] px-5 py-4 rounded-2xl border border-stone-200/50 text-center shadow-3xs">
+                    <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Compatibility</span>
+                    <span class="text-3xl font-serif font-light text-stone-950 tracking-tighter">42%</span>
+                </div>
+            </div>
+            <div class="px-6 py-5 border-b border-stone-100">
+                <span class="text-[9px] bg-stone-100 text-stone-600 font-bold tracking-widest uppercase px-2 py-0.5 rounded">Overall Summary</span>
+                <p class="text-sm text-stone-600 leading-relaxed italic font-light font-serif mt-3">"One partner appears to prioritize control while the other increasingly protects autonomy — a cycle that generates recurring friction without resolution."</p>
+            </div>
+            <div class="px-6 py-5 border-b border-stone-100">
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-3">Key Dynamic</p>
+                <div class="bg-[#FAF9F5] rounded-xl border border-stone-200/40 p-4 space-y-1.5 shadow-3xs">
+                    <p class="text-xs font-medium text-stone-700">Push-Pull Pattern Detected</p>
+                    <p class="text-[11px] text-stone-500 font-light leading-relaxed">One partner seeks reassurance while the other withdraws under pressure. This pattern intensifies during disagreements and creates emotional distance over time.</p>
+                </div>
+            </div>
+            <div>
+                <div class="px-6 py-5 space-y-4 border-b border-stone-100">
+                    <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Relationship Snapshot</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="p-4 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2">
+                            <div class="flex justify-between text-xs"><span class="font-medium text-stone-700">Warmth & Kindness</span><span class="font-mono text-stone-400">61%</span></div>
+                            <div class="preview-bar-track"><div class="preview-bar-fill" style="width:61%"></div></div>
+                        </div>
+                        <div class="p-4 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2">
+                            <div class="flex justify-between text-xs"><span class="font-medium text-stone-700">Problem Solving</span><span class="font-mono text-stone-400">38%</span></div>
+                            <div class="preview-bar-track"><div class="preview-bar-fill" style="width:38%"></div></div>
+                        </div>
+                        <div class="p-4 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2">
+                            <div class="flex justify-between text-xs"><span class="font-medium text-stone-700">Emotional Safety</span><span class="font-mono text-stone-400">45%</span></div>
+                            <div class="preview-bar-track"><div class="preview-bar-fill" style="width:45%"></div></div>
+                        </div>
+                        <div class="p-4 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2">
+                            <div class="flex justify-between text-xs"><span class="font-medium text-stone-700">Toxicity Level</span><span class="font-mono text-stone-400">28%</span></div>
+                            <div class="preview-bar-track"><div class="preview-bar-fill" style="width:28%"></div></div>
+                        </div>
                     </div>
-                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
-                        <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700">Solving Problems Together</span><span class="text-xs font-mono text-stone-500">38%</span></div>
-                        <div class="preview-bar-track"><div class="preview-bar-fill" style="width:38%"></div></div>
-                        <p class="text-[11px] text-stone-500 font-light">Conflict tends to stall rather than reach resolution.</p>
+                    <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest pt-2">Personal Communication Styles</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="p-4 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2.5">
+                            <p class="text-xs font-serif text-stone-700 font-medium">Person A</p>
+                            <div class="space-y-1.5">
+                                <div class="flex justify-between text-[11px]"><span class="text-stone-600">Calmness</span><span class="font-mono text-stone-400">55%</span></div>
+                                <div class="preview-bar-track"><div class="preview-bar-fill" style="width:55%"></div></div>
+                                <div class="flex justify-between text-[11px]"><span class="text-stone-600">Receptivity</span><span class="font-mono text-stone-400">72%</span></div>
+                                <div class="preview-bar-track"><div class="preview-bar-fill" style="width:72%"></div></div>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2.5">
+                            <p class="text-xs font-serif text-stone-700 font-medium">Person B</p>
+                            <div class="space-y-1.5">
+                                <div class="flex justify-between text-[11px]"><span class="text-stone-600">Calmness</span><span class="font-mono text-stone-400">40%</span></div>
+                                <div class="preview-bar-track"><div class="preview-bar-fill" style="width:40%"></div></div>
+                                <div class="flex justify-between text-[11px]"><span class="text-stone-600">Receptivity</span><span class="font-mono text-stone-400">48%</span></div>
+                                <div class="preview-bar-track"><div class="preview-bar-fill" style="width:48%"></div></div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
-                        <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700">Comfortable Sharing Feelings</span><span class="text-xs font-mono text-stone-500">45%</span></div>
-                        <div class="preview-bar-track"><div class="preview-bar-fill" style="width:45%"></div></div>
-                        <p class="text-[11px] text-stone-500 font-light">One person holds back emotionally, making openness feel one-sided.</p>
-                    </div>
-                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
-                        <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700">Teamwork & Connection</span><span class="text-xs font-mono text-stone-500">52%</span></div>
-                        <div class="preview-bar-track"><div class="preview-bar-fill" style="width:52%"></div></div>
-                        <p class="text-[11px] text-stone-500 font-light">Some sense of partnership remains but feels strained under pressure.</p>
-                    </div>
-                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 md:col-span-2 space-y-2 shadow-3xs">
-                        <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700">Toxicity Level</span><span class="text-xs font-mono text-stone-500">28%</span></div>
-                        <div class="preview-bar-track"><div class="preview-bar-fill" style="width:28%"></div></div>
-                        <p class="text-[11px] text-stone-500 font-light">Low-to-moderate toxicity — no severe patterns, but tension is present.</p>
+                    <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest pt-2">Future Outlook</p>
+                    <div class="bg-stone-950 text-stone-200 p-4 rounded-xl text-[11px] font-light leading-relaxed italic font-serif">
+                        "If these patterns continue, emotional distance may increase. With small shifts in communication, the trajectory can be redirected positively."
                     </div>
                 </div>
             </div>
-
-            <div class="space-y-3 border-t border-stone-100 pt-6">
-                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Personal Communication Styles</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-3 shadow-3xs">
-                        <p class="text-base font-serif text-stone-900">Person A</p>
-                        <div class="space-y-1"><div class="flex justify-between text-xs"><span class="text-stone-700">Calmness & Security</span><span class="font-mono text-stone-500">55%</span></div><div class="preview-bar-track"><div class="preview-bar-fill" style="width:55%"></div></div></div>
-                        <div class="space-y-1"><div class="flex justify-between text-xs"><span class="text-stone-700">Willingness to Listen</span><span class="font-mono text-stone-500">72%</span></div><div class="preview-bar-track"><div class="preview-bar-fill" style="width:72%"></div></div></div>
-                        <div class="space-y-1"><div class="flex justify-between text-xs"><span class="text-stone-700">Managing Frustration</span><span class="font-mono text-stone-500">60%</span></div><div class="preview-bar-track"><div class="preview-bar-fill" style="width:60%"></div></div></div>
-                        <div class="space-y-1"><div class="flex justify-between text-xs"><span class="text-stone-700">Owning Personal Errors</span><span class="font-mono text-stone-500">48%</span></div><div class="preview-bar-track"><div class="preview-bar-fill" style="width:48%"></div></div></div>
-                    </div>
-                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-3 shadow-3xs">
-                        <p class="text-base font-serif text-stone-900">Person B</p>
-                        <div class="space-y-1"><div class="flex justify-between text-xs"><span class="text-stone-700">Calmness & Security</span><span class="font-mono text-stone-500">40%</span></div><div class="preview-bar-track"><div class="preview-bar-fill" style="width:40%"></div></div></div>
-                        <div class="space-y-1"><div class="flex justify-between text-xs"><span class="text-stone-700">Willingness to Listen</span><span class="font-mono text-stone-500">48%</span></div><div class="preview-bar-track"><div class="preview-bar-fill" style="width:48%"></div></div></div>
-                        <div class="space-y-1"><div class="flex justify-between text-xs"><span class="text-stone-700">Managing Frustration</span><span class="font-mono text-stone-500">35%</span></div><div class="preview-bar-track"><div class="preview-bar-fill" style="width:35%"></div></div></div>
-                        <div class="space-y-1"><div class="flex justify-between text-xs"><span class="text-stone-700">Owning Personal Errors</span><span class="font-mono text-stone-500">42%</span></div><div class="preview-bar-track"><div class="preview-bar-fill" style="width:42%"></div></div></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="border-t border-stone-100 pt-6">
-                <div class="bg-stone-950 text-stone-200 p-6 rounded-xl text-sm font-serif font-light leading-relaxed italic">
-                    "Your Truvah ID Card and personalised next steps will appear here based on your actual conversation."
-                </div>
-            </div>
-
-        </div>
-        <div class="lock-overlay">
-            <div class="bg-white/95 border border-stone-200/60 rounded-2xl shadow-sm px-6 py-5 max-w-xs w-full space-y-3">
-                <div class="w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center mx-auto">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="text-stone-500"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                </div>
-                <p class="text-xs font-semibold text-stone-800 text-center">Paste your conversation to unlock your full report</p>
-                <p class="text-[11px] text-stone-400 font-light text-center leading-relaxed">Relationship snapshot, personal styles, future outlook, and your Truvah ID Card.</p>
+            <div class="px-6 py-4 text-center">
+                <p class="text-[10px] text-stone-300 font-light">This is an example. Your real analysis will be based on your actual conversation.</p>
             </div>
         </div>
-    </div>
-
-    <div class="px-6 py-4 text-center border-t border-stone-100">
-        <p class="text-[10px] text-stone-300 font-light">This is an example. Your real analysis will reflect your actual conversation.</p>
-    </div>
-</div>
 
         <!-- Real result section -->
         <div id="resultSection" class="hidden bg-white p-6 md:p-8 rounded-2xl border border-stone-200/60 shadow-xs space-y-8">
@@ -326,34 +292,8 @@
                 </div>
             </div>
 
-            <!-- Email Unlock Wall -->
-            <div id="emailUnlockWall" class="space-y-5 border border-stone-200/60 rounded-2xl p-6 bg-white shadow-xs">
-                <div class="space-y-1.5">
-                    <p class="text-sm font-semibold text-stone-800 tracking-tight">Unlock Your Full Analysis</p>
-                    <p class="text-[11px] text-stone-400 font-light leading-relaxed">Enter your email to access the complete report.</p>
-                </div>
-                <ul class="space-y-1.5">
-                    <li class="flex items-center gap-2 text-[11px] text-stone-600 font-light"><span class="text-emerald-500 font-bold text-xs">✓</span> Relationship Snapshot</li>
-                    <li class="flex items-center gap-2 text-[11px] text-stone-600 font-light"><span class="text-emerald-500 font-bold text-xs">✓</span> Behavioural Breakdown</li>
-                    <li class="flex items-center gap-2 text-[11px] text-stone-600 font-light"><span class="text-emerald-500 font-bold text-xs">✓</span> Personal Communication Styles</li>
-                    <li class="flex items-center gap-2 text-[11px] text-stone-600 font-light"><span class="text-emerald-500 font-bold text-xs">✓</span> Future Outlook</li>
-                    <li class="flex items-center gap-2 text-[11px] text-stone-600 font-light"><span class="text-emerald-500 font-bold text-xs">✓</span> Truvah ID Card</li>
-                    <li class="flex items-center gap-2 text-[11px] text-stone-600 font-light"><span class="text-emerald-500 font-bold text-xs">✓</span> Actionable Next Steps</li>
-                </ul>
-                <div class="space-y-2">
-                    <div class="flex gap-2">
-                        <input id="unlockEmail" type="email" placeholder="your@email.com" class="flex-1 px-4 py-2.5 text-sm bg-[#FAF9F5] border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
-                        <button id="unlockBtn" onclick="unlockReport()" class="bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium px-5 py-2.5 rounded-xl text-xs tracking-[0.12em] uppercase transition-all duration-200 cursor-pointer whitespace-nowrap shadow-xs">Unlock</button>
-                    </div>
-                    <div id="unlockError" class="hidden bg-red-50/50 border border-red-200/50 text-red-700 p-3 rounded-xl text-xs font-light flex items-center gap-2">
-                        <span>✕</span><span id="unlockErrorText">Something went wrong.</span>
-                    </div>
-                </div>
-                <p class="text-[10px] text-stone-300 font-light text-center">Your email is used only to send your report. No spam, ever.</p>
-            </div>
-
-            <!-- LOCKED: full report (hidden until email unlock) -->
-            <div id="lockedContent" class="hidden space-y-8">
+            <!-- Full report content -->
+            <div id="lockedContent" class="space-y-8">
 
                 <div class="space-y-4">
                     <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Relationship Snapshot</h4>
@@ -418,43 +358,40 @@
                     </div>
                 </div>
 
-                <!-- Email report panel -->
-                <div id="emailPanel">
-                    <div id="emailCollapsed" onclick="expandEmailPanel()" class="group flex items-center justify-between px-5 py-4 bg-white border border-stone-200/60 rounded-xl shadow-xs cursor-pointer transition-all duration-200 hover:border-stone-300 hover:shadow-sm">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 group-hover:bg-stone-200 transition-colors">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-stone-500"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                            </div>
-                            <div>
-                                <p class="text-xs font-semibold text-stone-700 tracking-wide">Get this report on email!</p>
-                                <p class="text-[11px] text-stone-400 font-light">Share it with yourself or your partner now</p>
-                            </div>
+                <!-- Email report panel — high-visibility, auto-expanded -->
+                <div id="emailPanel" class="border border-stone-800 rounded-xl bg-stone-950 text-[#FAF9F5] p-5 space-y-4 shadow-xs">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-[#FAF9F5]"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                         </div>
-                        <svg id="emailChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-stone-300 transition-all duration-300 shrink-0 ml-3"><path d="m6 9 6 6 6-6"/></svg>
+                        <div>
+                            <p class="text-sm font-semibold text-[#FAF9F5] tracking-tight">Don't lose this insight</p>
+                            <p class="text-[11px] text-stone-400 font-light">Send the full report to your inbox — for yourself or your partner</p>
+                        </div>
                     </div>
-                    <div id="emailExpanded" class="hidden">
-                        <div class="bg-white border border-stone-200/60 border-t-0 rounded-b-xl px-5 pb-5 pt-4 space-y-4 shadow-xs">
+                    <div id="emailExpanded">
+                        <div class="space-y-4">
                             <div class="flex items-center gap-2">
                                 <span class="text-[10px] text-stone-400 uppercase tracking-widest font-medium shrink-0">Send to</span>
                                 <div class="flex gap-1">
-                                    <button type="button" id="optMe" onclick="selectOpt('me')" class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-200 text-stone-500 bg-transparent hover:border-stone-400 transition-all cursor-pointer">me</button>
-                                    <button type="button" id="optPartner" onclick="selectOpt('partner')" class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-200 text-stone-500 bg-transparent hover:border-stone-400 transition-all cursor-pointer">partner</button>
-                                    <button type="button" id="optBoth" onclick="selectOpt('both')" class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-200 text-stone-500 bg-transparent hover:border-stone-400 transition-all cursor-pointer">both</button>
+                                    <button type="button" id="optMe" onclick="selectOpt('me')" class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-700 text-stone-300 bg-transparent hover:border-stone-500 transition-all cursor-pointer">me</button>
+                                    <button type="button" id="optPartner" onclick="selectOpt('partner')" class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-700 text-stone-300 bg-transparent hover:border-stone-500 transition-all cursor-pointer">partner</button>
+                                    <button type="button" id="optBoth" onclick="selectOpt('both')" class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-700 text-stone-300 bg-transparent hover:border-stone-500 transition-all cursor-pointer">both</button>
                                 </div>
                             </div>
                             <div id="emailInputs" class="hidden space-y-2">
                                 <div id="selfInputWrap" class="hidden">
-                                    <input id="emailSelf" type="email" placeholder="your@email.com" class="w-full px-4 py-2.5 text-sm bg-[#FAF9F5] border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
+                                    <input id="emailSelf" type="email" placeholder="your@email.com" class="w-full px-4 py-2.5 text-sm bg-white/95 border border-stone-700 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-300 focus:border-stone-300 placeholder-stone-400 text-stone-800 transition-all" />
                                 </div>
                                 <div id="partnerInputWrap" class="hidden input-reveal">
-                                    <input id="emailPartner" type="email" placeholder="partner@email.com" class="w-full px-4 py-2.5 text-sm bg-[#FAF9F5] border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
+                                    <input id="emailPartner" type="email" placeholder="partner@email.com" class="w-full px-4 py-2.5 text-sm bg-white/95 border border-stone-700 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-300 focus:border-stone-300 placeholder-stone-400 text-stone-800 transition-all" />
                                 </div>
-                                <button id="emailReportBtn" onclick="emailReport()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs">Send Report</button>
+                                <button id="emailReportBtn" onclick="emailReport()" class="w-full bg-[#FAF9F5] hover:bg-white text-stone-950 font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs">Send Report</button>
                             </div>
-                            <div id="emailSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
-                                <span class="text-emerald-500">✓</span><span id="emailSuccessText">Report sent!</span>
+                            <div id="emailSuccessBanner" class="hidden animate-banner-slide bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                                <span class="text-emerald-400">✓</span><span id="emailSuccessText">Report sent!</span>
                             </div>
-                            <div id="emailErrorBanner" class="hidden bg-red-50/50 border border-red-200/50 text-red-700 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                            <div id="emailErrorBanner" class="hidden bg-red-500/10 border border-red-500/30 text-red-300 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
                                 <span>✕</span><span id="emailErrorText">Something went wrong.</span>
                             </div>
                         </div>
@@ -524,7 +461,7 @@ function track(ev,p){try{if(typeof posthog!=='undefined')posthog.capture(ev,p||{
 /* ══ Constants & State ══ */
 const PRIMARY_USER_ID='093236df-7fb5-46ba-9188-c511145689ec';
 const EMAIL_REGEX=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-let latestAnalytics=null,activeRecipientOption=null,currentUserId=null,currentInviteCount=0,reportUnlocked=false;
+let latestAnalytics=null,activeRecipientOption=null,currentUserId=null,currentInviteCount=0;
 
 /* Textarea tracking */
 const chatInputEl=document.getElementById('chatInput');
@@ -534,11 +471,11 @@ chatInputEl.addEventListener('paste',()=>track('textarea_pasted'));
 
 /* ══ SAMPLES ══ */
 const SAMPLES={
-    argument:`Me: I can't believe you did that again. We've talked about this so many times.\nPartner: I forgot, okay? It wasn't intentional.\nMe: That's what you always say. It feels like I'm not a priority to you.\nPartner: That's not fair. I do a lot for this relationship.\nMe: Then why does it always fall on me to remind you about things that matter to me?\nPartner: I'm trying. Can you stop making me feel like I'm constantly failing?\nMe: I'm not trying to make you feel that way. I just need you to actually follow through.\nPartner: Fine. I'll try harder. But I need you to stop keeping score.`,
-    signals:`Me: Hey, you've been a bit quiet lately. Everything okay?\nPartner: Yeah just busy with work stuff.\nMe: Okay... you seemed off the other night too.\nPartner: I'm fine, don't overthink it.\nMe: I'm not overthinking, I just noticed a change.\nPartner: There's no change. You always do this.\nMe: Do what? Try to talk to you?\nPartner: Make everything into something bigger than it is.\nMe: I just miss you. That's all.\nPartner: I'm right here.`,
-    distance:`Me: Can we talk tonight?\nPartner: About what?\nMe: I feel like we haven't really connected in a while.\nPartner: I've just had a lot on my mind.\nMe: Can you share what's going on?\nPartner: Not really, it's nothing.\nMe: It doesn't feel like nothing. You seem distant.\nPartner: I just need some space to process things.\nMe: How long have you needed space?\nPartner: I don't know. I'll let you know when I figure it out.\nMe: Okay. I just want you to know I'm here.\nPartner: I know.`,
-    trust:`Me: I saw that you were texting late last night.\nPartner: It was just a friend.\nMe: Which friend?\nPartner: Why are you checking up on me?\nMe: I'm not checking up, I'm asking because you were secretive about it.\nPartner: I'm allowed to have private conversations.\nMe: Of course you are. But the way you hid your phone felt off.\nPartner: I didn't hide it, I just don't need to share everything.\nMe: When did we stop being open with each other?\nPartner: I don't know what you want from me.`,
-    recurring:`Me: This is the third time this month we've had this exact fight.\nPartner: Because you keep bringing it up.\nMe: I bring it up because nothing changes.\nPartner: I've been trying!\nMe: It doesn't feel that way from where I'm standing.\nPartner: What more do you want me to do?\nMe: I want you to actually hear me when I tell you something bothers me.\nPartner: I do hear you.\nMe: Then why are we here again?\nPartner: Maybe because you're never satisfied.\nMe: That's not fair and you know it.\nPartner: Fine. What do you want me to say?`
+    argument:`Ankit: I can't believe you did that again. We've talked about this so many times.\nAnkita: I forgot, okay? It wasn't intentional.\nAnkit: That's what you always say. It feels like I'm not a priority to you.\nAnkita: That's not fair. I do a lot for this relationship.\nAnkit: Then why does it always fall on me to remind you about things that matter to me?\nAnkita: I'm trying. Can you stop making me feel like I'm constantly failing?\nAnkit: I'm not trying to make you feel that way. I just need you to actually follow through.\nAnkita: Fine. I'll try harder. But I need you to stop keeping score.`,
+    signals:`Ankit: Hey, you've been a bit quiet lately. Everything okay?\nAnkita: Yeah just busy with work stuff.\nAnkit: Okay... you seemed off the other night too.\nAnkita: I'm fine, don't overthink it.\nAnkit: I'm not overthinking, I just noticed a change.\nAnkita: There's no change. You always do this.\nAnkit: Do what? Try to talk to you?\nAnkita: Make everything into something bigger than it is.\nAnkit: I just miss you. That's all.\nAnkita: I'm right here.`,
+    distance:`Ankit: Can we talk tonight?\nAnkita: About what?\nAnkit: I feel like we haven't really connected in a while.\nAnkita: I've just had a lot on my mind.\nAnkit: Can you share what's going on?\nAnkita: Not really, it's nothing.\nAnkit: It doesn't feel like nothing. You seem distant.\nAnkita: I just need some space to process things.\nAnkit: How long have you needed space?\nAnkita: I don't know. I'll let you know when I figure it out.\nAnkit: Okay. I just want you to know I'm here.\nAnkita: I know.`,
+    trust:`Ankit: I saw that you were texting late last night.\nAnkita: It was just a friend.\nAnkit: Which friend?\nAnkita: Why are you checking up on me?\nAnkit: I'm not checking up, I'm asking because you were secretive about it.\nAnkita: I'm allowed to have private conversations.\nAnkit: Of course you are. But the way you hid your phone felt off.\nAnkita: I didn't hide it, I just don't need to share everything.\nAnkit: When did we stop being open with each other?\nAnkita: I don't know what you want from me.`,
+    recurring:`Ankit: This is the third time this month we've had this exact fight.\nAnkita: Because you keep bringing it up.\nAnkit: I bring it up because nothing changes.\nAnkita: I've been trying!\nAnkit: It doesn't feel that way from where I'm standing.\nAnkita: What more do you want me to do?\nAnkit: I want you to actually hear me when I tell you something bothers me.\nAnkita: I do hear you.\nAnkit: Then why are we here again?\nAnkita: Maybe because you're never satisfied.\nAnkit: That's not fair and you know it.\nAnkita: Fine. What do you want me to say?`
 };
 function loadSample(key){
     if(!SAMPLES[key])return;
@@ -624,50 +561,19 @@ async function submitInterest(){
 }
 initAccess();
 
-/* ══ REPORT UNLOCK ══ */
-async function unlockReport(){
-    const email=document.getElementById('unlockEmail').value.trim();
-    const errDiv=document.getElementById('unlockError'),btn=document.getElementById('unlockBtn');
-    errDiv.classList.add('hidden');
-    track('unlock_report_clicked',{email_provided:!!email});
-    if(!email||!EMAIL_REGEX.test(email)){document.getElementById('unlockErrorText').innerText='Please enter a valid email address.';errDiv.classList.remove('hidden');track('unlock_report_validation_failed');return;}
-    btn.disabled=true;btn.innerText='Unlocking...';
-    try{
-        const res=await fetch('/api/request-without-invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
-        const data=await res.json();
-        if(data.token){
-            const result=await verifyAccess(data.token);
-            if(result){
-                currentUserId=result.userId;currentInviteCount=result.inviteCount||0;
-                sessionStorage.setItem('truvah_session',JSON.stringify({userId:result.userId,inviteCount:result.inviteCount||0}));
-                if(typeof posthog!=='undefined')posthog.identify(currentUserId);
-            }
-        }
-        track('unlock_report_success',{had_userId:!!currentUserId});
-        revealLockedContent();
-    }catch(err){
-        track('unlock_report_api_error',{error:err.message});
-        revealLockedContent(); // still unlock — don't penalise user for backend error
-    }
-}
-function revealLockedContent(){
-    reportUnlocked=true;
-    document.getElementById('emailUnlockWall').classList.add('hidden');
-    document.getElementById('lockedContent').classList.remove('hidden');
+/* ══ BAR ANIMATION — runs immediately after analysis, no gating ══ */
+function animateReportBars(){
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
         if(!latestAnalytics)return;
         const s=latestAnalytics;
         const sw=(id,v)=>{const el=document.getElementById(id);if(el)el.style.width=(parseInt(v)||0)+'%';};
         sw('positivityBar',s.bond_positivity);sw('conflictBar',s.conflict_resolution);
         sw('safetyBar',s.safety_trust);sw('dynamicsBar',s.relationship_dynamics);sw('toxicityBar',s.toxicity);
-        // profile bars
         document.querySelectorAll('#profileContainer > div[data-attach-id]').forEach(card=>{
             sw(card.dataset.attachId,card.dataset.attachVal);sw(card.dataset.regId,card.dataset.regVal);
             sw(card.dataset.recepId,card.dataset.recepVal);sw(card.dataset.accId,card.dataset.accVal);
         });
     }));
-    document.getElementById('lockedContent').scrollIntoView({behavior:'smooth',block:'start'});
-    track('locked_content_revealed');
 }
 
 /* ══ INVITE ══ */
@@ -695,16 +601,11 @@ async function sendInvite(){
 }
 
 /* ══ EMAIL PANEL ══ */
-function expandEmailPanel(){
-    const c=document.getElementById('emailCollapsed'),x=document.getElementById('emailExpanded'),ch=document.getElementById('emailChevron');
-    c.classList.add('rounded-b-none');c.onclick=null;x.classList.remove('hidden');ch.style.transform='rotate(180deg)';
-    track('email_panel_expanded');
-}
 function selectOpt(option){
     activeRecipientOption=option;
     ['me','partner','both'].forEach(o=>{
         const el=document.getElementById('opt'+o.charAt(0).toUpperCase()+o.slice(1));el.style.cssText='';
-        if(o===option){el.style.borderColor='#1c1917';el.style.background='#1c1917';el.style.color='#fafaf9';el.style.fontWeight='600';}
+        if(o===option){el.style.borderColor='#fafaf9';el.style.background='#fafaf9';el.style.color='#1c1917';el.style.fontWeight='600';}
     });
     const iw=document.getElementById('emailInputs'),sw=document.getElementById('selfInputWrap'),pw=document.getElementById('partnerInputWrap');
     iw.classList.remove('hidden');
@@ -747,15 +648,7 @@ async function analyzeChat(){
     ab.disabled=true;ab.innerText='Reading through your conversation...';
     rs.classList.add('hidden');es.classList.remove('hidden');mb.classList.add('hidden');
     document.getElementById('deleteSuccessBanner').classList.add('hidden');
-    document.getElementById('consentLine').classList.add('hidden');
     cie.classList.remove('animate-text-fade');pc.innerHTML='';
-    /* Reset unlock state */
-    reportUnlocked=false;
-    document.getElementById('emailUnlockWall').classList.remove('hidden');
-    document.getElementById('lockedContent').classList.add('hidden');
-    document.getElementById('unlockEmail').value='';
-    document.getElementById('unlockError').classList.add('hidden');
-    const ub=document.getElementById('unlockBtn');ub.disabled=false;ub.innerText='Unlock';ub.className='bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium px-5 py-2.5 rounded-xl text-xs tracking-[0.12em] uppercase transition-all duration-200 cursor-pointer whitespace-nowrap shadow-xs';
     let isLimitReached=false;const t0=Date.now();
     try{
         const response=await fetch("/api/analyze",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chatLog,userId:currentUserId})});
@@ -775,7 +668,7 @@ async function analyzeChat(){
         document.getElementById('bondStrengthMeter').innerText=scores.bond_strength||'0%';
         document.getElementById('bondStrengthReason').innerText=scores.bond_strength_reason?`"${scores.bond_strength_reason}"`:'' ;
         document.getElementById('keyDynamicText').innerText=scores.conflict_resolution_reason||scores.bond_strength_reason||'';
-        /* Locked section values (bars animate on unlock) */
+        /* Report section values */
         document.getElementById('positivityVal').innerText=scores.bond_positivity||'--';document.getElementById('positivityReason').innerText=scores.bond_positivity_reason||'';
         document.getElementById('conflictVal').innerText=scores.conflict_resolution||'--';document.getElementById('conflictReason').innerText=scores.conflict_resolution_reason||'';
         document.getElementById('safetyVal').innerText=scores.safety_trust||'--';document.getElementById('safetyReason').innerText=scores.safety_trust_reason||'';
@@ -788,8 +681,6 @@ async function analyzeChat(){
         ['emailInputs','selfInputWrap','partnerInputWrap'].forEach(id=>document.getElementById(id).classList.add('hidden'));
         document.getElementById('emailSelf').value='';document.getElementById('emailPartner').value='';
         document.getElementById('emailSuccessBanner').classList.add('hidden');document.getElementById('emailErrorBanner').classList.add('hidden');
-        const ec=document.getElementById('emailCollapsed'),ex=document.getElementById('emailExpanded'),ech=document.getElementById('emailChevron');
-        ec.classList.remove('rounded-b-none');ec.onclick=expandEmailPanel;ex.classList.add('hidden');ech.style.transform='';
         const erb=document.getElementById('emailReportBtn');if(erb){erb.disabled=false;erb.innerText='Send Report';erb.style.cssText='';erb.className='w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs';}
         /* Profile cards */
         if(scores.profiles&&Array.isArray(scores.profiles)){
@@ -806,6 +697,7 @@ async function analyzeChat(){
             });
         }
         es.classList.add('hidden');rs.classList.remove('hidden');rs.scrollIntoView({behavior:'smooth',block:'start'});
+        animateReportBars();
         const inv=document.getElementById('inviteSection');inv.classList.remove('hidden');inv.classList.add('invite-reveal');
     }catch(err){
         document.getElementById('analyzeErrorText').innerText=err.message||'Could not complete analysis right now.';
