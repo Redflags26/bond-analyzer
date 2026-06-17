@@ -132,6 +132,31 @@ ACTIONABLES: Provide 2 specific, practical tips for each person grounded in thei
 
 BOND STRENGTH: A single percentage reflecting the overall health and resilience of this relationship. Must be consistent with the analysis findings — if there is friction, it must show here. Do not mechanically average the scores.
 
+BOND STRENGTH REASON:
+
+Write a concise 3-5 sentence relationship synthesis that:
+
+1. Identifies the core relationship pattern.
+2. Explains why this pattern is creating tension, distance, or connection.
+3. Reveals the deeper truth underneath the surface conflict.
+4. Briefly describes what is likely to happen if the pattern continues unchanged.
+
+The explanation should feel insightful and memorable, not clinical or generic.
+
+Avoid:
+- Repeating scores or percentages
+- Listing personality traits
+- Therapy jargon
+- Generic advice
+- Referring to the analysis itself
+
+The reader should feel:
+"I finally understand what's really happening here."
+
+Where appropriate, include one concise, quotable insight that captures the essence of the relationship dynamic.
+
+Maximum 90 words.
+
 SUMMARY:
 
 Generate a Truvah Identity Card for the partner with better average scores reflected in the profiles.
