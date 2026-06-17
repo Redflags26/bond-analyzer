@@ -52,7 +52,8 @@ export default async function handler(req, res) {
           error:     'usage_limit_reached',
           used:      totalUsed,
           limit:     CHATS_PER_USER,
-          message:   `You've used all ${CHATS_PER_USER} of your analyses. Reach out to your inviter for more access.`,
+          //message:   `You've used all ${CHATS_PER_USER} of your analyses. Reach out to your inviter for more access.`,
+          message:   `This is a limited-use tool right now. Come back soon!`,
         });
       }
     }
