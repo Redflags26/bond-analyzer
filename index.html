@@ -394,6 +394,8 @@ function track(ev,p){try{if(typeof posthog!=='undefined')posthog.capture(ev,p||{
 const PRIMARY_USER_ID='093236df-7fb5-46ba-9188-c511145689ec';
 const EMAIL_REGEX=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 let latestAnalytics=null,activeRecipientOption=null,currentUserId=null,currentInviteCount=0;
+const MAX_SESSION_ANALYSES=2;
+let sessionAnalysisCount=parseInt(sessionStorage.getItem('truvah_analysis_count')||'0',10);
 
 /* Textarea tracking */
 const chatInputEl=document.getElementById('chatInput');
@@ -578,6 +580,10 @@ async function analyzeChat(){
     const mb=document.getElementById('modelBadge'),pc=document.getElementById('profileContainer');
     const lb=document.getElementById('analyzeLimitBanner'),eb=document.getElementById('analyzeErrorBanner');
     lb.classList.add('hidden');eb.classList.add('hidden');
+    if(sessionAnalysisCount>=MAX_SESSION_ANALYSES){
+        document.getElementById('analyzeLimitText').innerText="You've used both of your analyses for this session.";
+        lb.classList.remove('hidden');es.classList.remove('hidden');track('analyze_blocked_client_limit');return;
+    }
     if(!chatLog){document.getElementById('analyzeErrorText').innerText='Please paste some text or describe the situation first.';eb.classList.remove('hidden');track('analyze_clicked_empty');return;}
     track('analyze_started',{char_count:chatLog.length,word_count:chatLog.split(/\s+/).filter(Boolean).length});
     ab.disabled=true;ab.innerText='Reading through your conversation...';
@@ -593,6 +599,7 @@ async function analyzeChat(){
             lb.classList.remove('hidden');es.classList.remove('hidden');track('analyze_limit_reached');return;
         }
         if(!response.ok)throw new Error(data.error||'Could not process text.');
+        sessionAnalysisCount++;sessionStorage.setItem('truvah_analysis_count',String(sessionAnalysisCount));
         track('analyze_completed',{duration_ms:Date.now()-t0,bond_strength:data.analytics.bond_strength,toxicity:data.analytics.toxicity,profile_count:(data.analytics.profiles||[]).length});
         cie.classList.add('animate-text-fade');
         setTimeout(()=>{cie.value='';cie.classList.remove('animate-text-fade');},800);
