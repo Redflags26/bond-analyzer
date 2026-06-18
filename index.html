@@ -45,11 +45,12 @@
         }
         .sample-chip:hover { border-color:#a8a29e; background:#faf9f5; color:#1c1917; }
         .sample-chip:active { transform:scale(0.97); }
+
     </style>
 </head>
 <body class="bg-[#FAF9F5] text-stone-800 min-h-screen flex flex-col justify-between selection:bg-stone-200 antialiased gated">
 
-<!-- ══ GATE WALL — shown only when an invite token is invalid ══ -->
+<!-- ══ GATE WALL — only for explicitly invalid tokens ══ -->
 <div id="gateWall" class="min-h-screen bg-[#FAF9F5] flex flex-col items-center justify-center px-6 text-center">
     <div class="space-y-6 max-w-sm">
         <div class="flex items-center justify-center gap-2.5 mb-2">
@@ -70,7 +71,7 @@
             <h2 class="text-2xl font-normal text-stone-900 serif-font italic leading-snug">This link has expired.</h2>
             <p class="text-sm text-stone-500 font-light leading-relaxed">Enter your email below to request access.</p>
             <p id="gateError" class="text-xs text-red-500 font-light hidden"></p>
-            <div class="space-y-2 pt-1">
+            <div id="interestForm" class="space-y-2 pt-1">
                 <div class="flex gap-2">
                     <input id="interestEmail" type="email" placeholder="your@email.com" class="flex-1 px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
                     <button id="interestBtn" onclick="submitInterest()" class="bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium px-4 py-2.5 rounded-xl text-xs tracking-[0.12em] uppercase transition-all duration-200 cursor-pointer whitespace-nowrap">Request Access</button>
@@ -96,9 +97,8 @@
             <span class="text-[10px] tracking-[0.2em] font-medium text-stone-400 uppercase">Ask</span>
             <span class="text-xl font-bold tracking-tight text-stone-900 serif-font italic">Truvah</span>
         </div>
-        <!-- Shown after first successful analysis -->
         <div id="modelBadge" class="hidden text-[10px] bg-white text-stone-500 tracking-wider px-3 py-1 rounded border border-stone-200/60 shadow-3xs">
-            System Active: <span class="font-semibold text-stone-800">Active Connection</span>
+            System Active: <span id="modelNameText" class="font-semibold text-stone-800">Online</span>
         </div>
     </div>
 </header>
@@ -154,16 +154,28 @@
                 <textarea id="chatInput" rows="9"
                     placeholder="Examples:&#10;• We keep having the same argument.&#10;• She says she needs space.&#10;• He suddenly became distant.&#10;• I don't know if I'm overthinking this.&#10;&#10;You can paste actual messages or describe the situation in your own words — both work."
                     class="w-full p-4 bg-[#FAF9F5] border border-stone-200/60 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-xs tracking-wide font-light placeholder-stone-300 shadow-2xs transition-all leading-relaxed"></textarea>
-                <div class="absolute bottom-3 right-3 text-[8px] uppercase tracking-wider text-stone-300 font-mono bg-white/90 px-2 py-0.5 rounded border border-stone-200/40 flex items-center gap-1.5 shadow-3xs">
+                <div id="statusLabel" class="absolute bottom-3 right-3 text-[8px] uppercase tracking-wider text-stone-300 font-mono bg-white/90 px-2 py-0.5 rounded border border-stone-200/40 flex items-center gap-1.5 shadow-3xs">
                     <span class="w-1 h-1 rounded-full bg-emerald-500"></span> Auto-Delete Enabled
                 </div>
             </div>
 
-            <!-- ══ Inline email-gate (shown before 2nd analysis for anonymous users) ══ -->
+            <div class="flex items-start gap-2 bg-emerald-50/40 border border-emerald-200/40 rounded-xl px-3.5 py-2.5">
+                <span class="text-emerald-600 text-xs mt-0.5">🔒</span>
+                <p class="text-[11px] text-stone-600 font-light leading-relaxed">Conversations are deleted instatly — nothing is stored.</p>
+            </div>
+
+            <div id="deleteSuccessBanner" class="hidden bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                <span class="text-emerald-600 font-bold">✓</span>
+                <span>Your text has been completely cleared and deleted from this session.</span>
+            </div>
+
+            <!-- ══ Inline email-gate step (shown before 2nd analysis) ══ -->
             <div id="emailGateStep" class="hidden space-y-3 bg-stone-50 border border-stone-200/60 rounded-xl p-4">
                 <div class="flex items-start gap-2.5">
                     <span class="text-stone-500 text-sm mt-0.5">✉️</span>
-                    <p class="text-xs font-medium text-stone-700 leading-relaxed">Your email is required to personalize results.</p>
+                    <div>
+                        <p class="text-xs font-medium text-stone-700 leading-relaxed">Your email is required to personalize results.</p>
+                    </div>
                 </div>
                 <input id="gateAnalyzeEmail" type="email" placeholder="your@email.com" class="w-full px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
                 <p id="gateAnalyzeError" class="hidden text-[11px] text-red-500 font-light"></p>
@@ -177,7 +189,6 @@
                 By submitting, you confirm you have consent of all parties to analyze this conversation.
             </p>
 
-            <!-- Shown when server returns usage_limit_reached -->
             <div id="analyzeLimitBanner" class="hidden animate-banner-slide bg-stone-100 border border-stone-200/60 text-stone-700 p-3.5 rounded-xl text-xs font-light flex items-start gap-2.5">
                 <span class="text-stone-400 shrink-0">◎</span>
                 <div>
@@ -195,15 +206,17 @@
     <!-- ══ RIGHT — Results ══ -->
     <section class="lg:col-span-7 w-full self-stretch flex flex-col">
 
+        <!-- Empty state: simple placeholder, vertically centered against left panel -->
         <div id="emptyState" class="bg-white border border-stone-200/40 rounded-2xl p-12 text-center text-stone-400 font-light text-sm shadow-xs flex flex-col items-center justify-center flex-1 min-h-[350px]">
             <div class="text-2xl mb-2">✨</div>
             <p class="font-serif italic text-stone-500 text-base mb-1">Your Analysis Will Appear Here</p>
             <p class="text-xs max-w-xs leading-relaxed">Paste your conversation on the left, or try one of the examples above, to see your full analysis.</p>
         </div>
 
+        <!-- Real result section -->
         <div id="resultSection" class="hidden bg-white p-6 md:p-8 rounded-2xl border border-stone-200/60 shadow-xs space-y-8">
 
-            <!-- Summary + Compatibility Score -->
+            <!-- UNLOCKED: Summary + Score -->
             <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6 border-b border-stone-100 pb-8">
                 <div class="space-y-3 max-w-xl">
                     <span class="text-[9px] bg-stone-100 text-stone-600 font-bold tracking-widest uppercase px-2 py-0.5 rounded">Overall Summary</span>
@@ -215,107 +228,114 @@
                 </div>
             </div>
 
-            <!-- Interpersonal Dynamics -->
-            <div class="space-y-4">
-                <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Interpersonal Dynamics</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
-                        <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">General Warmth & Kindness</span><span id="positivityVal" class="text-xs font-mono text-stone-500">--</span></div>
-                        <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="positivityBar" class="custom-transition bg-stone-800 h-full" style="width:0%"></div></div>
-                        <p id="positivityReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
-                    </div>
-                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
-                        <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Solving Problems Together</span><span id="conflictVal" class="text-xs font-mono text-stone-500">--</span></div>
-                        <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="conflictBar" class="custom-transition bg-stone-800 h-full" style="width:0%"></div></div>
-                        <p id="conflictReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
-                    </div>
-                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
-                        <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Comfortable Sharing Feelings</span><span id="safetyVal" class="text-xs font-mono text-stone-500">--</span></div>
-                        <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="safetyBar" class="custom-transition bg-stone-800 h-full" style="width:0%"></div></div>
-                        <p id="safetyReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
-                    </div>
-                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
-                        <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Teamwork & Connection</span><span id="dynamicsVal" class="text-xs font-mono text-stone-500">--</span></div>
-                        <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="dynamicsBar" class="custom-transition bg-stone-800 h-full" style="width:0%"></div></div>
-                        <p id="dynamicsReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
-                    </div>
-                    <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 md:col-span-2 space-y-2 shadow-3xs">
-                        <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Toxicity Level</span><span id="toxicityVal" class="text-xs font-mono text-stone-500">--</span></div>
-                        <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="toxicityBar" class="custom-transition bg-stone-400 h-full" style="width:0%"></div></div>
-                        <p id="toxicityReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
-                    </div>
-                </div>
-            </div>
+            <!-- Full report content -->
+            <div id="lockedContent" class="space-y-8">
 
-            <!-- Personality Traits -->
-            <div class="space-y-4 border-t border-stone-100 pt-6">
-                <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Personality Traits</h4>
-                <div id="profileContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-            </div>
-
-            <!-- Truvah ID Card -->
-            <div class="bg-stone-950 text-[#FAF9F5] p-6 rounded-xl space-y-4 shadow-xs relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-4 text-stone-800 opacity-15 text-6xl serif-font pointer-events-none italic select-none">♥</div>
-                <div class="space-y-2.5 relative z-10">
-                    <h4 class="text-[9px] text-stone-400 font-bold uppercase tracking-[0.25em]">Your Truvah ID Card</h4>
-                    <p id="summaryText" class="text-sm font-serif font-light leading-relaxed italic text-stone-200"></p>
-                </div>
-                <div class="flex flex-wrap items-center gap-2 pt-3 border-t border-stone-800 relative z-10">
-                    <button onclick="shareAsImage()" class="flex items-center gap-1.5 bg-white/10 hover:bg-white/15 text-[#FAF9F5] px-3 py-1.5 rounded-lg text-[10px] tracking-wider uppercase font-medium transition-all duration-200 cursor-pointer">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-                        Share Image
-                    </button>
-                    <button onclick="shareToInstagram()" class="flex items-center gap-1.5 bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white px-3 py-1.5 rounded-lg text-[10px] tracking-wider uppercase font-bold transition-all duration-200 cursor-pointer shadow-sm">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-                        Instagram
-                    </button>
-                    <button onclick="shareToWhatsApp()" class="flex items-center gap-1.5 bg-[#25D366] hover:bg-[#22c35e] text-stone-950 px-3 py-1.5 rounded-lg text-[10px] tracking-wider uppercase font-bold transition-all duration-200 cursor-pointer">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.022-.08-.124-.22-.363-.34-.24-.12-1.418-.7-1.638-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-.992-.367-1.893-1.167-.701-.624-1.175-1.396-1.313-1.637-.14-.24-.015-.37.106-.49.11-.11.242-.28.363-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.195-.47-.393-.41-.54-.41-.14 0-.31-.02-.47-.02-.16 0-.42.06-.64.3-.22.24-.82.8-1.02.98-.2.18-.32.3-.5.3-.18 0-1.22-.39-2.33-1.39-.86-.77-1.44-1.73-1.61-2-.17-.27-.02-.42.11-.54.12-.12.242-.28.363-.42.04-.04.08-.08.12-.12.08-.08.12-.16.18-.24.06-.08.03-.16-.01-.24-.04-.08-.36-.88-.5-1.21-.13-.32-.27-.28-.38-.28-.1 0-.22-.02-.34-.02-.12 0-.32.04-.49.22-.17.18-.65.64-.65 1.56s.67 1.81.76 1.94c.09.13 1.3 2 3.16 2.8 1.86.8 1.86.53 2.19.5.33-.03 1.05-.43 1.2-.85.15-.42.15-.78.1-.85-.05-.07-.18-.11-.42-.23zM12 2C6.48 2 2 6.48 2 12c0 2.17.69 4.19 1.86 5.86L2.5 21.5l3.77-1.23C7.87 21.37 9.87 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
-                        WhatsApp
-                    </button>
-                    <button id="copyBtn" onclick="copyCardText()" class="flex items-center gap-1.5 bg-stone-900 text-stone-300 px-3 py-1.5 rounded-lg text-[10px] tracking-wider uppercase font-medium transition-all duration-200 cursor-pointer">Copy text</button>
-                </div>
-            </div>
-
-            <!-- Email report panel -->
-            <div class="border-2 border-stone-900 rounded-xl bg-[#FAF9F5] p-5 space-y-4 shadow-sm">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-stone-900 flex items-center justify-center shrink-0">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-[#FAF9F5]"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-semibold text-stone-900 tracking-tight">Don't lose this insight</p>
-                        <p class="text-[11px] text-stone-500 font-light">Send the full report to your inbox — for yourself or your partner</p>
-                    </div>
-                </div>
                 <div class="space-y-4">
-                    <div class="flex items-center gap-2">
-                        <span class="text-[10px] text-stone-400 uppercase tracking-widest font-medium shrink-0">Send to</span>
-                        <div class="flex gap-1">
-                            <button type="button" id="optMe" onclick="selectOpt('me')" class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-300 text-stone-600 bg-white hover:border-stone-500 transition-all cursor-pointer">me</button>
-                            <button type="button" id="optPartner" onclick="selectOpt('partner')" class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-300 text-stone-600 bg-white hover:border-stone-500 transition-all cursor-pointer">partner</button>
-                            <button type="button" id="optBoth" onclick="selectOpt('both')" class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-300 text-stone-600 bg-white hover:border-stone-500 transition-all cursor-pointer">both</button>
+                    <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Interpersonal Dynamics</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">General Warmth & Kindness</span><span id="positivityVal" class="text-xs font-mono text-stone-500">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="positivityBar" class="custom-transition bg-stone-800 h-full" style="width:0%"></div></div>
+                            <p id="positivityReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
                         </div>
-                    </div>
-                    <div id="emailInputs" class="hidden space-y-2">
-                        <div id="selfInputWrap" class="hidden">
-                            <input id="emailSelf" type="email" placeholder="your@email.com" class="w-full px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Solving Problems Together</span><span id="conflictVal" class="text-xs font-mono text-stone-500">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="conflictBar" class="custom-transition bg-stone-800 h-full" style="width:0%"></div></div>
+                            <p id="conflictReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
                         </div>
-                        <div id="partnerInputWrap" class="hidden input-reveal">
-                            <input id="emailPartner" type="email" placeholder="partner@email.com" class="w-full px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Comfortable Sharing Feelings</span><span id="safetyVal" class="text-xs font-mono text-stone-500">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="safetyBar" class="custom-transition bg-stone-800 h-full" style="width:0%"></div></div>
+                            <p id="safetyReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
                         </div>
-                        <button id="emailReportBtn" onclick="emailReport()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs">Send Report</button>
-                    </div>
-                    <div id="emailSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
-                        <span class="text-emerald-500">✓</span><span id="emailSuccessText">Report sent!</span>
-                    </div>
-                    <div id="emailErrorBanner" class="hidden bg-red-50/50 border border-red-200/50 text-red-700 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
-                        <span>✕</span><span id="emailErrorText">Something went wrong.</span>
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 space-y-2 shadow-3xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Teamwork & Connection</span><span id="dynamicsVal" class="text-xs font-mono text-stone-500">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="dynamicsBar" class="custom-transition bg-stone-800 h-full" style="width:0%"></div></div>
+                            <p id="dynamicsReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
+                        </div>
+                        <div class="p-5 bg-[#FAF9F5]/50 rounded-xl border border-stone-200/40 md:col-span-2 space-y-2 shadow-3xs">
+                            <div class="flex justify-between items-center"><span class="text-xs font-medium text-stone-700 tracking-wide">Toxicity Level</span><span id="toxicityVal" class="text-xs font-mono text-stone-500">--</span></div>
+                            <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="toxicityBar" class="custom-transition bg-stone-400 h-full" style="width:0%"></div></div>
+                            <p id="toxicityReason" class="text-[11px] text-stone-500 leading-relaxed font-light"></p>
+                        </div>
                     </div>
                 </div>
-            </div>
 
+                <div class="space-y-4 border-t border-stone-100 pt-6">
+                    <div class="space-y-0.5">
+                        <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Personality Traits</h4>
+                        </div>
+                    <div id="profileContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                </div>
+
+                <!-- Truvah ID Card -->
+                <div id="idCardContainer" class="bg-stone-950 text-[#FAF9F5] p-6 rounded-xl space-y-4 shadow-xs relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 text-stone-800 opacity-15 text-6xl serif-font pointer-events-none italic select-none">♥</div>
+                    <div class="space-y-2.5 relative z-10">
+                        <h4 class="text-[9px] text-stone-400 font-bold uppercase tracking-[0.25em]">Your Truvah ID Card</h4>
+                        <p id="summaryText" class="text-sm font-serif font-light leading-relaxed italic text-stone-200"></p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 pt-3 border-t border-stone-800 relative z-10">
+                        <button onclick="shareAsImage()" class="flex items-center gap-1.5 bg-white/10 hover:bg-white/15 text-[#FAF9F5] px-3 py-1.5 rounded-lg text-[10px] tracking-wider uppercase font-medium transition-all duration-200 cursor-pointer">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                            Share Image
+                        </button>
+                        <button onclick="shareToInstagram()" class="flex items-center gap-1.5 bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white px-3 py-1.5 rounded-lg text-[10px] tracking-wider uppercase font-bold transition-all duration-200 cursor-pointer shadow-sm">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                            Instagram
+                        </button>
+                        <button onclick="shareToWhatsApp()" class="flex items-center gap-1.5 bg-[#25D366] hover:bg-[#22c35e] text-stone-950 px-3 py-1.5 rounded-lg text-[10px] tracking-wider uppercase font-bold transition-all duration-200 cursor-pointer">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.022-.08-.124-.22-.363-.34-.24-.12-1.418-.7-1.638-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-.992-.367-1.893-1.167-.701-.624-1.175-1.396-1.313-1.637-.14-.24-.015-.37.106-.49.11-.11.242-.28.363-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.195-.47-.393-.41-.54-.41-.14 0-.31-.02-.47-.02-.16 0-.42.06-.64.3-.22.24-.82.8-1.02.98-.2.18-.32.3-.5.3-.18 0-1.22-.39-2.33-1.39-.86-.77-1.44-1.73-1.61-2-.17-.27-.02-.42.11-.54.12-.12.242-.28.363-.42.04-.04.08-.08.12-.12.08-.08.12-.16.18-.24.06-.08.03-.16-.01-.24-.04-.08-.36-.88-.5-1.21-.13-.32-.27-.28-.38-.28-.1 0-.22-.02-.34-.02-.12 0-.32.04-.49.22-.17.18-.65.64-.65 1.56s.67 1.81.76 1.94c.09.13 1.3 2 3.16 2.8 1.86.8 1.86.53 2.19.5.33-.03 1.05-.43 1.2-.85.15-.42.15-.78.1-.85-.05-.07-.18-.11-.42-.23zM12 2C6.48 2 2 6.48 2 12c0 2.17.69 4.19 1.86 5.86L2.5 21.5l3.77-1.23C7.87 21.37 9.87 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
+                            WhatsApp
+                        </button>
+                        <button id="copyBtn" onclick="copyCardText()" class="flex items-center gap-1.5 bg-stone-900 text-stone-300 px-3 py-1.5 rounded-lg text-[10px] tracking-wider uppercase font-medium transition-all duration-200 cursor-pointer">Copy text</button>
+                    </div>
+                </div>
+
+                <!-- Email report panel — light card, accent border for emphasis -->
+                <div id="emailPanel" class="border-2 border-stone-900 rounded-xl bg-[#FAF9F5] p-5 space-y-4 shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-stone-900 flex items-center justify-center shrink-0">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-[#FAF9F5]"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-stone-900 tracking-tight">Don't lose this insight</p>
+                            <p class="text-[11px] text-stone-500 font-light">Send the full report to your inbox — for yourself or your partner</p>
+                        </div>
+                    </div>
+                    <div id="emailExpanded">
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] text-stone-400 uppercase tracking-widest font-medium shrink-0">Send to</span>
+                                <div class="flex gap-1">
+                                    <button type="button" id="optMe" onclick="selectOpt('me')" class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-300 text-stone-600 bg-white hover:border-stone-500 transition-all cursor-pointer">me</button>
+                                    <button type="button" id="optPartner" onclick="selectOpt('partner')" class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-300 text-stone-600 bg-white hover:border-stone-500 transition-all cursor-pointer">partner</button>
+                                    <button type="button" id="optBoth" onclick="selectOpt('both')" class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-300 text-stone-600 bg-white hover:border-stone-500 transition-all cursor-pointer">both</button>
+                                </div>
+                            </div>
+                            <div id="emailInputs" class="hidden space-y-2">
+                                <div id="selfInputWrap" class="hidden">
+                                    <input id="emailSelf" type="email" placeholder="your@email.com" class="w-full px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
+                                </div>
+                                <div id="partnerInputWrap" class="hidden input-reveal">
+                                    <input id="emailPartner" type="email" placeholder="partner@email.com" class="w-full px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
+                                </div>
+                                <button id="emailReportBtn" onclick="emailReport()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs">Send Report</button>
+                            </div>
+                            <div id="emailSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                                <span class="text-emerald-500">✓</span><span id="emailSuccessText">Report sent!</span>
+                            </div>
+                            <div id="emailErrorBanner" class="hidden bg-red-50/50 border border-red-200/50 text-red-700 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                                <span>✕</span><span id="emailErrorText">Something went wrong.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- end lockedContent -->
         </div><!-- end resultSection -->
+
     </section>
 </main>
 
@@ -339,7 +359,7 @@
                         <input id="inviteEmail" type="email" placeholder="friend@example.com" class="flex-1 px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all shadow-xs" />
                         <button id="inviteBtn" onclick="sendInvite()" class="bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium px-5 py-2.5 rounded-xl transition-all duration-200 cursor-pointer text-xs tracking-[0.12em] uppercase shadow-xs whitespace-nowrap">Send Invite</button>
                     </div>
-                    <p class="text-[10px] text-stone-400 font-light mt-2">They'll receive a personal invitation. <span id="inviteCountText" class="font-medium text-stone-500"></span></p>
+                    <p id="inviteCountNote" class="text-[10px] text-stone-400 font-light mt-2">They'll receive a personal invitation. <span id="inviteCountText" class="font-medium text-stone-500"></span></p>
                 </div>
                 <div id="inviteSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3 rounded-xl text-xs font-light flex items-center gap-2">
                     <span class="text-emerald-500 font-bold">✓</span><span id="inviteSuccessText">Invite sent. They'll hear from us shortly.</span>
@@ -353,7 +373,6 @@
     <div class="text-center pb-6 text-[10px] text-stone-400 tracking-[0.15em] font-light border-t border-stone-200/40 pt-5">TRUVAH • DISCUSSIONS MADE SIMPLER</div>
 </footer>
 
-<!-- Instagram desktop fallback toast -->
 <div id="toastNotification" class="hidden fixed bottom-6 right-6 z-50 animate-banner-slide bg-stone-900 text-stone-200 border border-stone-800 px-5 py-4 rounded-xl shadow-lg max-w-sm flex gap-3 items-start">
     <span class="text-emerald-500 font-bold">✓</span>
     <div>
@@ -363,540 +382,408 @@
 </div>
 
 <script>
-/* ══ PostHog ══ */
-!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+" (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-posthog.init('phx_KDPamGQm9JUsNgSeAgBr6YVL9VNcm7xRQqYcN7ZUA66hxxHz',{
-    api_host:'https://app.posthog.com',autocapture:true,capture_pageview:true,capture_pageleave:true,
-    loaded:function(ph){
-        ph.capture('ph_loaded');
-        try{ const s=JSON.parse(sessionStorage.getItem('truvah_session')||'{}'); if(s.userId) ph.identify(s.userId); }catch(e){}
+/* ══ Analytics — GA4 only ══
+   Custom parameters must be registered in GA4 under
+   Admin → Custom definitions before they appear in reports.
+   They still collect fine before registration.
+══ */
+function track(ev, props) {
+    try {
+        if(typeof gtag === 'undefined') return;
+        // Strip undefined/null values so GA4 doesn't receive empty params
+        const clean = {};
+        for(const [k,v] of Object.entries(props || {})) {
+            if(v !== undefined && v !== null) clean[k] = v;
+        }
+        gtag('event', ev, clean);
+    } catch(e) {}
+}
+
+/* ══ Constants & State ══ */
+const PRIMARY_USER_ID='093236df-7fb5-46ba-9188-c511145689ec';
+const EMAIL_REGEX=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+let latestAnalytics=null,activeRecipientOption=null,currentUserId=null,currentInviteCount=0;
+// Client-side session gate: only blocks until email is submitted.
+// Once the user submits their email and a real userId is assigned,
+// the server-side CHATS_PER_USER limit (from analyze-config.js) takes over.
+const MAX_SESSION_ANALYSES_BEFORE_EMAIL=1; // show email gate after 1st analysis
+let sessionAnalysisCount=parseInt(sessionStorage.getItem('truvah_analysis_count')||'0',10);
+let emailGateSatisfied=sessionStorage.getItem('truvah_gate_email_done')==='1';
+
+/* Textarea tracking */
+const chatInputEl=document.getElementById('chatInput');
+let tfFocused=false, isSampleLoaded=false, originalMsgTracked=false, lastInputWasSample=false;
+chatInputEl.addEventListener('focus',()=>{if(!tfFocused){tfFocused=true;track('textarea_focused');}});
+chatInputEl.addEventListener('paste',()=>track('textarea_pasted'));
+chatInputEl.addEventListener('input',()=>{
+    if(!originalMsgTracked&&!isSampleLoaded&&chatInputEl.value.length>20){
+        originalMsgTracked=true;
+        lastInputWasSample=false;
+        track('original_message_entered');
     }
+    isSampleLoaded=false;
 });
-function track(ev,p){try{if(typeof posthog!=='undefined')posthog.capture(ev,p||{});}catch(e){}}
 
-/* ══════════════════════════════════════════════
-   STATE
-   ══════════════════════════════════════════════ */
-const PRIMARY_USER_ID = '093236df-7fb5-46ba-9188-c511145689ec';
-const EMAIL_REGEX     = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// Pre-email client gate: after this many anonymous analyses, collect email.
-// Once a real userId exists the server-side CHATS_PER_USER (analyze-config.js) is the only limit.
-const ANON_ANALYSES_BEFORE_EMAIL_GATE = 1;
-
-let latestAnalytics      = null;
-let activeRecipientOption = null;
-let currentUserId        = null;
-let currentInviteCount   = 0;
-let sessionAnalysisCount = parseInt(sessionStorage.getItem('truvah_analysis_count') || '0', 10);
-let emailGateSatisfied   = sessionStorage.getItem('truvah_gate_email_done') === '1';
-
-/* ══════════════════════════════════════════════
-   HELPERS
-   ══════════════════════════════════════════════ */
-function show(id){ document.getElementById(id)?.classList.remove('hidden'); }
-function hide(id){ document.getElementById(id)?.classList.add('hidden'); }
-function setText(id, text){ const el=document.getElementById(id); if(el) el.innerText=text; }
-
-/** POST to /api/request-without-invite then verify the returned token.
- *  Returns the verified session object { userId, inviteCount } or null on failure. */
-async function registerAndVerifyEmail(email){
-    const regRes  = await fetch('/api/request-without-invite', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email})});
-    const regData = await regRes.json();
-    if(!regData.token) return null;
-    const verRes  = await fetch('/api/verify-token', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token:regData.token})});
-    const verData = await verRes.json();
-    return (verData?.valid) ? verData : null;
-}
-
-/** Persist a verified session, update global state, identify in PostHog. */
-function applySession(session){
-    currentUserId      = session.userId;
-    currentInviteCount = session.inviteCount || 0;
-    sessionStorage.setItem('truvah_session', JSON.stringify({userId:session.userId, inviteCount:currentInviteCount}));
-    if(typeof posthog !== 'undefined') posthog.identify(currentUserId);
-    updateInviteCountUI();
-}
-
-/* ══════════════════════════════════════════════
-   TEXTAREA TRACKING
-   ══════════════════════════════════════════════ */
-const chatInputEl = document.getElementById('chatInput');
-let tfFocused = false;
-chatInputEl.addEventListener('focus', ()=>{ if(!tfFocused){ tfFocused=true; track('textarea_focused'); } });
-chatInputEl.addEventListener('paste', ()=> track('textarea_pasted'));
-
-/* ══════════════════════════════════════════════
-   SAMPLES
-   ══════════════════════════════════════════════ */
-const SAMPLES = {
-    argument: `[12/06, 8:14 pm] Ankit: I can't believe you did that again. We've talked about this so many times.\n[12/06, 8:14 pm] Ankita: I forgot, okay? It wasn't intentional.\n[12/06, 8:15 pm] Ankit: That's what you always say. It feels like I'm not a priority to you.\n[12/06, 8:15 pm] Ankita: That's not fair. I do a lot for this relationship.\n[12/06, 8:16 pm] Ankit: Then why does it always fall on me to remind you about things that matter to me?\n[12/06, 8:16 pm] Ankita: I'm trying. Can you stop making me feel like I'm constantly failing?\n[12/06, 8:17 pm] Ankit: I'm not trying to make you feel that way. I just need you to actually follow through.\n[12/06, 8:17 pm] Ankita: Fine. I'll try harder. But I need you to stop keeping score.`,
-    signals:  `[12/06, 9:02 pm] Ankit: Hey, you've been a bit quiet lately. Everything okay?\n[12/06, 9:03 pm] Ankita: Yeah just busy with work stuff.\n[12/06, 9:04 pm] Ankit: Okay... you seemed off the other night too.\n[12/06, 9:04 pm] Ankita: I'm fine, don't overthink it.\n[12/06, 9:05 pm] Ankit: I'm not overthinking, I just noticed a change.\n[12/06, 9:05 pm] Ankita: There's no change. You always do this.\n[12/06, 9:06 pm] Ankit: Do what? Try to talk to you?\n[12/06, 9:06 pm] Ankita: Make everything into something bigger than it is.\n[12/06, 9:07 pm] Ankit: I just miss you. That's all.\n[12/06, 9:07 pm] Ankita: I'm right here.`,
-    distance: `[13/06, 7:40 pm] Ankit: Can we talk tonight?\n[13/06, 7:40 pm] Ankita: About what?\n[13/06, 7:41 pm] Ankit: I feel like we haven't really connected in a while.\n[13/06, 7:42 pm] Ankita: I've just had a lot on my mind.\n[13/06, 7:42 pm] Ankit: Can you share what's going on?\n[13/06, 7:43 pm] Ankita: Not really, it's nothing.\n[13/06, 7:43 pm] Ankit: It doesn't feel like nothing. You seem distant.\n[13/06, 7:44 pm] Ankita: I just need some space to process things.\n[13/06, 7:44 pm] Ankit: How long have you needed space?\n[13/06, 7:45 pm] Ankita: I don't know. I'll let you know when I figure it out.\n[13/06, 7:45 pm] Ankit: Okay. I just want you to know I'm here.\n[13/06, 7:46 pm] Ankita: I know.`,
-    trust:    `[14/06, 11:32 pm] Ankit: I saw that you were texting late last night.\n[14/06, 11:33 pm] Ankita: It was just a friend.\n[14/06, 11:33 pm] Ankit: Which friend?\n[14/06, 11:34 pm] Ankita: Why are you checking up on me?\n[14/06, 11:34 pm] Ankit: I'm not checking up, I'm asking because you were secretive about it.\n[14/06, 11:35 pm] Ankita: I'm allowed to have private conversations.\n[14/06, 11:35 pm] Ankit: Of course you are. But the way you hid your phone felt off.\n[14/06, 11:36 pm] Ankita: I didn't hide it, I just don't need to share everything.\n[14/06, 11:36 pm] Ankit: When did we stop being open with each other?\n[14/06, 11:37 pm] Ankita: I don't know what you want from me.`,
+/* ══ SAMPLES ══ */
+const SAMPLES={
+    argument:`[12/06, 8:14 pm] Ankit: I can't believe you did that again. We've talked about this so many times.\n[12/06, 8:14 pm] Ankita: I forgot, okay? It wasn't intentional.\n[12/06, 8:15 pm] Ankit: That's what you always say. It feels like I'm not a priority to you.\n[12/06, 8:15 pm] Ankita: That's not fair. I do a lot for this relationship.\n[12/06, 8:16 pm] Ankit: Then why does it always fall on me to remind you about things that matter to me?\n[12/06, 8:16 pm] Ankita: I'm trying. Can you stop making me feel like I'm constantly failing?\n[12/06, 8:17 pm] Ankit: I'm not trying to make you feel that way. I just need you to actually follow through.\n[12/06, 8:17 pm] Ankita: Fine. I'll try harder. But I need you to stop keeping score.`,
+    signals:`[12/06, 9:02 pm] Ankit: Hey, you've been a bit quiet lately. Everything okay?\n[12/06, 9:03 pm] Ankita: Yeah just busy with work stuff.\n[12/06, 9:04 pm] Ankit: Okay... you seemed off the other night too.\n[12/06, 9:04 pm] Ankita: I'm fine, don't overthink it.\n[12/06, 9:05 pm] Ankit: I'm not overthinking, I just noticed a change.\n[12/06, 9:05 pm] Ankita: There's no change. You always do this.\n[12/06, 9:06 pm] Ankit: Do what? Try to talk to you?\n[12/06, 9:06 pm] Ankita: Make everything into something bigger than it is.\n[12/06, 9:07 pm] Ankit: I just miss you. That's all.\n[12/06, 9:07 pm] Ankita: I'm right here.`,
+    distance:`[13/06, 7:40 pm] Ankit: Can we talk tonight?\n[13/06, 7:40 pm] Ankita: About what?\n[13/06, 7:41 pm] Ankit: I feel like we haven't really connected in a while.\n[13/06, 7:42 pm] Ankita: I've just had a lot on my mind.\n[13/06, 7:42 pm] Ankit: Can you share what's going on?\n[13/06, 7:43 pm] Ankita: Not really, it's nothing.\n[13/06, 7:43 pm] Ankit: It doesn't feel like nothing. You seem distant.\n[13/06, 7:44 pm] Ankita: I just need some space to process things.\n[13/06, 7:44 pm] Ankit: How long have you needed space?\n[13/06, 7:45 pm] Ankita: I don't know. I'll let you know when I figure it out.\n[13/06, 7:45 pm] Ankit: Okay. I just want you to know I'm here.\n[13/06, 7:46 pm] Ankita: I know.`,
+    trust:`[14/06, 11:32 pm] Ankit: I saw that you were texting late last night.\n[14/06, 11:33 pm] Ankita: It was just a friend.\n[14/06, 11:33 pm] Ankit: Which friend?\n[14/06, 11:34 pm] Ankita: Why are you checking up on me?\n[14/06, 11:34 pm] Ankit: I'm not checking up, I'm asking because you were secretive about it.\n[14/06, 11:35 pm] Ankita: I'm allowed to have private conversations.\n[14/06, 11:35 pm] Ankit: Of course you are. But the way you hid your phone felt off.\n[14/06, 11:36 pm] Ankita: I didn't hide it, I just don't need to share everything.\n[14/06, 11:36 pm] Ankit: When did we stop being open with each other?\n[14/06, 11:37 pm] Ankita: I don't know what you want from me.`,
     recurring:`[15/06, 6:05 pm] Ankit: This is the third time this month we've had this exact fight.\n[15/06, 6:05 pm] Ankita: Because you keep bringing it up.\n[15/06, 6:06 pm] Ankit: I bring it up because nothing changes.\n[15/06, 6:06 pm] Ankita: I've been trying!\n[15/06, 6:07 pm] Ankit: It doesn't feel that way from where I'm standing.\n[15/06, 6:07 pm] Ankita: What more do you want me to do?\n[15/06, 6:08 pm] Ankit: I want you to actually hear me when I tell you something bothers me.\n[15/06, 6:08 pm] Ankita: I do hear you.\n[15/06, 6:09 pm] Ankit: Then why are we here again?\n[15/06, 6:09 pm] Ankita: Maybe because you're never satisfied.\n[15/06, 6:10 pm] Ankit: That's not fair and you know it.\n[15/06, 6:10 pm] Ankita: Fine. What do you want me to say?`
 };
 function loadSample(key){
-    if(!SAMPLES[key]) return;
-    chatInputEl.value = SAMPLES[key];
+    if(!SAMPLES[key])return;
+    isSampleLoaded=true;
+    lastInputWasSample=true;
+    chatInputEl.value=SAMPLES[key];
+    chatInputEl.dispatchEvent(new Event('input'));
     chatInputEl.focus();
-    track('sample_loaded', {sample:key});
-    document.getElementById('analyzeBtn').scrollIntoView({behavior:'smooth', block:'nearest'});
+    track('sample_loaded',{sample:key});
+    document.getElementById('analyzeBtn').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-/* ══════════════════════════════════════════════
-   ACCESS GATE
-   ══════════════════════════════════════════════ */
-function getTokenFromUrl(){ return new URLSearchParams(window.location.search).get('token') || null; }
-
-async function initAccess(){
-    // 1. Restore from existing session
+/* ══ ACCESS GATE ══ */
+function getTokenFromUrl(){ return new URLSearchParams(window.location.search).get('token')||null; }
+async function verifyAccess(token){
     try{
-        const s = JSON.parse(sessionStorage.getItem('truvah_session') || '{}');
-        if(s.userId){ currentUserId=s.userId; currentInviteCount=s.inviteCount||0; grantAccess(); track('gate_passed',{method:'session'}); return; }
-    }catch{}
-
-    // 2. Verify URL invite token
-    const urlToken = getTokenFromUrl();
+        const res=await fetch('/api/verify-token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token})});
+        const data=await res.json();
+        if(!res.ok||!data.valid)return null;
+        return data;
+    }catch{return null;}
+}
+async function initAccess(){
+    const stored=sessionStorage.getItem('truvah_session');
+    if(stored){try{const s=JSON.parse(stored);if(s.userId){currentUserId=s.userId;currentInviteCount=s.inviteCount||0;grantAccess();track('gate_passed',{method:'session'});return;}}catch{}}
+    const urlToken=getTokenFromUrl();
     if(urlToken){
         track('gate_token_found');
-        const result = await (async ()=>{
-            try{
-                const res  = await fetch('/api/verify-token', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token:urlToken})});
-                const data = await res.json();
-                return (res.ok && data.valid) ? data : null;
-            }catch{ return null; }
-        })();
+        const result=await verifyAccess(urlToken);
         if(result){
-            applySession(result);
-            window.history.replaceState({}, document.title, window.location.pathname);
-            grantAccess(); track('gate_passed',{method:'token'}); return;
+            currentUserId=result.userId;currentInviteCount=result.inviteCount||0;
+            sessionStorage.setItem('truvah_session',JSON.stringify({userId:result.userId,inviteCount:result.inviteCount||0}));
+            window.history.replaceState({},document.title,window.location.pathname);
+            grantAccess();track('gate_passed',{method:'token'});return;
         }else{
             showGateBlocked('This invite link is no longer valid.');
-            track('gate_blocked',{reason:'invalid_token'}); return;
+            track('gate_blocked',{reason:'invalid_token'});return;
         }
     }
-
-    // 3. No session, no token → open access
-    grantAccess(); track('gate_passed',{method:'open'});
+    /* No session, no token → open access for new visitors */
+    grantAccess();track('gate_passed',{method:'open'});
 }
-
 function showGateBlocked(msg){
-    hide('gateChecking'); show('gateBlocked');
+    document.getElementById('gateChecking').classList.add('hidden');
+    document.getElementById('gateBlocked').classList.remove('hidden');
     document.body.classList.add('ready');
-    if(msg){ const e=document.getElementById('gateError'); e.innerText=msg; e.classList.remove('hidden'); }
+    if(msg){const e=document.getElementById('gateError');e.innerText=msg;e.classList.remove('hidden');}
 }
-
 function grantAccess(){
-    document.body.classList.remove('gated');
-    document.body.classList.add('ready');
+    document.body.classList.remove('gated');document.body.classList.add('ready');
     updateInviteCountUI();
-    if(typeof posthog !== 'undefined' && currentUserId) posthog.identify(currentUserId);
 }
-
 function updateInviteCountUI(){
-    const remaining  = 3 - currentInviteCount;
-    const ct = document.getElementById('inviteCountText');
-    const lm = document.getElementById('inviteLimitMsg');
-    const fm = document.getElementById('inviteForm');
-    if(!ct) return;
-    if(currentUserId === PRIMARY_USER_ID){ lm&&lm.classList.add('hidden'); fm&&fm.classList.remove('hidden'); ct.innerText=''; return; }
-    if(remaining <= 0){ lm&&lm.classList.remove('hidden'); fm&&fm.classList.add('hidden'); }
-    else{ lm&&lm.classList.add('hidden'); fm&&fm.classList.remove('hidden'); ct.innerText = remaining===1 ? '1 invite remaining.' : `${remaining} invites remaining.`; }
+    const remaining=3-currentInviteCount;
+    const ct=document.getElementById('inviteCountText'),lm=document.getElementById('inviteLimitMsg'),fm=document.getElementById('inviteForm');
+    if(!ct)return;
+    if(currentUserId===PRIMARY_USER_ID){lm&&lm.classList.add('hidden');fm&&fm.classList.remove('hidden');ct.innerText='';return;}
+    if(remaining<=0){lm&&lm.classList.remove('hidden');fm&&fm.classList.add('hidden');}
+    else{lm&&lm.classList.add('hidden');fm&&fm.classList.remove('hidden');ct.innerText=remaining===1?'1 invite remaining.':`${remaining} invites remaining.`;}
 }
-
-/* Gate wall: expired-token email form */
 async function submitInterest(){
-    const email = document.getElementById('interestEmail').value.trim();
-    const btn   = document.getElementById('interestBtn');
-    hide('interestSuccess'); hide('interestError');
-    track('gate_claim_access_clicked', {email_provided:!!email});
-
-    if(!email || !EMAIL_REGEX.test(email)){
-        setText('interestErrorText', 'Please enter a valid email address.');
-        show('interestError'); track('gate_claim_access_validation_failed'); return;
-    }
-
-    btn.disabled=true; btn.innerText='Granting access...';
+    const email=document.getElementById('interestEmail').value.trim();
+    const se=document.getElementById('interestSuccess'),ee=document.getElementById('interestError'),btn=document.getElementById('interestBtn');
+    se.classList.add('hidden');ee.classList.add('hidden');
+    track('gate_claim_access_clicked',{email_provided:!!email});
+    if(!email||!EMAIL_REGEX.test(email)){document.getElementById('interestErrorText').innerText='Please enter a valid email address.';ee.classList.remove('hidden');track('gate_claim_access_validation_failed');return;}
+    btn.disabled=true;btn.innerText='Granting access...';
     try{
-        const session = await registerAndVerifyEmail(email);
-        if(!session) throw new Error('Access could not be verified.');
-        applySession(session);
-        track('gate_claim_access_success');
-        grantAccess();
+        const res=await fetch('/api/request-without-invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+        const data=await res.json();
+        if(!res.ok)throw new Error(data.error||'Something went wrong.');
+        if(data.token){
+            const result=await verifyAccess(data.token);
+            if(result){
+                currentUserId=result.userId;currentInviteCount=result.inviteCount||0;
+                sessionStorage.setItem('truvah_session',JSON.stringify({userId:result.userId,inviteCount:result.inviteCount||0}));
+                track('gate_claim_access_success');grantAccess();
+            }else throw new Error('Access could not be verified.');
+        }else throw new Error('No access token received.');
     }catch(err){
-        setText('interestErrorText', err.message);
-        show('interestError');
-        track('gate_claim_access_error', {error:err.message});
-        btn.disabled=false; btn.innerText='Request Access';
+        document.getElementById('interestErrorText').innerText=err.message;ee.classList.remove('hidden');
+        track('gate_claim_access_error',{error:err.message});
+        btn.disabled=false;btn.innerText='Request Access';
     }
 }
-
 initAccess();
 
-/* ══════════════════════════════════════════════
-   BAR ANIMATION
-   ══════════════════════════════════════════════ */
-function setBarWidth(id, val){
-    const el = document.getElementById(id);
-    if(el) el.style.width = (parseInt(val) || 0) + '%';
-}
-
+/* ══ BAR ANIMATION ══ */
 function animateReportBars(){
-    requestAnimationFrame(()=> requestAnimationFrame(()=>{
-        if(!latestAnalytics) return;
-        const s = latestAnalytics;
-        setBarWidth('positivityBar', s.bond_positivity);
-        setBarWidth('conflictBar',   s.conflict_resolution);
-        setBarWidth('safetyBar',     s.safety_trust);
-        setBarWidth('dynamicsBar',   s.relationship_dynamics);
-        setBarWidth('toxicityBar',   s.toxicity);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        if(!latestAnalytics)return;
+        const s=latestAnalytics;
+        const sw=(id,v)=>{const el=document.getElementById(id);if(el)el.style.width=(parseInt(v)||0)+'%';};
+        sw('positivityBar',s.bond_positivity);sw('conflictBar',s.conflict_resolution);
+        sw('safetyBar',s.safety_trust);sw('dynamicsBar',s.relationship_dynamics);sw('toxicityBar',s.toxicity);
         document.querySelectorAll('#profileContainer > div[data-attach-id]').forEach(card=>{
-            setBarWidth(card.dataset.attachId,  card.dataset.attachVal);
-            setBarWidth(card.dataset.regId,     card.dataset.regVal);
-            setBarWidth(card.dataset.recepId,   card.dataset.recepVal);
-            setBarWidth(card.dataset.accId,     card.dataset.accVal);
+            sw(card.dataset.attachId,card.dataset.attachVal);sw(card.dataset.regId,card.dataset.regVal);
+            sw(card.dataset.recepId,card.dataset.recepVal);sw(card.dataset.accId,card.dataset.accVal);
         });
     }));
 }
 
-/* ══════════════════════════════════════════════
-   INVITE
-   ══════════════════════════════════════════════ */
+/* ══ SCROLL DEPTH — fires once when 80% of the result section is visible ══ */
+let scrollDepthObserver=null;
+function initScrollDepthTracking(){
+    if(scrollDepthObserver) scrollDepthObserver.disconnect();
+    const section=document.getElementById('resultSection');
+    if(!section) return;
+    scrollDepthObserver=new IntersectionObserver((entries)=>{
+        if(entries[0].isIntersecting&&entries[0].intersectionRatio>=0.8){
+            track('report_viewed_80pct',{bond_strength:latestAnalytics?.bond_strength});
+            scrollDepthObserver.disconnect();
+        }
+    },{threshold:0.8});
+    scrollDepthObserver.observe(section);
+}
+
+/* ══ INVITE ══ */
 async function sendInvite(){
-    const ie  = document.getElementById('inviteEmail').value.trim();
-    const btn = document.getElementById('inviteBtn');
-    hide('inviteSuccessBanner'); hide('inviteErrorBanner');
-    track('invite_send_clicked', {email_provided:!!ie});
-
-    if(!ie){ setText('inviteErrorText','Please enter an email address.'); show('inviteErrorBanner'); return; }
-    if(!EMAIL_REGEX.test(ie)){ setText('inviteErrorText',"That email doesn't look right."); show('inviteErrorBanner'); return; }
-    if(currentUserId !== PRIMARY_USER_ID && currentInviteCount >= 3){
-        setText('inviteErrorText',"You've used all 3 of your invites."); show('inviteErrorBanner');
-        track('invite_limit_reached'); return;
-    }
-
-    btn.disabled=true; btn.innerText='Sending...';
+    const ie=document.getElementById('inviteEmail').value.trim();
+    const sb=document.getElementById('inviteSuccessBanner'),eb=document.getElementById('inviteErrorBanner'),btn=document.getElementById('inviteBtn');
+    sb.classList.add('hidden');eb.classList.add('hidden');
+    track('invite_send_clicked',{email_provided:!!ie});
+    if(!ie){document.getElementById('inviteErrorText').innerText='Please enter an email address.';eb.classList.remove('hidden');return;}
+    if(!EMAIL_REGEX.test(ie)){document.getElementById('inviteErrorText').innerText="That email doesn't look right.";eb.classList.remove('hidden');return;}
+    btn.disabled=true;btn.innerText='Sending...';
+    if(currentUserId!==PRIMARY_USER_ID&&currentInviteCount>=3){document.getElementById('inviteErrorText').innerText="You've used all 3 of your invites.";eb.classList.remove('hidden');track('invite_limit_reached');btn.disabled=false;btn.innerText='Send Invite';return;}
     try{
-        const res    = await fetch('/api/send-invite', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({inviteeEmail:ie, inviterUserId:currentUserId})});
-        const result = await res.json();
-        if(!res.ok){
-            if(result.error === 'INVITE_LIMIT_REACHED' && currentUserId !== PRIMARY_USER_ID){ currentInviteCount=3; updateInviteCountUI(); track('invite_limit_reached'); }
-            throw new Error(result.error || 'Invite could not be sent');
-        }
-        currentInviteCount = 3 - (result.remainingInvites || 0);
-        const st = JSON.parse(sessionStorage.getItem('truvah_session') || '{}');
-        st.inviteCount = currentInviteCount;
-        sessionStorage.setItem('truvah_session', JSON.stringify(st));
-        track('invite_sent_success', {remaining_invites:result.remainingInvites||0});
-        setText('inviteSuccessText', `Invite sent to ${ie}. They'll hear from us shortly.`);
-        show('inviteSuccessBanner');
-        document.getElementById('inviteEmail').value = '';
-        btn.innerText = '✓ Sent'; btn.classList.replace('bg-stone-950','bg-emerald-700');
-        setTimeout(()=>{ btn.disabled=false; btn.innerText='Send Invite'; btn.classList.replace('bg-emerald-700','bg-stone-950'); updateInviteCountUI(); }, 3000);
-    }catch(err){
-        setText('inviteErrorText', 'Could not send invite: ' + err.message);
-        show('inviteErrorBanner'); track('invite_send_error',{error:err.message});
-        btn.disabled=false; btn.innerText='Send Invite';
-    }
+        const res=await fetch('/api/send-invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({inviteeEmail:ie,inviterUserId:currentUserId})});
+        const result=await res.json();
+        if(!res.ok){if(result.error==='INVITE_LIMIT_REACHED'&&currentUserId!==PRIMARY_USER_ID){currentInviteCount=3;updateInviteCountUI();track('invite_limit_reached');throw new Error("You've used all 3 of your invites.");}throw new Error(result.error||'Invite could not be sent');}
+        currentInviteCount=3-(result.remainingInvites||0);
+        const st=JSON.parse(sessionStorage.getItem('truvah_session')||'{}');st.inviteCount=currentInviteCount;sessionStorage.setItem('truvah_session',JSON.stringify(st));
+        track('invite_sent_success',{remaining_invites:result.remainingInvites||0});
+        document.getElementById('inviteSuccessText').innerText=`Invite sent to ${ie}. They'll hear from us shortly.`;
+        sb.classList.remove('hidden');document.getElementById('inviteEmail').value='';
+        btn.innerText='\u2713 Sent';btn.classList.replace('bg-stone-950','bg-emerald-700');
+        setTimeout(()=>{btn.disabled=false;btn.innerText='Send Invite';btn.classList.replace('bg-emerald-700','bg-stone-950');updateInviteCountUI();},3000);
+    }catch(err){document.getElementById('inviteErrorText').innerText='Could not send invite: '+err.message;eb.classList.remove('hidden');track('invite_send_error',{error:err.message});btn.disabled=false;btn.innerText='Send Invite';}
 }
 
-/* ══════════════════════════════════════════════
-   EMAIL REPORT PANEL
-   ══════════════════════════════════════════════ */
+/* ══ EMAIL PANEL ══ */
 function selectOpt(option){
-    activeRecipientOption = option;
+    activeRecipientOption=option;
     ['me','partner','both'].forEach(o=>{
-        const el = document.getElementById('opt' + o.charAt(0).toUpperCase() + o.slice(1));
-        el.style.cssText = '';
-        if(o === option){ el.style.borderColor='#1c1917'; el.style.background='#1c1917'; el.style.color='#fafaf9'; el.style.fontWeight='600'; }
+        const el=document.getElementById('opt'+o.charAt(0).toUpperCase()+o.slice(1));el.style.cssText='';
+        if(o===option){el.style.borderColor='#1c1917';el.style.background='#1c1917';el.style.color='#fafaf9';el.style.fontWeight='600';}
     });
-    show('emailInputs');
-    if(option==='me'||option==='both'){ show('selfInputWrap'); document.getElementById('selfInputWrap').classList.add('input-reveal'); }
-    else{ hide('selfInputWrap'); document.getElementById('emailSelf').value=''; }
-    if(option==='partner'||option==='both'){ show('partnerInputWrap'); document.getElementById('partnerInputWrap').classList.add('input-reveal'); }
-    else{ hide('partnerInputWrap'); document.getElementById('emailPartner').value=''; }
-    track('email_recipient_selected', {option});
+    const iw=document.getElementById('emailInputs'),sw=document.getElementById('selfInputWrap'),pw=document.getElementById('partnerInputWrap');
+    iw.classList.remove('hidden');
+    if(option==='me'||option==='both'){sw.classList.remove('hidden');sw.classList.add('input-reveal');}else{sw.classList.add('hidden');document.getElementById('emailSelf').value='';}
+    if(option==='partner'||option==='both'){pw.classList.remove('hidden');pw.classList.add('input-reveal');}else{pw.classList.add('hidden');document.getElementById('emailPartner').value='';}
+    track('email_recipient_selected',{option});
 }
-
-function resetEmailPanel(){
-    activeRecipientOption = null;
-    ['Me','Partner','Both'].forEach(o=>{ const el=document.getElementById('opt'+o); if(el) el.style.cssText=''; });
-    ['emailInputs','selfInputWrap','partnerInputWrap'].forEach(id=> hide(id));
-    document.getElementById('emailSelf').value = '';
-    document.getElementById('emailPartner').value = '';
-    hide('emailSuccessBanner'); hide('emailErrorBanner');
-    const btn = document.getElementById('emailReportBtn');
-    if(btn){ btn.disabled=false; btn.innerText='Send Report'; btn.style.cssText=''; btn.className='w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs'; }
-}
-
 async function emailReport(){
-    if(!latestAnalytics) return;
-    const se = document.getElementById('emailSelf').value.trim();
-    const pe = document.getElementById('emailPartner').value.trim();
-    hide('emailSuccessBanner'); hide('emailErrorBanner');
-    track('email_report_send_clicked', {recipient_option:activeRecipientOption});
-
-    if(!se && !pe){ setText('emailErrorText','Please enter at least one email address.'); show('emailErrorBanner'); return; }
-    if(se && !EMAIL_REGEX.test(se)){ setText('emailErrorText','Your email looks invalid.'); show('emailErrorBanner'); return; }
-    if(pe && !EMAIL_REGEX.test(pe)){ setText('emailErrorText',"Your partner's email looks invalid."); show('emailErrorBanner'); return; }
-
-    const recipients = [se, pe].filter(Boolean);
-    const btn = document.getElementById('emailReportBtn');
-    btn.disabled=true; btn.innerText='Sending...';
-
-    // Register both recipients silently (non-blocking)
-    recipients.forEach(r=> fetch('/api/request-without-invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:r})}).catch(()=>{}));
-
+    if(!latestAnalytics)return;
+    const se=document.getElementById('emailSelf').value.trim(),pe=document.getElementById('emailPartner').value.trim();
+    const sb=document.getElementById('emailSuccessBanner'),eb=document.getElementById('emailErrorBanner');
+    sb.classList.add('hidden');eb.classList.add('hidden');
+    track('email_report_send_clicked',{recipient_option:activeRecipientOption});
+    if(!se&&!pe){document.getElementById('emailErrorText').innerText='Please enter at least one email address.';eb.classList.remove('hidden');return;}
+    if(se&&!EMAIL_REGEX.test(se)){document.getElementById('emailErrorText').innerText='Your email looks invalid.';eb.classList.remove('hidden');return;}
+    if(pe&&!EMAIL_REGEX.test(pe)){document.getElementById('emailErrorText').innerText="Your partner's email looks invalid.";eb.classList.remove('hidden');return;}
+    const recipients=[se,pe].filter(Boolean);
+    const btn=document.getElementById('emailReportBtn');btn.disabled=true;btn.innerText='Sending...';
+    recipients.forEach(r=>{
+        fetch('/api/request-without-invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:r})}).catch(()=>{});
+    });
     try{
-        const res    = await fetch('/api/send-email', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({recipients, analytics:latestAnalytics})});
-        const result = await res.json();
-        if(!res.ok) throw new Error(result.error || 'Email sending failed');
-        setText('emailSuccessText', recipients.length===2 ? 'Sent to both of you.' : 'Report sent to your inbox.');
-        show('emailSuccessBanner');
-        btn.innerText='✓ Sent'; btn.classList.replace('bg-stone-950','bg-emerald-700');
-        track('email_report_sent_success', {recipient_count:recipients.length, recipient_option:activeRecipientOption});
+        const res=await fetch('/api/send-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipients,analytics:latestAnalytics})});
+        const result=await res.json();if(!res.ok)throw new Error(result.error||'Email sending failed');
+        document.getElementById('emailSuccessText').innerText=recipients.length===2?'Sent to both of you.':'Report sent to your inbox.';
+        sb.classList.remove('hidden');btn.innerText='✓ Sent';btn.classList.replace('bg-stone-950','bg-emerald-700');
+        track('email_report_sent_success',{recipient_count:recipients.length,recipient_option:activeRecipientOption});
     }catch(err){
-        setText('emailErrorText','Could not send: ' + err.message);
-        show('emailErrorBanner'); track('email_report_send_error',{error:err.message});
-        btn.disabled=false; btn.innerText='Send Report';
+        document.getElementById('emailErrorText').innerText='Could not send: '+err.message;eb.classList.remove('hidden');
+        track('email_report_send_error',{error:err.message});btn.disabled=false;btn.innerText='Send Report';
     }
 }
 
-/* ══════════════════════════════════════════════
-   ANALYZE
-   ══════════════════════════════════════════════ */
+/* ══ ANALYZE ══ */
 async function analyzeChat(){
-    const chatLog   = chatInputEl.value.trim();
-    const ab        = document.getElementById('analyzeBtn');
-    const gateStep  = document.getElementById('emailGateStep');
-    const gateInput = document.getElementById('gateAnalyzeEmail');
-    hide('analyzeLimitBanner'); hide('analyzeErrorBanner'); hide('gateAnalyzeError');
+    const cie=document.getElementById('chatInput'),chatLog=cie.value.trim();
+    const ab=document.getElementById('analyzeBtn'),rs=document.getElementById('resultSection'),es=document.getElementById('emptyState');
+    const mb=document.getElementById('modelBadge'),pc=document.getElementById('profileContainer');
+    const lb=document.getElementById('analyzeLimitBanner'),eb=document.getElementById('analyzeErrorBanner');
+    const gateStep=document.getElementById('emailGateStep'),gateInput=document.getElementById('gateAnalyzeEmail'),gateErr=document.getElementById('gateAnalyzeError');
+    lb.classList.add('hidden');eb.classList.add('hidden');gateErr.classList.add('hidden');
 
-    // ── Email gate (anonymous users only, before 2nd analysis) ──────────────
-    if(!emailGateSatisfied && !currentUserId && sessionAnalysisCount >= ANON_ANALYSES_BEFORE_EMAIL_GATE){
+    // Client-side pre-email gate: if the user has no userId yet and has
+    // already done MAX_SESSION_ANALYSES_BEFORE_EMAIL analyses this session,
+    // we require an email before going further. Once a userId exists the
+    // server-side CHATS_PER_USER limit (analyze-config.js) is the real gate.
+    if(!emailGateSatisfied&&!currentUserId&&sessionAnalysisCount>=MAX_SESSION_ANALYSES_BEFORE_EMAIL){
         if(gateStep.classList.contains('hidden')){
-            gateStep.classList.remove('hidden'); gateStep.classList.add('input-reveal');
-            ab.innerText = 'Submit & Generate';
+            gateStep.classList.remove('hidden');gateStep.classList.add('input-reveal');
+            ab.innerText='Submit & Generate';
             gateInput.focus();
-            track('analyze_email_gate_shown'); return;
+            track('analyze_email_gate_shown');
+            return;
         }
-        const gateEmail = gateInput.value.trim();
-        if(!gateEmail || !EMAIL_REGEX.test(gateEmail)){
-            setText('gateAnalyzeError','Please enter a valid email address to continue.');
-            show('gateAnalyzeError'); track('analyze_email_gate_validation_failed'); return;
+        // Gate is already visible — validate what was typed
+        const gateEmail=gateInput.value.trim();
+        if(!gateEmail||!EMAIL_REGEX.test(gateEmail)){
+            gateErr.innerText='Please enter a valid email address to continue.';gateErr.classList.remove('hidden');
+            track('analyze_email_gate_validation_failed');return;
         }
         track('analyze_email_gate_submitted');
-        ab.disabled=true; ab.innerText='Setting up your account...';
+        // Register the email → get a real userId before running the analysis
+        ab.disabled=true;ab.innerText='Setting up your account...';
         try{
-            const session = await registerAndVerifyEmail(gateEmail);
-            if(session){ applySession(session); track('analyze_email_gate_user_created',{userId:currentUserId}); }
-        }catch(err){ console.warn('Email registration failed:', err.message); }
-        emailGateSatisfied = true;
+            const regRes=await fetch('/api/request-without-invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:gateEmail})});
+            const regData=await regRes.json();
+            if(regData.token){
+                // Verify the token to get userId, exactly like initAccess does
+                const verRes=await fetch('/api/verify-token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:regData.token})});
+                const verData=await verRes.json();
+                if(verData&&verData.valid){
+                    currentUserId=verData.userId;currentInviteCount=verData.inviteCount||0;
+                    sessionStorage.setItem('truvah_session',JSON.stringify({userId:verData.userId,inviteCount:verData.inviteCount||0}));
+                    updateInviteCountUI();
+                    track('analyze_email_gate_user_created',{userId:currentUserId});
+                }
+            }
+        }catch(regErr){
+            // Non-fatal: analysis will still run; userId may remain null
+            console.warn('Email registration failed:',regErr.message);
+        }
+        emailGateSatisfied=true;
         sessionStorage.setItem('truvah_gate_email_done','1');
-        hide('emailGateStep'); gateInput.value='';
+        gateStep.classList.add('hidden');gateInput.value='';
     }
 
-    if(!chatLog){ setText('analyzeErrorText','Please paste some text or describe the situation first.'); show('analyzeErrorBanner'); track('analyze_clicked_empty'); return; }
+    if(!chatLog){document.getElementById('analyzeErrorText').innerText='Please paste some text or describe the situation first.';eb.classList.remove('hidden');track('analyze_clicked_empty');return;}
 
-    track('analyze_started', {char_count:chatLog.length, word_count:chatLog.split(/\s+/).filter(Boolean).length});
-    ab.disabled=true; ab.innerText='Reading through your conversation...';
-    hide('resultSection'); show('emptyState'); hide('modelBadge');
-    chatInputEl.classList.remove('animate-text-fade');
-    document.getElementById('profileContainer').innerHTML = '';
+    track('analyze_started',{char_count:chatLog.length,word_count:chatLog.split(/\s+/).filter(Boolean).length});
+    ab.disabled=true;ab.innerText='Reading through your conversation...';
+    rs.classList.add('hidden');es.classList.remove('hidden');mb.classList.add('hidden');
+    cie.classList.remove('animate-text-fade');pc.innerHTML='';
 
-    let limitReached = false;
-    const t0 = Date.now();
+    let isLimitReached=false;const t0=Date.now();
     try{
-        const response = await fetch('/api/analyze', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({chatLog, userId:currentUserId})});
-        const data = await response.json();
-
-        if(response.status === 403 && data.error === 'usage_limit_reached'){
-            limitReached = true;
-            setText('analyzeLimitMsg', data.message || "This is a limited-use tool right now — we're increasing the limit soon. Come back soon!");
-            show('analyzeLimitBanner'); track('analyze_limit_reached'); return;
+        // Always send currentUserId (may now be populated from email registration above)
+        const response=await fetch("/api/analyze",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chatLog,userId:currentUserId})});
+        const data=await response.json();
+        if(response.status===403&&data.error==='usage_limit_reached'){
+            isLimitReached=true;
+            const lmMsg=document.getElementById('analyzeLimitMsg');
+            if(lmMsg) lmMsg.innerText=data.message||"This is a limited-use tool right now — we're increasing the limit soon. Come back soon!";
+            lb.classList.remove('hidden');track('analyze_limit_reached');return;
         }
-        if(!response.ok) throw new Error(data.error || 'Could not process text.');
-
-        sessionAnalysisCount++;
-        sessionStorage.setItem('truvah_analysis_count', String(sessionAnalysisCount));
-        track('analyze_completed', {duration_ms:Date.now()-t0, bond_strength:data.analytics.bond_strength, toxicity:data.analytics.toxicity, profile_count:(data.analytics.profiles||[]).length});
-
-        // Fade out input text
-        chatInputEl.classList.add('animate-text-fade');
-        setTimeout(()=>{ chatInputEl.value=''; chatInputEl.classList.remove('animate-text-fade'); }, 800);
-
-        show('modelBadge');
-        latestAnalytics = data.analytics;
-        const s = latestAnalytics;
-
-        // Populate summary + score
-        setText('bondStrengthMeter', s.bond_strength || '0%');
-        setText('bondStrengthReason', s.bond_strength_reason ? `"${s.bond_strength_reason}"` : '');
-
-        // Populate dynamics bars
-        [['positivity','bond_positivity'], ['conflict','conflict_resolution'], ['safety','safety_trust'], ['dynamics','relationship_dynamics'], ['toxicity','toxicity']].forEach(([key, src])=>{
-            setText(key+'Val',    s[src]              || '--');
-            setText(key+'Reason', s[src+'_reason']    || '');
+        if(!response.ok)throw new Error(data.error||'Could not process text.');
+        sessionAnalysisCount++;sessionStorage.setItem('truvah_analysis_count',String(sessionAnalysisCount));
+        track('analyze_completed',{
+            duration_ms: Date.now()-t0,
+            bond_strength: data.analytics?.bond_strength || null,
+            toxicity: data.analytics?.toxicity || null,
+            profile_count: (data.analytics?.profiles||[]).length,
+            input_type: lastInputWasSample ? 'sample' : 'original',
         });
-
-        // Populate summary ID card
-        setText('summaryText', s.summary ? `"${s.summary}"` : '');
-
-        // Reset & rebuild email panel
-        resetEmailPanel();
-
-        // Build profile cards
-        (s.profiles || []).forEach((user, idx)=>{
-            const card   = document.createElement('div');
-            card.className = 'bg-[#FAF9F5]/50 border border-stone-200/60 rounded-xl p-5 shadow-3xs flex flex-col justify-between space-y-4';
-            const rid    = Date.now() + idx;
-            const aid    = `p${idx}-a-${rid}`, rgid=`p${idx}-r-${rid}`, rcid=`p${idx}-rc-${rid}`, acid=`p${idx}-ac-${rid}`;
-            card.dataset.attachId  = aid;  card.dataset.attachVal  = user.attachment_security;
-            card.dataset.regId     = rgid; card.dataset.regVal     = user.emotional_regulation;
-            card.dataset.recepId   = rcid; card.dataset.recepVal   = user.receptivity;
-            card.dataset.accId     = acid; card.dataset.accVal     = user.accountability;
-            const actionItems = (user.actionables||[]).map(a=>`<li class="flex items-start gap-2.5 text-xs text-stone-600 bg-white p-2.5 rounded border border-stone-200/40 font-light shadow-3xs"><span class="text-stone-400 font-mono mt-0.5">→</span><span>${a}</span></li>`).join('');
-            const metric = (label, valKey, barId, reason)=>`
-                <div class="space-y-1">
-                    <div class="flex justify-between items-center text-xs">
-                        <span class="font-medium text-stone-700 tracking-wide">${label}</span>
-                        <span class="font-mono text-stone-500 font-medium text-[11px]">${user[valKey]||'0%'}</span>
-                    </div>
-                    <div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="${barId}" class="custom-transition bg-stone-950 h-full" style="width:0%"></div></div>
-                    <p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user[reason]||''}</p>
-                </div>`;
-            card.innerHTML = `
-                <div class="space-y-4">
-                    <div class="border-b border-stone-200/40 pb-2">
-                        <span class="text-[9px] uppercase font-bold tracking-widest text-stone-400 block">Personal Style</span>
-                        <h5 class="text-base font-normal font-serif text-stone-900 mt-0.5">${user.name}</h5>
-                    </div>
-                    <div class="space-y-4">
-                        ${metric('Calmness & Security',  'attachment_security',  aid,  'attachment_security_reason')}
-                        ${metric('Managing Frustration', 'emotional_regulation', rgid, 'emotional_regulation_reason')}
-                        ${metric('Willingness to Listen','receptivity',          rcid, 'receptivity_reason')}
-                        ${metric('Owning Personal Errors','accountability',      acid, 'accountability_reason')}
-                    </div>
-                </div>
-                <div class="space-y-2 pt-3 border-t border-stone-200/40">
-                    <span class="text-[10px] uppercase font-bold tracking-wider text-stone-400 block">Easy Next Steps</span>
-                    <ul class="space-y-1.5">${actionItems}</ul>
-                </div>`;
-            document.getElementById('profileContainer').appendChild(card);
-        });
-
-        hide('emptyState'); show('resultSection');
-        document.getElementById('resultSection').scrollIntoView({behavior:'smooth', block:'start'});
+        cie.classList.add('animate-text-fade');
+        setTimeout(()=>{cie.value='';cie.classList.remove('animate-text-fade');},800);
+        mb.classList.remove('hidden');
+        const scores=data.analytics;latestAnalytics=scores;
+        /* Unlocked sections */
+        document.getElementById('bondStrengthMeter').innerText=scores.bond_strength||'0%';
+        document.getElementById('bondStrengthReason').innerText=scores.bond_strength_reason?`"${scores.bond_strength_reason}"`:'' ;
+        /* Report section values */
+        document.getElementById('positivityVal').innerText=scores.bond_positivity||'--';document.getElementById('positivityReason').innerText=scores.bond_positivity_reason||'';
+        document.getElementById('conflictVal').innerText=scores.conflict_resolution||'--';document.getElementById('conflictReason').innerText=scores.conflict_resolution_reason||'';
+        document.getElementById('safetyVal').innerText=scores.safety_trust||'--';document.getElementById('safetyReason').innerText=scores.safety_trust_reason||'';
+        document.getElementById('dynamicsVal').innerText=scores.relationship_dynamics||'--';document.getElementById('dynamicsReason').innerText=scores.relationship_dynamics_reason||'';
+        document.getElementById('toxicityVal').innerText=scores.toxicity||'--';document.getElementById('toxicityReason').innerText=scores.toxicity_reason||'';
+        document.getElementById('summaryText').innerText=scores.summary?`"${scores.summary}"`:'' ;
+        /* Reset email panel */
+        activeRecipientOption=null;
+        ['Me','Partner','Both'].forEach(o=>{const el=document.getElementById('opt'+o);if(el)el.style.cssText='';});
+        ['emailInputs','selfInputWrap','partnerInputWrap'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+        document.getElementById('emailSelf').value='';document.getElementById('emailPartner').value='';
+        document.getElementById('emailSuccessBanner').classList.add('hidden');document.getElementById('emailErrorBanner').classList.add('hidden');
+        const erb=document.getElementById('emailReportBtn');if(erb){erb.disabled=false;erb.innerText='Send Report';erb.style.cssText='';erb.className='w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs';}
+        /* Profile cards */
+        if(scores.profiles&&Array.isArray(scores.profiles)){
+            scores.profiles.forEach((user,idx)=>{
+                const card=document.createElement('div');
+                card.className="bg-[#FAF9F5]/50 border border-stone-200/60 rounded-xl p-5 shadow-3xs flex flex-col justify-between space-y-4";
+                const rid=Date.now()+idx;
+                const aid=`p${idx}-a-${rid}`,rgid=`p${idx}-r-${rid}`,rcid=`p${idx}-rc-${rid}`,acid=`p${idx}-ac-${rid}`;
+                card.dataset.attachId=aid;card.dataset.regId=rgid;card.dataset.recepId=rcid;card.dataset.accId=acid;
+                card.dataset.attachVal=user.attachment_security;card.dataset.regVal=user.emotional_regulation;card.dataset.recepVal=user.receptivity;card.dataset.accVal=user.accountability;
+                const ah=(user.actionables||[]).map(a=>`<li class="flex items-start gap-2.5 text-xs text-stone-600 bg-white p-2.5 rounded border border-stone-200/40 font-light shadow-3xs"><span class="text-stone-400 font-mono mt-0.5">→</span><span>${a}</span></li>`).join('');
+                card.innerHTML=`<div class="space-y-4"><div class="border-b border-stone-200/40 pb-2"><span class="text-[9px] uppercase font-bold tracking-widest text-stone-400 block">Personal Style</span><h5 class="text-base font-normal font-serif text-stone-900 mt-0.5">${user.name}</h5></div><div class="space-y-4"><div class="space-y-1"><div class="flex justify-between items-center text-xs"><span class="font-medium text-stone-700 tracking-wide">Calmness & Security</span><span class="font-mono text-stone-500 font-medium text-[11px]">${user.attachment_security||'0%'}</span></div><div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="${aid}" class="custom-transition bg-stone-950 h-full" style="width:0%"></div></div><p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.attachment_security_reason||''}</p></div><div class="space-y-1"><div class="flex justify-between items-center text-xs"><span class="font-medium text-stone-700 tracking-wide">Managing Frustration</span><span class="font-mono text-stone-500 font-medium text-[11px]">${user.emotional_regulation||'0%'}</span></div><div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="${rgid}" class="custom-transition bg-stone-950 h-full" style="width:0%"></div></div><p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.emotional_regulation_reason||''}</p></div><div class="space-y-1"><div class="flex justify-between items-center text-xs"><span class="font-medium text-stone-700 tracking-wide">Willingness to Listen</span><span class="font-mono text-stone-500 font-medium text-[11px]">${user.receptivity||'0%'}</span></div><div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="${rcid}" class="custom-transition bg-stone-950 h-full" style="width:0%"></div></div><p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.receptivity_reason||''}</p></div><div class="space-y-1"><div class="flex justify-between items-center text-xs"><span class="font-medium text-stone-700 tracking-wide">Owning Personal Errors</span><span class="font-mono text-stone-500 font-medium text-[11px]">${user.accountability||'0%'}</span></div><div class="w-full bg-stone-200/40 h-[2px] rounded-full overflow-hidden"><div id="${acid}" class="custom-transition bg-stone-950 h-full" style="width:0%"></div></div><p class="text-[11px] text-stone-500 leading-relaxed font-light italic">${user.accountability_reason||''}</p></div></div></div><div class="space-y-2 pt-3 border-t border-stone-200/40"><span class="text-[10px] uppercase font-bold tracking-wider text-stone-400 block">Easy Next Steps</span><ul class="space-y-1.5">${ah}</ul></div>`;
+                pc.appendChild(card);
+            });
+        }
+        es.classList.add('hidden');rs.classList.remove('hidden');rs.scrollIntoView({behavior:'smooth',block:'start'});
         animateReportBars();
-        const inv = document.getElementById('inviteSection');
-        inv.classList.remove('hidden'); inv.classList.add('invite-reveal');
-
+        initScrollDepthTracking();
+        const inv=document.getElementById('inviteSection');inv.classList.remove('hidden');inv.classList.add('invite-reveal');
     }catch(err){
-        setText('analyzeErrorText', err.message || 'Could not complete analysis right now.');
-        show('analyzeErrorBanner'); track('analyze_error',{error:err.message});
+        document.getElementById('analyzeErrorText').innerText=err.message||'Could not complete analysis right now.';
+        eb.classList.remove('hidden');track('analyze_error',{error:err.message});
     }finally{
-        if(limitReached){
-            ab.disabled=true; ab.innerText='Analysis Limit Reached';
-            ab.className='w-full bg-stone-300 text-stone-500 font-medium py-3.5 px-6 rounded-xl cursor-not-allowed text-xs tracking-[0.12em] uppercase shadow-xs';
-        }else{
-            ab.disabled=false; ab.innerText='Analyze Conversation';
+        if(!isLimitReached){
+            ab.disabled=false;
+            ab.innerText='Analyze Conversation';
         }
+        else{ab.disabled=true;ab.innerText='Analysis Limit Reached';ab.className='w-full bg-stone-300 text-stone-500 font-medium py-3.5 px-6 rounded-xl cursor-not-allowed text-xs tracking-[0.12em] uppercase shadow-xs';}
     }
 }
 
-/* ══════════════════════════════════════════════
-   ID CARD CANVAS
-   ══════════════════════════════════════════════ */
+/* ══ CANVAS / SHARE — unchanged ══ */
 async function generateIdCardCanvas(summaryText){
-    const canvas = document.createElement('canvas');
-    canvas.width=1080; canvas.height=1350;
-    const ctx = canvas.getContext('2d');
-
-    ctx.fillStyle='#1c1917'; ctx.fillRect(0,0,1080,1350);
-    ctx.save(); ctx.translate(860,240); ctx.fillStyle='rgba(120,113,108,0.08)'; ctx.font='italic 380px Georgia,serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('♥',0,0); ctx.restore();
-    ctx.fillStyle='#a8a29e'; ctx.font='600 24px "Plus Jakarta Sans",sans-serif'; ctx.letterSpacing='10px'; ctx.textAlign='center'; ctx.fillText('YOUR TRUVAH ID CARD',540,210);
-    ctx.strokeStyle='rgba(120,113,108,0.15)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(180,280); ctx.lineTo(900,280); ctx.stroke();
-
-    const cc = summaryText.length;
-    let fs=42, lh=64;
-    if(cc>450){fs=28;lh=44;} else if(cc>300){fs=32;lh=50;} else if(cc>200){fs=36;lh=56;}
-
-    ctx.font=`italic 300 ${fs}px "Playfair Display",Georgia,serif`; ctx.textAlign='center';
-    const words=summaryText.replace(/^"|"$/g,'').split(' ');
-    const lines=[]; let cl='';
-    for(let n=0;n<words.length;n++){ let tl=cl+words[n]+' '; if(ctx.measureText(tl).width>760&&n>0){lines.push(cl.trim());cl=words[n]+' ';}else cl=tl; }
+    const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1350;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#1c1917';ctx.fillRect(0,0,1080,1350);
+    ctx.save();ctx.translate(860,240);ctx.fillStyle='rgba(120,113,108,0.08)';ctx.font='italic 380px Georgia,serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('♥',0,0);ctx.restore();
+    ctx.fillStyle='#a8a29e';ctx.font='600 24px "Plus Jakarta Sans",sans-serif';ctx.letterSpacing='10px';ctx.textAlign='center';ctx.fillText('YOUR TRUVAH ID CARD',540,210);
+    ctx.strokeStyle='rgba(120,113,108,0.15)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(180,280);ctx.lineTo(900,280);ctx.stroke();
+    const cc=summaryText.length;let fs=42,lh=64;
+    if(cc>450){fs=28;lh=44;}else if(cc>300){fs=32;lh=50;}else if(cc>200){fs=36;lh=56;}
+    ctx.font=`italic 300 ${fs}px "Playfair Display",Georgia,serif`;ctx.textAlign='center';
+    const words=summaryText.replace(/^"|"$/g,'').split(' ');const lines=[];let cl='';
+    for(let n=0;n<words.length;n++){let tl=cl+words[n]+' ';if(ctx.measureText(tl).width>760&&n>0){lines.push(cl.trim());cl=words[n]+' ';}else cl=tl;}
     lines.push(cl.trim());
-
-    const th=lines.length*lh, ys=745-(th/2);
-    ctx.fillStyle='#78716c'; ctx.font='italic 300 120px Georgia,serif'; ctx.fillText('"',540,ys-30);
-    ctx.fillStyle='#faf9f5'; ctx.font=`italic 300 ${fs}px "Playfair Display",Georgia,serif`;
-    for(let i=0;i<lines.length;i++) ctx.fillText(lines[i],540,ys+(i*lh)+(lh/2));
-    ctx.fillStyle='#78716c'; ctx.font='italic 300 120px Georgia,serif'; ctx.fillText('"',540,ys+th+90);
-    ctx.fillStyle='#78716c'; ctx.font='600 20px "Plus Jakarta Sans",sans-serif'; ctx.letterSpacing='5px'; ctx.fillText('GET YOUR ID CARD ON ASKTRUVAH.COM',540,1230);
+    const th=lines.length*lh,ys=745-(th/2);
+    ctx.fillStyle='#78716c';ctx.font='italic 300 120px Georgia,serif';ctx.fillText('"',540,ys-30);
+    ctx.fillStyle='#faf9f5';ctx.font=`italic 300 ${fs}px "Playfair Display",Georgia,serif`;
+    for(let i=0;i<lines.length;i++)ctx.fillText(lines[i],540,ys+(i*lh)+(lh/2));
+    ctx.fillStyle='#78716c';ctx.font='italic 300 120px Georgia,serif';ctx.fillText('"',540,ys+th+90);
+    ctx.fillStyle='#78716c';ctx.font='600 20px "Plus Jakarta Sans",sans-serif';ctx.letterSpacing='5px';ctx.fillText('GET YOUR ID CARD ON ASKTRUVAH.COM',540,1230);
     return canvas;
 }
-
-/* ══════════════════════════════════════════════
-   SHARE
-   ══════════════════════════════════════════════ */
-function downloadFallback(blob){
-    const url=URL.createObjectURL(blob), a=document.createElement('a');
-    a.href=url; a.download='truvah-id-card.png';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-}
-
-async function shareViaBlob(blob, shareOptions, onSuccess, onFallback){
-    const file = new File([blob],'truvah-id-card.png',{type:'image/png'});
-    if(navigator.canShare?.({files:[file]})){
-        try{ await navigator.share({files:[file], ...shareOptions}); onSuccess?.(); }
-        catch(e){ if(e.name!=='AbortError'){ downloadFallback(blob); onFallback?.(); } else track('share_aborted'); }
-    }else{
-        downloadFallback(blob); onFallback?.();
-    }
-}
-
 async function shareAsImage(){
-    const st = document.getElementById('summaryText').innerText;
-    if(!st) return; track('share_image_clicked');
-    const canvas = await generateIdCardCanvas(st);
-    canvas.toBlob(blob=>{
-        shareViaBlob(blob,
-            {title:'My Truvah ID Card', text:'Yayy!'},
-            ()=> track('share_image_success',{method:'native_share'}),
-            ()=> track('share_image_success',{method:'download_fallback'})
-        );
+    const st=document.getElementById('summaryText').innerText;if(!st)return;track('share_image_clicked');
+    const canvas=await generateIdCardCanvas(st);
+    canvas.toBlob(async(blob)=>{if(!blob)return;const file=new File([blob],'truvah-id-card.png',{type:'image/png'});
+        if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:'My Truvah ID Card',text:'Yayy!'});track('share_image_success',{method:'native_share'});}catch(e){if(e.name!=='AbortError'){downloadFallback(blob);track('share_image_success',{method:'download_fallback'});}else track('share_image_aborted');}}
+        else{downloadFallback(blob);track('share_image_success',{method:'download_fallback'});}
     },'image/png');
 }
-
+function downloadFallback(blob){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='truvah-id-card.png';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
 async function shareToInstagram(){
-    const st = document.getElementById('summaryText').innerText;
-    if(!st) return; track('share_instagram_clicked');
-    const canvas = await generateIdCardCanvas(st);
-    canvas.toBlob(blob=>{
-        shareViaBlob(blob,
-            {title:'Here is my Truvah ID Card', text:'Get your ID card at asktruvah.com'},
-            ()=> track('share_instagram_success',{method:'native_share'}),
-            ()=>{ document.getElementById('toastNotification')?.classList.remove('hidden'); setTimeout(()=> document.getElementById('toastNotification')?.classList.add('hidden'),6000); track('share_instagram_success',{method:'download_fallback_desktop'}); }
-        );
+    const st=document.getElementById('summaryText').innerText;if(!st)return;track('share_instagram_clicked');
+    const canvas=await generateIdCardCanvas(st);
+    canvas.toBlob(async(blob)=>{if(!blob)return;const file=new File([blob],'truvah-id-card.png',{type:'image/png'});
+        if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:'Here is my Truvah ID Card',text:'Get your ID card at asktruvah.com'});track('share_instagram_success',{method:'native_share'});}catch(e){if(e.name!=='AbortError'){downloadFallback(blob);track('share_instagram_success',{method:'download_fallback'});}else track('share_instagram_aborted');}}
+        else{downloadFallback(blob);showInstagramFallbackToast();track('share_instagram_success',{method:'download_fallback_desktop'});}
     },'image/png');
 }
-
-function shareToWhatsApp(){
-    const st = document.getElementById('summaryText').innerText;
-    if(!st) return; track('share_whatsapp_clicked');
-    const tx = encodeURIComponent(`Here is my Truvah ID Card:\n\n${st}\n\nUncover your truth here: https://asktruvah.com`);
-    window.open(`https://api.whatsapp.com/send?text=${tx}`,'_blank');
-}
-
-function copyCardText(){
-    const st = document.getElementById('summaryText').innerText;
-    if(!st) return; track('share_copy_text_clicked');
-    navigator.clipboard.writeText(st.replace(/^"|"$/g,'')).then(()=>{
-        track('share_copy_text_success');
-        const btn=document.getElementById('copyBtn'), orig=btn.innerHTML;
-        btn.innerHTML='Copied!'; setTimeout(()=>{ btn.innerHTML=orig; },2000);
-    });
-}
+function showInstagramFallbackToast(){const t=document.getElementById('toastNotification');if(!t)return;t.classList.remove('hidden');setTimeout(()=>t.classList.add('hidden'),6000);}
+function shareToWhatsApp(){const st=document.getElementById('summaryText').innerText;if(!st)return;track('share_whatsapp_clicked');const tx=encodeURIComponent(`Here is my Truvah ID Card:\n\n${st}\n\nUncover your truth here: https://asktruvah.com`);window.open(`https://api.whatsapp.com/send?text=${tx}`,'_blank');}
+function copyCardText(){const st=document.getElementById('summaryText').innerText;if(!st)return;track('share_copy_text_clicked');navigator.clipboard.writeText(st.replace(/^"|"$/g,'')).then(()=>{track('share_copy_text_success');const btn=document.getElementById('copyBtn');const orig=btn.innerHTML;btn.innerHTML='Copied!';setTimeout(()=>{btn.innerHTML=orig;},2000);});}
 </script>
 </body>
 </html>
