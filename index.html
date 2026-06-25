@@ -19,6 +19,7 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .serif-font { font-family: 'Playfair Display', serif; }
         .custom-transition { transition: all 1.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        .saved-banner-transition { transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, margin 0.4s ease; }
         @keyframes textFade { 0%{opacity:1;filter:blur(0)} 100%{opacity:0;filter:blur(2px)} }
         .animate-text-fade { animation: textFade 0.8s ease-out forwards; }
         @keyframes slideIn { 0%{opacity:0;transform:translateY(8px)} 100%{opacity:1;transform:translateY(0)} }
@@ -254,9 +255,12 @@
             <!-- ══ GATED CONTENT WRAPPER ══ -->
             <div id="reportGateOverlay">
 
-                <!-- Confirmation that the report was emailed — appears after gate unlocks, stays visible -->
-                <div id="reportSavedBanner" class="hidden mb-6 bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
-                    <span class="text-emerald-500 font-bold">✓</span><span>Sent — this report is on its way to your inbox.</span>
+                <!-- Confirmation that the report was emailed — auto-dismisses after a
+                     few seconds, collapsing smoothly so no empty gap is left behind -->
+                <div id="reportSavedBannerWrap" class="hidden overflow-hidden saved-banner-transition" style="max-height:0;opacity:0;">
+                    <div id="reportSavedBanner" class="mb-6 bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                        <span class="text-emerald-500 font-bold">✓</span><span>Sent — this report is on its way to your inbox too.</span>
+                    </div>
                 </div>
 
                 <!-- This content gets blurred when gate is active -->
@@ -608,7 +612,6 @@ async function submitReportGate(){
     const email=document.getElementById('reportGateEmail').value.trim();
     const errEl=document.getElementById('reportGateError');
     const btn=document.getElementById('reportGateBtn');
-    const sentBanner=document.getElementById('reportSavedBanner');
     errEl.classList.add('hidden');
     if(!email||!EMAIL_REGEX.test(email)){errEl.innerText='Please enter a valid email address.';errEl.classList.remove('hidden');return;}
     btn.disabled=true;btn.innerText='Saving...';
@@ -631,7 +634,7 @@ async function submitReportGate(){
            conversation itself is about to be deleted and this is the one copy. */
         if(latestAnalytics){
             fetch('/api/send-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipients:[email],analytics:latestAnalytics})})
-                .then(r=>{if(r.ok){sentBanner&&sentBanner.classList.remove('hidden');track('report_gate_email_sent_success');}else{track('report_gate_email_sent_error');}})
+                .then(r=>{if(r.ok){showSavedBanner();track('report_gate_email_sent_success');}else{track('report_gate_email_sent_error');}})
                 .catch(()=>track('report_gate_email_sent_error'));
         }
     }catch(err){
@@ -639,6 +642,33 @@ async function submitReportGate(){
         btn.disabled=false;btn.innerText='Get Full Report';
         track('report_gate_error',{error:err.message});
     }
+}
+
+/* Expands the saved-confirmation banner, then collapses it smoothly after a
+   few seconds so it doesn't leave a gap or require a manual dismiss. */
+let savedBannerTimeout=null;
+function showSavedBanner(){
+    const wrap=document.getElementById('reportSavedBannerWrap');
+    const inner=document.getElementById('reportSavedBanner');
+    if(!wrap||!inner)return;
+    clearTimeout(savedBannerTimeout);
+    wrap.classList.remove('hidden');
+    // measure natural height, then animate to it
+    wrap.style.maxHeight='none';
+    const targetHeight=wrap.scrollHeight;
+    wrap.style.maxHeight='0px';
+    requestAnimationFrame(()=>{
+        wrap.style.maxHeight=targetHeight+'px';
+        wrap.style.opacity='1';
+    });
+    savedBannerTimeout=setTimeout(()=>hideSavedBanner(),5000);
+}
+function hideSavedBanner(){
+    const wrap=document.getElementById('reportSavedBannerWrap');
+    if(!wrap)return;
+    wrap.style.maxHeight='0px';
+    wrap.style.opacity='0';
+    setTimeout(()=>wrap.classList.add('hidden'),450);
 }
 
 /* ══ BAR ANIMATION ══ */
@@ -753,7 +783,9 @@ async function analyzeChat(){
         /* Reset gate form for this new analysis */
         const rgEmail=document.getElementById('reportGateEmail');if(rgEmail)rgEmail.value='';
         const rgErr=document.getElementById('reportGateError');if(rgErr)rgErr.classList.add('hidden');
-        const rgSavedBanner=document.getElementById('reportSavedBanner');if(rgSavedBanner)rgSavedBanner.classList.add('hidden');
+        clearTimeout(savedBannerTimeout);
+        const rgSavedWrap=document.getElementById('reportSavedBannerWrap');
+        if(rgSavedWrap){rgSavedWrap.classList.add('hidden');rgSavedWrap.style.maxHeight='0px';rgSavedWrap.style.opacity='0';}
         const rgBtn=document.getElementById('reportGateBtn');if(rgBtn){rgBtn.disabled=false;rgBtn.innerText='Get Full Report';}
 
         /* Profile cards */
@@ -773,15 +805,15 @@ async function analyzeChat(){
 
         es.classList.add('hidden');rs.classList.remove('hidden');
 
-        /* Show gate if not a registered user yet */
+        /* Show gate if not a registered user yet. Each branch owns its own
+           scroll — don't also scroll resultSection here, or the two scrolls
+           race and can leave the viewport past the actual content. */
         if(!currentUserId){
             showReportGate();
         } else {
-            /* Already registered — unlock directly and animate bars */
             unlockReport();
         }
 
-        rs.scrollIntoView({behavior:'smooth',block:'start'});
         initScrollDepthTracking();
 
         const inv=document.getElementById('inviteSection');inv.classList.remove('hidden');inv.classList.add('invite-reveal');
