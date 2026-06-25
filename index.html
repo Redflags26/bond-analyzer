@@ -333,7 +333,7 @@
                         <div class="space-y-2 text-center">
                             <div class="text-2xl">✨</div>
                             <h3 class="text-lg font-normal text-stone-900 serif-font italic leading-snug">Your full report is ready.</h3>
-                            <p class="text-xs text-stone-500 font-light leading-relaxed">We don't store your conversation — it's already scheduled for deletion. Enter your email and we'll save this report there before it's gone.</p>
+                            <p class="text-xs text-stone-500 font-light leading-relaxed">Your report will be deleted. Enter your email and we'll send it to you before it's gone.</p>
                         </div>
                         <div id="reportGateForm" class="space-y-2">
                             <input id="reportGateEmail" type="email" placeholder="your@email.com"
@@ -598,6 +598,12 @@ function unlockReport(){
     document.getElementById('reportGateCTA').style.display='none';
     animateReportBars();
     track('report_gate_unlocked');
+    // Removing the gate reflows the page — without this the viewport stays
+    // wherever the (now-gone) gate was, which can land below the unlocked content.
+    requestAnimationFrame(()=>{
+        const resultSection=document.getElementById('resultSection');
+        if(resultSection) resultSection.scrollIntoView({behavior:'smooth',block:'start'});
+    });
 }
 async function submitReportGate(){
     const email=document.getElementById('reportGateEmail').value.trim();
@@ -621,6 +627,7 @@ async function submitReportGate(){
             }
         }
         unlockReport();
+        btn.disabled=false;btn.innerText='Save & View Full Report';
         /* Save the report to their inbox now that we have an address, since the
            conversation itself is about to be deleted and this is the one copy. */
         if(latestAnalytics){
