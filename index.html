@@ -148,9 +148,6 @@
     <!-- ══ LEFT — Input ══ -->
     <section class="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
         <div class="space-y-3">
-            <div class="inline-flex items-center gap-2 bg-white border border-stone-200/60 px-3 py-1 rounded-full text-stone-600 font-medium text-[9px] tracking-widest uppercase shadow-3xs">
-                🔒 your chats are deleted instantly
-            </div>
             <h2 class="text-3xl md:text-4xl font-normal text-stone-900 tracking-tight leading-[1.15] serif-font">
                 What's your conversation<br><span class="italic text-stone-500">really telling you?</span>
             </h2>
@@ -161,7 +158,12 @@
 
         <div class="bg-white p-6 rounded-2xl border border-stone-200/60 shadow-xs space-y-4">
 
-            <!-- Textarea FIRST -->
+            <!-- Privacy pill sits right above the input, where it'll actually be seen -->
+            <div class="inline-flex items-center gap-2 bg-stone-50 border border-stone-200/60 px-3 py-1.5 rounded-full text-stone-600 font-medium text-[9px] tracking-widest uppercase shadow-3xs">
+                🔒 your chats are deleted instantly
+            </div>
+
+            <!-- Textarea -->
             <div class="relative">
                 <textarea id="chatInput" rows="9"
                     placeholder="Examples:&#10;• We keep having the same argument.&#10;• She says she needs space.&#10;• He suddenly became distant.&#10;• I don't know if I'm overthinking this.&#10;&#10;You can paste actual messages or describe the situation in your own words — both work."
@@ -253,6 +255,11 @@
             <!-- ══ GATED CONTENT WRAPPER ══ -->
             <div id="reportGateOverlay">
 
+                <!-- Confirmation that the report was emailed — appears after gate unlocks, stays visible -->
+                <div id="reportSavedBanner" class="hidden mb-6 bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
+                    <span class="text-emerald-500 font-bold">✓</span><span>Saved — this report is on its way to your inbox too.</span>
+                </div>
+
                 <!-- This content gets blurred when gate is active -->
                 <div id="gatedContentInner" class="space-y-8">
 
@@ -318,46 +325,6 @@
                         </div>
                     </div>
 
-                    <!-- Email report panel -->
-                    <div id="emailPanel" class="border-2 border-stone-900 rounded-xl bg-[#FAF9F5] p-5 space-y-4 shadow-sm">
-                        <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-full bg-stone-900 flex items-center justify-center shrink-0">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-[#FAF9F5]"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                            </div>
-                            <div>
-                                <p class="text-sm font-semibold text-stone-900 tracking-tight">Don't lose this insight</p>
-                                <p class="text-[11px] text-stone-500 font-light">Send the full report to your inbox — for yourself or your partner</p>
-                            </div>
-                        </div>
-                        <div id="emailExpanded">
-                            <div class="space-y-4">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[10px] text-stone-400 uppercase tracking-widest font-medium shrink-0">Send to</span>
-                                    <div class="flex gap-1">
-                                        <button type="button" id="optMe" onclick="selectOpt('me')" class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-300 text-stone-600 bg-white hover:border-stone-500 transition-all cursor-pointer">me</button>
-                                        <button type="button" id="optPartner" onclick="selectOpt('partner')" class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-300 text-stone-600 bg-white hover:border-stone-500 transition-all cursor-pointer">partner</button>
-                                        <button type="button" id="optBoth" onclick="selectOpt('both')" class="px-3 py-1 text-[11px] font-medium rounded-full border border-stone-300 text-stone-600 bg-white hover:border-stone-500 transition-all cursor-pointer">both</button>
-                                    </div>
-                                </div>
-                                <div id="emailInputs" class="hidden space-y-2">
-                                    <div id="selfInputWrap" class="hidden">
-                                        <input id="emailSelf" type="email" placeholder="your@email.com" class="w-full px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
-                                    </div>
-                                    <div id="partnerInputWrap" class="hidden input-reveal">
-                                        <input id="emailPartner" type="email" placeholder="partner@email.com" class="w-full px-4 py-2.5 text-sm bg-white border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
-                                    </div>
-                                    <button id="emailReportBtn" onclick="emailReport()" class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs">Send Report</button>
-                                </div>
-                                <div id="emailSuccessBanner" class="hidden animate-banner-slide bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
-                                    <span class="text-emerald-500">✓</span><span id="emailSuccessText">Report sent!</span>
-                                </div>
-                                <div id="emailErrorBanner" class="hidden bg-red-50/50 border border-red-200/50 text-red-700 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
-                                    <span>✕</span><span id="emailErrorText">Something went wrong.</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                 </div><!-- end gatedContentInner -->
 
                 <!-- ══ GATE CTA — overlays gated content ══ -->
@@ -366,15 +333,15 @@
                         <div class="space-y-2 text-center">
                             <div class="text-2xl">✨</div>
                             <h3 class="text-lg font-normal text-stone-900 serif-font italic leading-snug">Your full report is ready.</h3>
-                            <p class="text-xs text-stone-500 font-light leading-relaxed">Enter your email to view your complete analysis — interpersonal dynamics, personality traits, Truvah ID card, and next steps.</p>
+                            <p class="text-xs text-stone-500 font-light leading-relaxed">We don't store your conversation — it's already scheduled for deletion. Enter your email and we'll save this report there before it's gone.</p>
                         </div>
-                        <div class="space-y-2">
+                        <div id="reportGateForm" class="space-y-2">
                             <input id="reportGateEmail" type="email" placeholder="your@email.com"
                                 class="w-full px-4 py-2.5 text-sm bg-white/70 border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
                             <p id="reportGateError" class="hidden text-[11px] text-red-500 font-light"></p>
                             <button onclick="submitReportGate()" id="reportGateBtn"
                                 class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs">
-                                View Full Report
+                                Save & View Full Report
                             </button>
                         </div>
                         <p class="text-[10px] text-stone-400 font-light text-center">🔒 Private. Your data is never shared.</p>
@@ -456,7 +423,7 @@ function track(ev, props) {
 /* ══ Constants & State ══ */
 const PRIMARY_USER_ID='093236df-7fb5-46ba-9188-c511145689ec';
 const EMAIL_REGEX=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-let latestAnalytics=null, activeRecipientOption=null, currentUserId=null, currentInviteCount=0;
+let latestAnalytics=null, currentUserId=null, currentInviteCount=0;
 
 /* Textarea tracking */
 const chatInputEl=document.getElementById('chatInput');
@@ -636,9 +603,10 @@ async function submitReportGate(){
     const email=document.getElementById('reportGateEmail').value.trim();
     const errEl=document.getElementById('reportGateError');
     const btn=document.getElementById('reportGateBtn');
+    const sentBanner=document.getElementById('reportSavedBanner');
     errEl.classList.add('hidden');
     if(!email||!EMAIL_REGEX.test(email)){errEl.innerText='Please enter a valid email address.';errEl.classList.remove('hidden');return;}
-    btn.disabled=true;btn.innerText='Unlocking...';
+    btn.disabled=true;btn.innerText='Saving...';
     track('report_gate_email_submitted');
     try{
         const res=await fetch('/api/request-without-invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
@@ -653,9 +621,16 @@ async function submitReportGate(){
             }
         }
         unlockReport();
+        /* Save the report to their inbox now that we have an address, since the
+           conversation itself is about to be deleted and this is the one copy. */
+        if(latestAnalytics){
+            fetch('/api/send-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipients:[email],analytics:latestAnalytics})})
+                .then(r=>{if(r.ok){sentBanner&&sentBanner.classList.remove('hidden');track('report_gate_email_sent_success');}else{track('report_gate_email_sent_error');}})
+                .catch(()=>track('report_gate_email_sent_error'));
+        }
     }catch(err){
         errEl.innerText='Something went wrong. Please try again.';errEl.classList.remove('hidden');
-        btn.disabled=false;btn.innerText='View Full Report';
+        btn.disabled=false;btn.innerText='Save & View Full Report';
         track('report_gate_error',{error:err.message});
     }
 }
@@ -716,45 +691,6 @@ async function sendInvite(){
     }catch(err){document.getElementById('inviteErrorText').innerText='Could not send invite: '+err.message;eb.classList.remove('hidden');track('invite_send_error',{error:err.message});btn.disabled=false;btn.innerText='Send Invite';}
 }
 
-/* ══ EMAIL PANEL ══ */
-function selectOpt(option){
-    activeRecipientOption=option;
-    ['me','partner','both'].forEach(o=>{
-        const el=document.getElementById('opt'+o.charAt(0).toUpperCase()+o.slice(1));el.style.cssText='';
-        if(o===option){el.style.borderColor='#1c1917';el.style.background='#1c1917';el.style.color='#fafaf9';el.style.fontWeight='600';}
-    });
-    const iw=document.getElementById('emailInputs'),sw=document.getElementById('selfInputWrap'),pw=document.getElementById('partnerInputWrap');
-    iw.classList.remove('hidden');
-    if(option==='me'||option==='both'){sw.classList.remove('hidden');sw.classList.add('input-reveal');}else{sw.classList.add('hidden');document.getElementById('emailSelf').value='';}
-    if(option==='partner'||option==='both'){pw.classList.remove('hidden');pw.classList.add('input-reveal');}else{pw.classList.add('hidden');document.getElementById('emailPartner').value='';}
-    track('email_recipient_selected',{option});
-}
-async function emailReport(){
-    if(!latestAnalytics)return;
-    const se=document.getElementById('emailSelf').value.trim(),pe=document.getElementById('emailPartner').value.trim();
-    const sb=document.getElementById('emailSuccessBanner'),eb=document.getElementById('emailErrorBanner');
-    sb.classList.add('hidden');eb.classList.add('hidden');
-    track('email_report_send_clicked',{recipient_option:activeRecipientOption});
-    if(!se&&!pe){document.getElementById('emailErrorText').innerText='Please enter at least one email address.';eb.classList.remove('hidden');return;}
-    if(se&&!EMAIL_REGEX.test(se)){document.getElementById('emailErrorText').innerText='Your email looks invalid.';eb.classList.remove('hidden');return;}
-    if(pe&&!EMAIL_REGEX.test(pe)){document.getElementById('emailErrorText').innerText="Your partner's email looks invalid.";eb.classList.remove('hidden');return;}
-    const recipients=[se,pe].filter(Boolean);
-    const btn=document.getElementById('emailReportBtn');btn.disabled=true;btn.innerText='Sending...';
-    recipients.forEach(r=>{
-        fetch('/api/request-without-invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:r})}).catch(()=>{});
-    });
-    try{
-        const res=await fetch('/api/send-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipients,analytics:latestAnalytics})});
-        const result=await res.json();if(!res.ok)throw new Error(result.error||'Email sending failed');
-        document.getElementById('emailSuccessText').innerText=recipients.length===2?'Sent to both of you.':'Report sent to your inbox.';
-        sb.classList.remove('hidden');btn.innerText='✓ Sent';btn.classList.replace('bg-stone-950','bg-emerald-700');
-        track('email_report_sent_success',{recipient_count:recipients.length,recipient_option:activeRecipientOption});
-    }catch(err){
-        document.getElementById('emailErrorText').innerText='Could not send: '+err.message;eb.classList.remove('hidden');
-        track('email_report_send_error',{error:err.message});btn.disabled=false;btn.innerText='Send Report';
-    }
-}
-
 /* ══ ANALYZE ══ */
 async function analyzeChat(){
     const cie=document.getElementById('chatInput'),chatLog=cie.value.trim();
@@ -808,13 +744,11 @@ async function analyzeChat(){
         document.getElementById('toxicityVal').innerText=scores.toxicity||'--';document.getElementById('toxicityReason').innerText=scores.toxicity_reason||'';
         document.getElementById('summaryText').innerText=scores.summary?`"${scores.summary}"`:'' ;
 
-        /* Reset email panel */
-        activeRecipientOption=null;
-        ['Me','Partner','Both'].forEach(o=>{const el=document.getElementById('opt'+o);if(el)el.style.cssText='';});
-        ['emailInputs','selfInputWrap','partnerInputWrap'].forEach(id=>document.getElementById(id).classList.add('hidden'));
-        document.getElementById('emailSelf').value='';document.getElementById('emailPartner').value='';
-        document.getElementById('emailSuccessBanner').classList.add('hidden');document.getElementById('emailErrorBanner').classList.add('hidden');
-        const erb=document.getElementById('emailReportBtn');if(erb){erb.disabled=false;erb.innerText='Send Report';erb.style.cssText='';erb.className='w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs';}
+        /* Reset gate form for this new analysis */
+        const rgEmail=document.getElementById('reportGateEmail');if(rgEmail)rgEmail.value='';
+        const rgErr=document.getElementById('reportGateError');if(rgErr)rgErr.classList.add('hidden');
+        const rgSavedBanner=document.getElementById('reportSavedBanner');if(rgSavedBanner)rgSavedBanner.classList.add('hidden');
+        const rgBtn=document.getElementById('reportGateBtn');if(rgBtn){rgBtn.disabled=false;rgBtn.innerText='Save & View Full Report';}
 
         /* Profile cards */
         if(scores.profiles&&Array.isArray(scores.profiles)){
