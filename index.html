@@ -614,7 +614,7 @@ async function submitReportGate(){
     const btn=document.getElementById('reportGateBtn');
     errEl.classList.add('hidden');
     if(!email||!EMAIL_REGEX.test(email)){errEl.innerText='Please enter a valid email address.';errEl.classList.remove('hidden');return;}
-    btn.disabled=true;btn.innerText='Saving...';
+    btn.disabled=true;btn.innerText='Sending...';
     track('report_gate_email_submitted');
     try{
         const res=await fetch('/api/request-without-invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
