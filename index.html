@@ -256,7 +256,7 @@
 
                 <!-- Confirmation that the report was emailed — appears after gate unlocks, stays visible -->
                 <div id="reportSavedBanner" class="hidden mb-6 bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
-                    <span class="text-emerald-500 font-bold">✓</span><span>Saved — this report is on its way to your inbox too.</span>
+                    <span class="text-emerald-500 font-bold">✓</span><span>Sent — this report is on its way to your inbox.</span>
                 </div>
 
                 <!-- This content gets blurred when gate is active -->
@@ -340,7 +340,7 @@
                             <p id="reportGateError" class="hidden text-[11px] text-red-500 font-light"></p>
                             <button onclick="submitReportGate()" id="reportGateBtn"
                                 class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs">
-                                Save & View Full Report
+                                Get Full Report
                             </button>
                         </div>
                         <p class="text-[10px] text-stone-400 font-light text-center">🔒 Your report will be removed. Save it to your inbox.</p>
@@ -626,7 +626,7 @@ async function submitReportGate(){
             }
         }
         unlockReport();
-        btn.disabled=false;btn.innerText='Save & View Full Report';
+        btn.disabled=false;btn.innerText='Get Full Report';
         /* Save the report to their inbox now that we have an address, since the
            conversation itself is about to be deleted and this is the one copy. */
         if(latestAnalytics){
@@ -636,7 +636,7 @@ async function submitReportGate(){
         }
     }catch(err){
         errEl.innerText='Something went wrong. Please try again.';errEl.classList.remove('hidden');
-        btn.disabled=false;btn.innerText='Save & View Full Report';
+        btn.disabled=false;btn.innerText='Get Full Report';
         track('report_gate_error',{error:err.message});
     }
 }
@@ -754,7 +754,7 @@ async function analyzeChat(){
         const rgEmail=document.getElementById('reportGateEmail');if(rgEmail)rgEmail.value='';
         const rgErr=document.getElementById('reportGateError');if(rgErr)rgErr.classList.add('hidden');
         const rgSavedBanner=document.getElementById('reportSavedBanner');if(rgSavedBanner)rgSavedBanner.classList.add('hidden');
-        const rgBtn=document.getElementById('reportGateBtn');if(rgBtn){rgBtn.disabled=false;rgBtn.innerText='Save & View Full Report';}
+        const rgBtn=document.getElementById('reportGateBtn');if(rgBtn){rgBtn.disabled=false;rgBtn.innerText='Get Full Report';}
 
         /* Profile cards */
         if(scores.profiles&&Array.isArray(scores.profiles)){
