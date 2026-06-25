@@ -59,20 +59,32 @@
             pointer-events: none;
             user-select: none;
         }
+        /* Sits over the top portion of the blurred content rather than centering
+           on the full (very tall) blurred block, so the prompt appears near the
+           top of the gated area instead of drifting down past the fold. */
         #reportGateCTA {
             display:none;
             position:absolute;
-            top:0; left:0; right:0; bottom:0;
-            background: linear-gradient(to bottom, rgba(250,249,245,0.2) 0%, rgba(250,249,245,0.97) 30%);
+            top:0; left:0; right:0;
+            min-height: 420px;
+            background: linear-gradient(to bottom, rgba(250,249,245,0.35) 0%, rgba(250,249,245,0.55) 60%, rgba(250,249,245,0.7) 100%);
             z-index:10;
             flex-direction:column;
             align-items:center;
-            justify-content:center;
-            padding: 2rem;
+            justify-content:flex-start;
+            padding: 1.75rem;
+            padding-top: 2.5rem;
             text-align:center;
         }
-        #reportGateOverlay.active #reportGateCTA {
-            display:flex;
+        /* The card itself: neutral translucent "glass" surface so it reads
+           consistently regardless of what's blurred behind it (white panels
+           or the dark ID card), rather than inheriting a flat white box look. */
+        #reportGateCTA .gate-card {
+            background: rgba(250,249,245,0.82);
+            backdrop-filter: blur(14px) saturate(1.1);
+            -webkit-backdrop-filter: blur(14px) saturate(1.1);
+            border: 1px solid rgba(28,25,23,0.08);
+            box-shadow: 0 8px 30px -4px rgba(28,25,23,0.12);
         }
     </style>
 </head>
@@ -184,11 +196,6 @@
                         Recurring Conflict
                     </button>
                 </div>
-            </div>
-
-            <div class="flex items-start gap-2 bg-emerald-50/40 border border-emerald-200/40 rounded-xl px-3.5 py-2.5">
-                <span class="text-emerald-600 text-xs mt-0.5">🔒</span>
-                <p class="text-[11px] text-stone-600 font-light leading-relaxed">Conversations are deleted instantly — nothing is stored.</p>
             </div>
 
             <div id="deleteSuccessBanner" class="hidden bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 p-3.5 rounded-xl text-xs font-light flex items-center gap-2">
@@ -355,7 +362,7 @@
 
                 <!-- ══ GATE CTA — overlays gated content ══ -->
                 <div id="reportGateCTA">
-                    <div class="bg-white border border-stone-200/60 rounded-2xl shadow-md p-8 max-w-sm w-full space-y-5">
+                    <div class="gate-card rounded-2xl shadow-md p-8 max-w-sm w-full space-y-5">
                         <div class="space-y-2 text-center">
                             <div class="text-2xl">✨</div>
                             <h3 class="text-lg font-normal text-stone-900 serif-font italic leading-snug">Your full report is ready.</h3>
@@ -363,7 +370,7 @@
                         </div>
                         <div class="space-y-2">
                             <input id="reportGateEmail" type="email" placeholder="your@email.com"
-                                class="w-full px-4 py-2.5 text-sm bg-[#FAF9F5] border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
+                                class="w-full px-4 py-2.5 text-sm bg-white/70 border border-stone-200/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 placeholder-stone-300 text-stone-700 transition-all" />
                             <p id="reportGateError" class="hidden text-[11px] text-red-500 font-light"></p>
                             <button onclick="submitReportGate()" id="reportGateBtn"
                                 class="w-full bg-stone-950 hover:bg-stone-800 text-[#FAF9F5] font-medium py-3 px-6 rounded-xl transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 text-xs tracking-[0.12em] uppercase shadow-xs">
@@ -612,7 +619,7 @@ function showReportGate(){
     overlay.classList.add('active');
     inner.classList.add('gate-blur');
     document.getElementById('reportGateCTA').style.display='flex';
-    // Scroll to gate
+    // Scroll the gate prompt into view at the top of the gated section
     overlay.scrollIntoView({behavior:'smooth',block:'start'});
     track('report_gate_shown');
 }
